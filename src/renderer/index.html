@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Minecraft Server Command Center</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="titlebar">
+        <div class="titlebar__brand" aria-label="Minecraft Server Command Center">
+          <span class="app-mark" aria-hidden="true"><span>›</span><i></i></span>
+          <span class="titlebar__copy">
+            <strong>Minecraft Server Command Center</strong>
+            <small>Guided desktop foundation</small>
+          </span>
+        </div>
+        <div class="titlebar__window-controls" aria-label="Window controls">
+          <button class="icon-button" type="button" data-window-action="minimize" aria-label="Minimize window">−</button>
+          <button class="icon-button" type="button" data-window-action="maximize" aria-label="Maximize window">□</button>
+          <button class="icon-button icon-button--close" type="button" data-window-action="close" aria-label="Close window">×</button>
+        </div>
+      </header>
+
+      <div class="app-layout">
+        <nav class="navigation-rail" aria-label="Command Center sections">
+          <div class="navigation-rail__label">SETUP</div>
+          <div class="tab-list" role="tablist" aria-orientation="vertical">
+            <button class="nav-tab is-active" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview" tabindex="0" data-tab="overview">
+              <span aria-hidden="true">◇</span><span>Overview</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-runtime" id="tab-runtime" tabindex="-1" data-tab="runtime">
+              <span aria-hidden="true">◈</span><span>Runtime</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-world" id="tab-world" tabindex="-1" data-tab="world">
+              <span aria-hidden="true">◉</span><span>World</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-access" id="tab-access" tabindex="-1" data-tab="access">
+              <span aria-hidden="true">⌁</span><span>Access</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-paths" id="tab-paths" tabindex="-1" data-tab="paths">
+              <span aria-hidden="true">▣</span><span>Paths</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-preview" id="tab-preview" tabindex="-1" data-tab="preview">
+              <span aria-hidden="true">›_</span><span>Start preview</span>
+            </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-catalog" id="tab-catalog" tabindex="-1" data-tab="catalog">
+              <span aria-hidden="true">☷</span><span>CLI catalog</span>
+            </button>
+          </div>
+          <div class="navigation-rail__footer">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Draft stored locally</span>
+          </div>
+        </nav>
+
+        <main class="workspace">
+          <section class="workspace-header">
+            <div>
+              <p class="eyebrow">Server configuration</p>
+              <h1 id="workspace-title">Create a bounded setup draft</h1>
+              <p id="workspace-subtitle">Choose meaningful values through controls. This foundation never turns them into a shell command.</p>
+            </div>
+            <div class="header-actions">
+              <button class="outlined-button" type="button" id="reset-draft">Reset draft</button>
+              <span class="save-state" id="save-state" role="status" aria-live="polite">Loading local draft…</span>
+            </div>
+          </section>
+
+          <section class="notice-card" aria-labelledby="launch-boundary-title">
+            <div class="notice-card__icon" aria-hidden="true">⏳</div>
+            <div>
+              <h2 id="launch-boundary-title">Server launch is intentionally unavailable</h2>
+              <p>This foundation creates a normalized local draft and direct argument-token preview only. A later safety route must validate files, EULA handling, credentials, ports, process lifecycle, and recovery before any server can start.</p>
+            </div>
+          </section>
+
+          <form id="server-form" novalidate>
+            <section class="tab-panel is-active" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" data-panel="overview">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">01 · Identity</p>
+                  <h2>Describe the server you intend to prepare</h2>
+                </div>
+                <span class="section-heading__chip">Local draft</span>
+              </div>
+              <div class="form-grid">
+                <label class="field field--wide">
+                  <span class="field__label">Server display name</span>
+                  <span class="field__hint">Used only in this local draft. It does not rename a JAR or change a package identity.</span>
+                  <input data-field="serverName" type="text" maxlength="120" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Server kind</span>
+                  <span class="field__hint">Paper exposes a bounded subset of documented startup arguments; Spigot-specific pass-through remains unavailable.</span>
+                  <select data-field="serverKind">
+                    <option value="paper">Paper</option>
+                    <option value="spigot">Spigot</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Minecraft version</span>
+                  <span class="field__hint">A planning value only; this scaffold does not download a server JAR.</span>
+                  <input data-field="minecraftVersion" type="text" maxlength="32" placeholder="1.21.4" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Paper build</span>
+                  <span class="field__hint">Optional build label; no network lookup or installer action happens here.</span>
+                  <input data-field="paperBuild" type="text" maxlength="32" placeholder="for example, 123" autocomplete="off" />
+                </label>
+                <label class="field field--wide">
+                  <span class="field__label">Server root folder</span>
+                  <span class="field__hint">Choose the intended folder with the native picker or type a local path. No files are changed.</span>
+                  <span class="path-control">
+                    <input data-field="serverRoot" type="text" maxlength="2048" spellcheck="false" autocomplete="off" />
+                    <button class="input-action" type="button" data-picker-kind="folder" data-picker-target="serverRoot">Browse folder</button>
+                  </span>
+                </label>
+                <label class="field field--wide">
+                  <span class="field__label">Server JAR</span>
+                  <span class="field__hint">The preview treats this as one direct process argument, never as text interpreted by a shell.</span>
+                  <span class="path-control">
+                    <input data-field="serverJar" type="text" maxlength="2048" spellcheck="false" autocomplete="off" />
+                    <button class="input-action" type="button" data-picker-kind="jar" data-picker-target="serverJar">Browse JAR</button>
+                  </span>
+                </label>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-runtime" aria-labelledby="tab-runtime" data-panel="runtime" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">02 · Runtime</p>
+                  <h2>Set resource planning bounds and acknowledge the EULA</h2>
+                </div>
+                <span class="section-heading__chip">No execution</span>
+              </div>
+              <div class="form-grid">
+                <label class="field">
+                  <span class="field__label">Java runtime</span>
+                  <span class="field__hint" id="java-runtime-hint">Choose a managed planning target or a local executable.</span>
+                  <select data-field="javaRuntime" aria-describedby="java-runtime-hint">
+                    <option value="auto">Automatically resolve Java</option>
+                    <option value="java-17">Prefer Java 17</option>
+                    <option value="java-21">Prefer Java 21</option>
+                    <option value="java-25">Prefer Java 25</option>
+                    <option value="custom">Choose a Java executable</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Custom Java executable</span>
+                  <span class="field__hint">Used only when “Choose a Java executable” is selected.</span>
+                  <span class="path-control">
+                    <input data-field="javaExecutable" type="text" maxlength="2048" spellcheck="false" autocomplete="off" />
+                    <button class="input-action" type="button" data-picker-kind="java" data-picker-target="javaExecutable">Browse Java</button>
+                  </span>
+                </label>
+                <label class="field">
+                  <span class="field__label">Initial memory (MiB)</span>
+                  <span class="field__hint">Bounded from 256 MiB to 1 TiB. It becomes a direct -Xms token in the preview.</span>
+                  <input data-field="memoryInitialMiB" type="number" min="256" max="1048576" step="128" inputmode="numeric" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Maximum memory (MiB)</span>
+                  <span class="field__hint">Bounded from 256 MiB to 1 TiB. It becomes a direct -Xmx token in the preview.</span>
+                  <input data-field="memoryMaximumMiB" type="number" min="256" max="1048576" step="128" inputmode="numeric" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Disk reserve (MiB)</span>
+                  <span class="field__hint">A planning threshold only. No storage probe or reservation is performed.</span>
+                  <input data-field="diskReserveMiB" type="number" min="0" max="1048576" step="128" inputmode="numeric" />
+                </label>
+                <label class="toggle-field field--wide">
+                  <input data-field="eulaAcknowledged" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span>
+                    <strong>I acknowledge that a Minecraft server requires acceptance of the Minecraft EULA.</strong>
+                    <small>This records acknowledgement in the local draft only. It does not create or modify <code>eula.txt</code>.</small>
+                  </span>
+                </label>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-world" aria-labelledby="tab-world" data-panel="world" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">03 · World</p>
+                  <h2>Plan first-world behavior without modifying a save</h2>
+                </div>
+                <span class="section-heading__chip">Configuration intent</span>
+              </div>
+              <div class="form-grid">
+                <label class="field">
+                  <span class="field__label">World name</span>
+                  <span class="field__hint">Appears in the supported direct Paper preview as the level-name value.</span>
+                  <input data-field="worldName" type="text" maxlength="120" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Seed</span>
+                  <span class="field__hint">Saved only as a draft field. This scaffold does not write server.properties.</span>
+                  <input data-field="seed" type="text" maxlength="256" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Game mode</span>
+                  <select data-field="gameMode">
+                    <option value="survival">Survival</option>
+                    <option value="creative">Creative</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="spectator">Spectator</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Difficulty</span>
+                  <select data-field="difficulty">
+                    <option value="peaceful">Peaceful</option>
+                    <option value="easy">Easy</option>
+                    <option value="normal">Normal</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </label>
+                <label class="toggle-field">
+                  <input data-field="safeMode" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Safe mode</strong><small>Paper-only preview option that loads only the Vanilla datapack.</small></span>
+                </label>
+                <label class="toggle-field">
+                  <input data-field="initSettings" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Initialize settings only</strong><small>Paper-only preview option; no action is performed here.</small></span>
+                </label>
+                <label class="toggle-field">
+                  <input data-field="demoMode" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Demo mode</strong><small>Paper-only preview option with a fixed demonstration world.</small></span>
+                </label>
+                <label class="toggle-field">
+                  <input data-field="bonusChest" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Bonus chest</strong><small>Paper-only preview option for a new world.</small></span>
+                </label>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-access" aria-labelledby="tab-access" data-panel="access" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">04 · Access</p>
+                  <h2>Plan network and remote-console settings visibly</h2>
+                </div>
+                <span class="section-heading__chip">No network actions</span>
+              </div>
+              <div class="form-grid">
+                <label class="toggle-field">
+                  <input data-field="onlineMode" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Online mode</strong><small>Appears as a direct boolean startup argument in the preview.</small></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">Host or bind address</span>
+                  <span class="field__hint">Optional. A blank field leaves the runtime’s normal bind behavior intact.</span>
+                  <input data-field="host" type="text" maxlength="255" placeholder="for example, 127.0.0.1" spellcheck="false" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Server port</span>
+                  <span class="field__hint">Bounded to 1–65535 and shown as a direct numeric argument token.</span>
+                  <input data-field="port" type="number" min="1" max="65535" step="1" inputmode="numeric" />
+                </label>
+                <label class="toggle-field">
+                  <input data-field="rconEnabled" type="checkbox" />
+                  <span class="toggle-field__control" aria-hidden="true"></span>
+                  <span><strong>Enable RCON planning</strong><small>No RCON password control exists yet, and this scaffold never starts or opens RCON.</small></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">RCON port</span>
+                  <span class="field__hint">Stored as a bounded configuration intent only.</span>
+                  <input data-field="rconPort" type="number" min="1" max="65535" step="1" inputmode="numeric" />
+                </label>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-paths" aria-labelledby="tab-paths" data-panel="paths" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">05 · Paths and modes</p>
+                  <h2>Choose configuration files, console behavior, and UI mode</h2>
+                </div>
+                <span class="section-heading__chip">Native pickers</span>
+              </div>
+              <div class="form-grid">
+                <label class="field field--wide">
+                  <span class="field__label">Plugins directory</span>
+                  <span class="path-control"><input data-field="pluginsDirectory" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="folder" data-picker-target="pluginsDirectory">Browse folder</button></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">server.properties</span>
+                  <span class="path-control"><input data-field="serverPropertiesPath" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="config" data-picker-target="serverPropertiesPath">Browse file</button></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">bukkit.yml</span>
+                  <span class="path-control"><input data-field="bukkitSettingsPath" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="config" data-picker-target="bukkitSettingsPath">Browse file</button></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">spigot.yml</span>
+                  <span class="path-control"><input data-field="spigotSettingsPath" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="config" data-picker-target="spigotSettingsPath">Browse file</button></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">Paper config directory</span>
+                  <span class="path-control"><input data-field="paperConfigDirectory" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="folder" data-picker-target="paperConfigDirectory">Browse folder</button></span>
+                </label>
+                <label class="field field--wide">
+                  <span class="field__label">commands.yml</span>
+                  <span class="path-control"><input data-field="commandsSettingsPath" type="text" maxlength="2048" spellcheck="false" autocomplete="off" /><button class="input-action" type="button" data-picker-kind="config" data-picker-target="commandsSettingsPath">Browse file</button></span>
+                </label>
+                <label class="field">
+                  <span class="field__label">Console mode</span>
+                  <span class="field__hint">Only Paper maps the non-default options into the focused direct-token preview.</span>
+                  <select data-field="consoleMode">
+                    <option value="interactive">Interactive console</option>
+                    <option value="no-console">Disable console (Paper)</option>
+                    <option value="vanilla-console">Vanilla console (Paper)</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Server UI mode</span>
+                  <span class="field__hint">Headless maps to --nogui in the preview. The desktop shell itself remains available.</span>
+                  <select data-field="uiMode">
+                    <option value="headless">Headless server</option>
+                    <option value="server-gui">Server GUI requested</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-preview" aria-labelledby="tab-preview" data-panel="preview" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">06 · Direct argument preview</p>
+                  <h2>Inspect each token without constructing a shell command</h2>
+                </div>
+                <span class="section-heading__chip">Read only</span>
+              </div>
+              <div class="preview-layout">
+                <article class="preview-card">
+                  <header>
+                    <div>
+                      <h3>Direct argv tokens</h3>
+                      <p>Each row is one intended process argument. Spaces remain inside the same token; no command interpreter is involved.</p>
+                    </div>
+                    <span class="badge badge--safe">No shell</span>
+                  </header>
+                  <ol class="argv-list" id="argv-preview" aria-label="Direct argument vector preview"></ol>
+                </article>
+                <aside class="launch-card" aria-labelledby="launch-card-title">
+                  <span class="launch-card__icon" aria-hidden="true">🛡</span>
+                  <h3 id="launch-card-title">Launch route unavailable</h3>
+                  <p id="launch-readiness">Waiting for safety-route implementation.</p>
+                  <button class="filled-button" type="button" disabled aria-describedby="launch-readiness">Start server unavailable</button>
+                  <small>The disabled action is deliberate: this desktop foundation owns no process-spawn or arbitrary-command capability.</small>
+                </aside>
+              </div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-catalog" aria-labelledby="tab-catalog" data-panel="catalog" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Reference · Paper and Spigot</p>
+                  <h2>Structured CLI catalog</h2>
+                </div>
+                <span class="section-heading__chip">Bounded registry</span>
+              </div>
+              <p class="catalog-source" id="catalog-source">Loading the bounded catalog…</p>
+              <div class="catalog-grid" id="catalog-grid" aria-live="polite"></div>
+            </section>
+          </form>
+        </main>
+      </div>
+      <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
+    </div>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
+

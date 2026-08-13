@@ -2,47 +2,56 @@
 
 ## Status
 
-This is a source-only companion-site foundation. It has no deployment, public
-endpoint, release, installer, server integration, or external-service
-integration to verify.
+Minecraft Server Command Center currently contains source-only companion-site
+and desktop-foundation work. It has no verified deployment, public endpoint,
+release, installer operation, server integration, external-service connection,
+or live server action.
 
-## Completed foundation record
+## Completed source foundations
 
-- Documented the companion site's source-only and local-only boundary.
-- Defined the planning surfaces and the configuration-planner model.
-- Added continuation and handoff records that distinguish source work from
-  deployment or runtime evidence.
-- Added a sanitized operational mirror in `AGENTS.md` for future contributors.
+- Documented the browser-local companion site's planning boundary, destinations,
+  privacy limits, and continuation record.
+- Added the companion-site shell and planner source structure without claiming
+  a deployed site.
+- Added a typed desktop draft, context-isolated bridge, native picker boundary,
+  framed Material Design 3 renderer, and local persistence path.
+- Added a typed Paper/Spigot registry seam, direct token preview, visible
+  compatibility omissions, Squirrel.Windows packaging definition, unsigned
+  installer boundary, and automatic-update-unavailable state.
+- Added categorized desktop records, a hand-written completeness inventory, and
+  sanitized contributor guidance.
 
 ## Next implementation slices
 
-1. **Companion shell** — replace the starter screen with the accessible
-   browser-local planning navigation and clear empty states.
-2. **Planner schema** — define a bounded, versioned non-secret schema for
-   server profiles, configuration selections, command drafts, and exports.
-3. **Configuration controls** — render typed, validated controls with
-   provenance, effective values, restart requirements, and safety context.
-4. **Command guidance** — provide searchable, version-aware Paper, Spigot, and
-   vanilla command descriptions with command previews that never execute.
-5. **Privacy and reset** — provide visible local-storage status, export,
-   replace, and clear flows that do not retain paths, files, secrets, or
-   server-derived data.
-6. **Focused verification** — add source-level tests for validation, local
-   storage, accessibility, keyboard use, no-network behavior, and rendered
-   states.
+1. **Focused verification** — run authorized checks and exercise both the
+   built companion and packaged desktop app through the approved headless path.
+2. **Desktop configuration integration** — bind the desktop form to the
+   versioned configuration schema and version-aware Java requirements without
+   weakening its typed/no-shell boundary.
+3. **Companion planner completion** — finish browser-local controls,
+   validation, provenance, reset, and non-secret export behavior.
+4. **Lifecycle integration** — connect a separately reviewed lifecycle service
+   only after explicit confirmation, process ownership, logging, cancellation,
+   recovery, and real runtime evidence are in place.
+5. **Updater implementation** — add a verified unsigned-feed, hash-validation,
+   staging, restart, rollback, and unsaved-work route before replacing the
+   desktop's unavailable updater state.
+6. **Release evidence** — package through the documented Windows route,
+   validate unsigned artifacts, and record factual release/installer evidence
+   only after it exists.
 
 ## Explicitly deferred
 
-- Deploying, hosting, publishing, or advertising a live companion site.
-- Connecting to Minecraft servers, RCON, management protocols, local files,
-  external registries, or third-party APIs.
-- Handling passwords, tokens, keystores, player records, or any other secrets.
-- Releasing installers or treating this companion-site source as a production
-  control plane.
+- Connecting to servers, RCON, management protocols, or arbitrary console
+  commands without a separately authorized and verified safety route.
+- Handling passwords, tokens, keystores, player records, or other secrets.
+- Deploying or hosting a companion site without a separate authorization and
+  privacy/deployment record.
+- Representing an unsigned Squirrel packaging definition as a released or
+  installed application.
 
 ## Completion criteria for the next implementation task
 
-A future implementation slice is ready to hand off only when it has a bounded
-source scope, documented local-only data behavior, an explicit no-secret
-boundary, focused verification evidence, and no unsupported claim of
-deployment or live server control.
+A later slice is ready to hand off only when it has a bounded source scope,
+documented privacy and lifecycle behavior, focused evidence, and no unsupported
+claim of deployment, update, release, or live-server control.

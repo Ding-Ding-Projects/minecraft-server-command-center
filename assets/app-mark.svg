@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft Server Command Center mark</title>
+  <desc id="description">A command prompt chevron built from emerald blocks inside a rounded square.</desc>
+  <defs>
+    <linearGradient id="surface" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#143B35"/>
+      <stop offset="1" stop-color="#0B1715"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="114" y1="112" x2="381" y2="398" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#89F7C5"/>
+      <stop offset="1" stop-color="#17B77A"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="116" fill="url(#surface)"/>
+  <rect x="50" y="50" width="412" height="412" rx="98" fill="none" stroke="#B8F5D5" stroke-opacity=".24" stroke-width="12"/>
+  <path d="M119 158 229 256 119 354" fill="none" stroke="url(#emerald)" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/>
+  <path d="M266 354h127" fill="none" stroke="#F4FFF8" stroke-linecap="round" stroke-width="44"/>
+  <circle cx="132" cy="142" r="13" fill="#E3FFE9"/>
+  <circle cx="379" cy="378" r="10" fill="#A6F7CE"/>
+</svg>
+

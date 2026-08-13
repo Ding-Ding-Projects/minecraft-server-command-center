@@ -2,66 +2,83 @@
 
 ## Current snapshot
 
-The repository currently records a **source-only companion-site foundation**.
-The application source is under `site/`; the root documentation describes the
-planned local browser companion and does not claim a live site, deployment,
-external service, or server connection.
+The repository currently records two source-only foundations:
 
-## Documentation added in this foundation lane
+- a browser-local companion-site planner under `site/`; and
+- a Windows desktop configuration foundation under `src/`.
 
-- `README.md` — scope, boundaries, source map, and continuation sequence.
-- `ROADMAP.md` — ordered implementation work and explicitly deferred areas.
-- `docs/site/README.md` — documentation index and evidence boundary.
-- `docs/site/configuration-planner.md` — planner pages, schema, safety, local
-  storage, and no-execution contract.
-- `AGENTS.md` — sanitized operational mirror for subsequent contributors.
+Neither record proves a deployment, publication, release, installer operation,
+external-service integration, live server connection, or server-process action.
 
-## Behavioral contract
+## Companion-site record
 
-- The companion site is a browser-local planning and documentation surface.
-- It must not start, stop, query, configure, or otherwise control a Minecraft
-  server.
-- It must not require or retain secrets, private server information, account
-  material, file contents, server logs, or player data.
-- It must not call external services, perform telemetry, fetch remote assets,
-  publish a release, or imply a deployment without a separately authorized
-  implementation and verification task.
-- Any future retained data must be bounded, versioned, resettable, exportable,
-  and limited to non-secret planning records stored locally in the browser.
+The companion site is a browser-local planning and documentation surface. Its
+source documents the exact destinations Overview, Configure, Paper CLI, Spigot
+setup, Runtime, Safety, Docs, and Release status. It must not retain secrets,
+private server data, file contents, logs, player data, or browser information
+outside its bounded non-secret planner contract.
 
-## Canonical planner destinations
+Read `docs/site/README.md` and
+`docs/site/configuration-planner.md` before changing companion behavior.
 
-Use these exact public destination names when composing or documenting the
-companion-site navigation: **Overview**, **Configure**, **Paper CLI**, **Spigot
-setup**, **Runtime**, **Safety**, **Docs**, and **Release status**. The labels
-describe planning and documentation surfaces only; they do not grant server,
-deployment, or external-service capability.
+## Desktop foundation record
 
-## Source structure for the next owner
+The desktop source contains:
 
-| Location | Use it for |
-| --- | --- |
-| `site/app/page.tsx` | Primary companion-site screen composition. |
-| `site/app/layout.tsx` | Shared document layout and metadata. |
-| `site/app/globals.css` | Shared visual tokens and global styling. |
-| `site/public/` | Checked-in local static assets. |
-| `site/tests/` | Focused source-level coverage. |
-| `docs/site/` | Public contract and feature documentation. |
+- a normalized schema-version-1 server draft stored under Electron user data;
+- narrow native folder, JAR, Java, and configuration picker requests;
+- a frameless, sandboxed, context-isolated Material Design 3 renderer with
+  seven vertical setup tabs;
+- typed Paper/Spigot registry projection and direct argument-array preview;
+- explicit no-launch IPC and automatic-update-unavailable boundaries;
+- Windows Squirrel.Windows packaging configuration, unsigned-only settings,
+  root build scripts, and an SVG icon master generated to an ICO during build.
+
+The following desktop paths are source-only evidence:
+
+```text
+package.json
+electron-builder.yml
+vite.renderer.config.ts
+tsconfig.json
+tsconfig.main.json
+build.bat
+build-installer.bat
+.github/workflows/release.yml
+scripts/verify-unsigned.mjs
+assets/app-mark.svg
+src/shared/server-draft.ts
+src/shared/desktop-api.ts
+src/main/index.ts
+src/main/draft-store.ts
+src/main/argv-preview.ts
+src/main/cli-catalog.ts
+src/main/update-boundary.ts
+src/preload/index.ts
+src/renderer/index.html
+src/renderer/main.ts
+src/renderer/styles.css
+```
+
+The desktop renderer has no process-start IPC, shell command field, RCON
+transport, arbitrary-command execution route, or update transport. It should
+continue to render those facts honestly until separately implemented and
+verified.
 
 ## Verification boundary
 
-No build, lint, automated test, browser interaction, accessibility audit,
-deployment, publishing action, external service call, or release was performed
-for this documentation-only lane. The listed scripts in `site/package.json`
-remain available to future implementers but are not evidence for this handoff.
+No build, lint, automated test, browser/desktop interaction, accessibility
+audit, deployment, publishing action, external-service call, package, release,
+or server-process action is claimed by this handoff. Source paths and scripts
+are not proof that they ran.
 
 ## Safe continuation
 
-1. Read `docs/site/configuration-planner.md` before changing planner behavior.
-2. Keep the implementation browser-local and do not introduce a server or
-   external-service call as an incidental convenience.
-3. Give each new form field a clear non-secret data classification, validation,
-   persistence rule, reset route, and user-facing explanation.
-4. Add focused verification with the implementation; record exact results here.
-5. If a future task needs deployment, privileged server operations, credentials,
-   or an external integration, stop and obtain that task's explicit scope first.
+1. Preserve the companion site's browser-local, non-secret contract.
+2. Keep desktop changes behind the narrow bridge and typed registry seam.
+3. Exercise the built desktop application through the approved headless route
+   before claiming visual or interaction behavior.
+4. Record exact command, artifact, version, and capture evidence when a future
+   authorized verification or release lane performs it.
+5. Obtain explicit scope before adding secrets, live server control, updater
+   transport, deployment, or external integration.

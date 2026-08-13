@@ -1,0 +1,27 @@
+appId: com.minecraftservercommandcenter.desktop
+productName: Minecraft Server Command Center
+artifactName: ${productName}-${version}.${ext}
+directories:
+  output: release/squirrel-windows
+  buildResources: assets
+files:
+  - dist/**/*
+  - src/shared/paper-spigot-cli-catalog.cjs
+  - package.json
+asar: true
+npmRebuild: false
+forceCodeSigning: false
+win:
+  target:
+    - squirrel
+  icon: assets/app-mark.ico
+  forceCodeSigning: false
+  signExecutable: false
+  signAndEditExecutable: false
+  verifyUpdateCodeSignature: false
+squirrelWindows:
+  msi: false
+  artifactName: ${productName}-Setup-${version}.${ext}
+publish:
+  provider: github
+
