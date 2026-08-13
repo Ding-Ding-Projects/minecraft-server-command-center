@@ -8,6 +8,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | [Server lifecycle service](server-lifecycle.md) | Defines the implemented validation, direct launch, process-state, and bounded console-handling foundation. |
 | [Server Configuration Schema](server-configuration-schema.md) | Defines version-aware typed configuration controls, provenance, validation, safety classes, and leaf-only world overrides for Paper and Spigot. |
 | [Unsigned automatic-update foundation](unsigned-automatic-updates.md) | Defines the future Squirrel.Windows update-feed, parsing, package-selection, unsigned-artifact, and native-adapter boundaries without claiming a live update flow. |
+| [Server Configuration Writer Foundation](server-configuration-writer.md) | Defines the controlled, review-token-confirmed local writer for allowlisted scalar configuration patches, bounded atomic writes, redacted outcomes, rollback records, and leaf-only Paper world overrides. |
 
 ## Source policy
 
