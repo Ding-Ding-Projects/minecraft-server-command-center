@@ -159,9 +159,11 @@ function catalogEntry(option: CatalogOption): CliCatalogEntry {
 }
 
 function projectTypedCatalog(catalog: CatalogModule): CliCatalogProjection | null {
-  if (!Array.isArray(catalog.PAPER_CLI_CATEGORIES) || !Array.isArray(catalog.PAPER_CLI_OPTIONS)) return null;
-  const categories: CliCatalogCategory[] = catalog.PAPER_CLI_CATEGORIES.map((category) => {
-    const entries = catalog.PAPER_CLI_OPTIONS
+  const catalogCategories = catalog.PAPER_CLI_CATEGORIES;
+  const catalogOptions = catalog.PAPER_CLI_OPTIONS;
+  if (!Array.isArray(catalogCategories) || !Array.isArray(catalogOptions)) return null;
+  const categories: CliCatalogCategory[] = catalogCategories.map((category) => {
+    const entries = catalogOptions
       .filter((option) => option.category === category.id)
       .map(catalogEntry);
     return {

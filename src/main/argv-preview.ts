@@ -20,9 +20,9 @@ interface CatalogModule {
     };
   };
   readonly PAPER_CLI_OPTIONS: readonly CatalogOption[];
-  readonly emitPaperCliArgv(selection: UnknownRecord): readonly string[];
-  readonly emitSpigotCompatibleArgv(selection: UnknownRecord): readonly string[];
-  readonly emitManagedJvmArgv(selection: UnknownRecord): readonly string[];
+  readonly emitPaperCliArgv: (selection: UnknownRecord) => readonly string[];
+  readonly emitSpigotCompatibleArgv: (selection: UnknownRecord) => readonly string[];
+  readonly emitManagedJvmArgv: (selection: UnknownRecord) => readonly string[];
 }
 
 function readCatalog(): CatalogModule {

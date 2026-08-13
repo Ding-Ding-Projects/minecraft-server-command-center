@@ -162,7 +162,7 @@ export function normalizeServerDraft(value: unknown): ServerDraft {
     javaRuntime: enumValue(input.javaRuntime, JAVA_RUNTIMES, DEFAULT_SERVER_DRAFT.javaRuntime),
     javaExecutable: boundedPath(input.javaExecutable, DEFAULT_SERVER_DRAFT.javaExecutable),
     memoryInitialMiB: Math.min(initialCandidate, maximumMemoryMiB),
-    memoryMaximumMiB,
+    memoryMaximumMiB: maximumMemoryMiB,
     diskReserveMiB: boundedInteger(
       input.diskReserveMiB,
       DEFAULT_SERVER_DRAFT.diskReserveMiB,
