@@ -2,11 +2,11 @@
 
 ## Status and scope
 
-This reference describes the planned reusable lifecycle foundation for Minecraft servers in Minecraft Server Command Center. It is a boundary document, not a claim that the complete product runtime, download flow, configuration editor, or server-management UI is already available.
+This reference describes the implemented reusable lifecycle foundation for Minecraft servers in Minecraft Server Command Center. It is a boundary document, not a claim that the complete product runtime, download flow, configuration editor, or server-management UI is already available.
 
-The foundation is intended to let the desktop application validate a selected Paper or Spigot server profile, produce a controlled direct-process launch plan, supervise the resulting process, and expose safe, bounded console events. It is deliberately not a general command executor.
+The foundation lets the desktop application validate a selected Paper or Spigot server profile, produce a controlled direct-process launch plan, supervise the resulting process, and expose safe, bounded console events. It is deliberately not a general command executor.
 
-The planned module exports these integration points:
+The module exports these integration points:
 
 ```text
 ServerLifecycleService
@@ -106,7 +106,7 @@ The exact size limits belong to the service implementation so that every consume
 
 ## Verification status
 
-This reference was added with the lifecycle foundation lane. Under the active rapid-delivery scope, no automated checks, build, runtime launch, or screen capture were performed for this documentation change. Implementation verification must establish that the exported interface and behavior match this boundary before the service is represented as a completed server-management feature.
+The lifecycle source implementation and this reference landed together in the lifecycle foundation lane. Under the active rapid-delivery scope, no automated checks, build, runtime launch, or screen capture ran for this implementation or documentation. The foundation is therefore documented as implemented, while full-product verification and the separate download, configuration-editor, and server-management UI workflows remain outstanding.
 
 ## Suggested articles
 
