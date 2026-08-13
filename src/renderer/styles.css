@@ -366,6 +366,14 @@ h3 {
   font-size: 12px;
 }
 
+.update-state {
+  max-width: 220px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: right;
+}
+
 .notice-card {
   display: flex;
   max-width: 1240px;

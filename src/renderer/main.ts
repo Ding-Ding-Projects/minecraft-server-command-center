@@ -1,9 +1,8 @@
 import "./styles.css";
-import type { CliCatalogProjection, PickerKind } from "../shared/desktop-api";
+import type { ArgvPreview, CliCatalogProjection, PickerKind } from "../shared/desktop-api";
 import {
   DEFAULT_SERVER_DRAFT,
   describeJavaRuntime,
-  makeDirectArgv,
   normalizeServerDraft,
   type ServerDraft
 } from "../shared/server-draft";
@@ -16,8 +15,9 @@ const catalogGrid = document.querySelector<HTMLElement>("#catalog-grid");
 const catalogSource = document.querySelector<HTMLElement>("#catalog-source");
 const workspaceTitle = document.querySelector<HTMLElement>("#workspace-title");
 const workspaceSubtitle = document.querySelector<HTMLElement>("#workspace-subtitle");
+const updateState = document.querySelector<HTMLElement>("#update-state");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -69,9 +69,21 @@ function hydrateForm(): void {
   if (javaHint) javaHint.textContent = describeJavaRuntime(draft.javaRuntime);
 }
 
-function renderArgv(): void {
+async function renderArgv(): Promise<void> {
+  let preview: ArgvPreview;
+  try {
+    preview = await window.commandCenter.preview.get(draft);
+  } catch {
+    argvPreview.replaceChildren();
+    const item = document.createElement("li");
+    const message = document.createElement("code");
+    message.textContent = "Preview unavailable until the typed CLI registry is available.";
+    item.append(message);
+    argvPreview.append(item);
+    return;
+  }
   argvPreview.replaceChildren();
-  for (const [index, token] of makeDirectArgv(draft).entries()) {
+  for (const [index, token] of preview.tokens.entries()) {
     const item = document.createElement("li");
     const position = document.createElement("span");
     const content = document.createElement("code");
@@ -81,6 +93,16 @@ function renderArgv(): void {
     content.textContent = token;
     item.append(position, content);
     argvPreview.append(item);
+  }
+  if (preview.unsupported.length > 0) {
+    const notice = document.createElement("li");
+    const position = document.createElement("span");
+    const message = document.createElement("code");
+    position.className = "argv-list__position";
+    position.textContent = "!";
+    message.textContent = "Spigot-unavailable selections omitted: " + preview.unsupported.join(", ");
+    notice.append(position, message);
+    argvPreview.append(notice);
   }
 }
 
@@ -130,7 +152,7 @@ async function persistDraft(): Promise<void> {
     if (requestedVersion !== saveVersion) return;
     draft = saved;
     hydrateForm();
-    renderArgv();
+    void renderArgv();
     updateLaunchBoundary();
     writeSaveState("Saved locally");
     showSnackbar("Draft saved locally. No server files or processes were changed.");
@@ -156,7 +178,7 @@ async function usePicker(button: HTMLButtonElement): Promise<void> {
   if (!chosen) return;
   draft = normalizeServerDraft({ ...draft, [target]: chosen });
   hydrateForm();
-  renderArgv();
+  void renderArgv();
   schedulePersist();
 }
 
@@ -198,7 +220,7 @@ function bindInteraction(): void {
     if (!target.dataset.field) return;
     draft = draftFromControl(target);
     hydrateForm();
-    renderArgv();
+    void renderArgv();
     updateLaunchBoundary();
     schedulePersist();
   });
@@ -208,7 +230,7 @@ function bindInteraction(): void {
     if (!target.dataset.field) return;
     draft = draftFromControl(target);
     hydrateForm();
-    renderArgv();
+    void renderArgv();
     updateLaunchBoundary();
     schedulePersist();
   });
@@ -229,7 +251,7 @@ function bindInteraction(): void {
     if (reset) {
       draft = DEFAULT_SERVER_DRAFT;
       hydrateForm();
-      renderArgv();
+      void renderArgv();
       updateLaunchBoundary();
       schedulePersist();
       showSnackbar("Draft reset to the shipped bounded values.");
@@ -263,13 +285,13 @@ async function start(): Promise<void> {
   try {
     draft = await window.commandCenter.draft.load();
     hydrateForm();
-    renderArgv();
+    void renderArgv();
     updateLaunchBoundary();
     writeSaveState("Local draft ready");
   } catch {
     draft = DEFAULT_SERVER_DRAFT;
     hydrateForm();
-    renderArgv();
+    void renderArgv();
     updateLaunchBoundary();
     writeSaveState("Using a temporary draft");
     showSnackbar("A stored draft was unavailable. The safe default draft is shown.");
@@ -278,6 +300,13 @@ async function start(): Promise<void> {
     renderCatalog(await window.commandCenter.catalog.get());
   } catch {
     catalogSource.textContent = "The catalog could not be loaded. Unsupported arguments remain unavailable.";
+  }
+  try {
+    const update = await window.commandCenter.updater.get();
+    updateState.textContent = update.message;
+    updateState.title = update.reason;
+  } catch {
+    updateState.textContent = "Update status unavailable.";
   }
   activateTab(activeTab);
 }

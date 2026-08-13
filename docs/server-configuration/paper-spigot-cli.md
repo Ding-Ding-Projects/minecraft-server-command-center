@@ -8,7 +8,12 @@ Paper and Spigot options vary by server version and installed software. The prev
 
 ## Current mapped preview tokens
 
-The inspected shared draft maps a selected subset of Paper command-line concerns into direct argument tokens. The main-process catalog adapter either loads a versioned catalog module when it is available or returns a bounded visible fallback; it does not expose a free-form shell field.
+The inspected shared draft collects bounded values. A main-process adapter uses
+only the versioned Paper/Spigot registry's typed direct-array emitters when the
+registry is available; the desktop foundation does not retain a second
+raw-flag list. When that registry is unavailable, a bounded catalog fallback
+remains visible and the detailed preview is unavailable rather than
+synthesizing unchecked tokens.
 
 | Category | Current direct token mapping or availability | Notes |
 | --- | --- | --- |
@@ -40,7 +45,10 @@ The preview should show a sequence such as:
 java | -Xms2048M | -Xmx4096M | -jar | server.jar | --nogui | -p | 25565
 ```
 
-Each segment is a distinct argument token. The foundation must not concatenate these values into a shell expression, evaluate metacharacters, or use the preview as an implicit launch request. Copying a preview is not a lifecycle operation.
+Each segment is a distinct argument token from the typed registry. The
+foundation must not concatenate these values into a shell expression, evaluate
+metacharacters, or use the preview as an implicit launch request. Copying a
+preview is not a lifecycle operation.
 
 ## Configuration precedence and future validation
 

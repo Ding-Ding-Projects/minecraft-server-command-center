@@ -12,6 +12,12 @@ const desktopApi: DesktopApi = {
   catalog: {
     get: () => ipcRenderer.invoke("catalog:get")
   },
+  preview: {
+    get: (value: unknown) => ipcRenderer.invoke("preview:argv", value)
+  },
+  updater: {
+    get: () => ipcRenderer.invoke("updater:status")
+  },
   window: {
     minimize: () => ipcRenderer.invoke("window:minimize"),
     toggleMaximize: () => ipcRenderer.invoke("window:toggle-maximize"),

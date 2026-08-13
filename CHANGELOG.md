@@ -7,6 +7,7 @@
 - Desktop-foundation architecture documentation for a typed Minecraft server draft, narrow native path selection, renderer bridge, and tokenized argument preview.
 - Paper and Spigot command-line configuration guidance that makes the current no-launch boundary explicit.
 - A hand-written completeness inventory and categorized documentation indexes.
+- Typed-registry-only argv preview composition and a visible automatic-update-unavailable boundary.
 
 ### Changed
 

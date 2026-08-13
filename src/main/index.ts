@@ -2,7 +2,9 @@ import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "ele
 import { join } from "node:path";
 import type { PickerKind } from "../shared/desktop-api";
 import { loadCliCatalog } from "./cli-catalog";
+import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
+import { getUpdateBoundary } from "./update-boundary";
 
 const isSquirrelStartup = require("electron-squirrel-startup") as boolean;
 let mainWindow: BrowserWindow | undefined;
@@ -71,6 +73,8 @@ function registerIpc(): void {
   ipcMain.handle("draft:save", (_event, value: unknown) => saveDraft(app.getPath("userData"), value));
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
   ipcMain.handle("catalog:get", () => loadCliCatalog());
+  ipcMain.handle("preview:argv", (_event, value: unknown) => buildArgvPreview(value));
+  ipcMain.handle("updater:status", () => getUpdateBoundary());
   ipcMain.handle("window:minimize", () => requireWindow().minimize());
   ipcMain.handle("window:toggle-maximize", () => {
     const window = requireWindow();

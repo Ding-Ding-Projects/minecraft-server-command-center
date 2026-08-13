@@ -8,6 +8,36 @@ import type {
 
 type UnknownRecord = Record<string, unknown>;
 
+interface CatalogOption {
+  readonly id: string;
+  readonly category?: string;
+  readonly flags?: { readonly canonical?: string };
+  readonly ui?: { readonly label?: string; readonly richHelp?: string };
+  readonly support?: { readonly paper?: string; readonly spigot?: string };
+  readonly safety?: { readonly consequence?: string };
+}
+
+interface CatalogCategory {
+  readonly id: string;
+  readonly label: string;
+  readonly description?: string;
+}
+
+interface SpigotUnavailableOption {
+  readonly id: string;
+  readonly flags?: readonly string[];
+  readonly reason?: string;
+}
+
+interface CatalogModule {
+  readonly CATALOG_CONTRACT?: {
+    readonly sourceUrls?: { readonly paperCli?: string; readonly spigotStartupParameters?: string };
+  };
+  readonly PAPER_CLI_CATEGORIES?: readonly CatalogCategory[];
+  readonly PAPER_CLI_OPTIONS?: readonly CatalogOption[];
+  readonly SPIGOT_UNAVAILABLE_OPTIONS?: readonly SpigotUnavailableOption[];
+}
+
 const FALLBACK_CATALOG: CliCatalogProjection = {
   source: "Bounded desktop fallback; the versioned Paper/Spigot catalog module is not yet present.",
   categories: [
@@ -116,12 +146,61 @@ function normaliseCatalog(value: unknown): CliCatalogProjection | null {
   };
 }
 
+function catalogEntry(option: CatalogOption): CliCatalogEntry {
+  const supported = option.support?.paper === "documented";
+  const label = option.ui?.label ?? option.flags?.canonical ?? option.id;
+  const summary = option.ui?.richHelp ?? option.safety?.consequence ?? "The typed registry does not provide a human-readable description.";
+  return {
+    id: option.id,
+    label,
+    status: supported ? "mapped" : "unavailable",
+    summary
+  };
+}
+
+function projectTypedCatalog(catalog: CatalogModule): CliCatalogProjection | null {
+  if (!Array.isArray(catalog.PAPER_CLI_CATEGORIES) || !Array.isArray(catalog.PAPER_CLI_OPTIONS)) return null;
+  const categories: CliCatalogCategory[] = catalog.PAPER_CLI_CATEGORIES.map((category) => {
+    const entries = catalog.PAPER_CLI_OPTIONS
+      .filter((option) => option.category === category.id)
+      .map(catalogEntry);
+    return {
+      id: category.id,
+      label: category.label,
+      product: "Paper" as const,
+      entries
+    };
+  }).filter((category) => category.entries.length > 0);
+
+  const spigotEntries = (catalog.SPIGOT_UNAVAILABLE_OPTIONS ?? []).map((option) => ({
+    id: option.id,
+    label: option.flags?.join(", ") || option.id,
+    status: "unavailable" as const,
+    summary: option.reason ?? "This Spigot item has no safely wired typed support."
+  }));
+  if (spigotEntries.length > 0) {
+    categories.push({
+      id: "spigot-unavailable",
+      label: "Spigot visible compatibility boundaries",
+      product: "Spigot",
+      entries: spigotEntries
+    });
+  }
+  if (categories.length === 0) return null;
+  const sources = catalog.CATALOG_CONTRACT?.sourceUrls;
+  return {
+    source: "Typed registry loaded from official Paper and Spigot references" +
+      (sources?.paperCli ? ": " + sources.paperCli : "."),
+    categories
+  };
+}
+
 export function loadCliCatalog(): CliCatalogProjection {
   const catalogPath = join(__dirname, "..", "shared", "paper-spigot-cli-catalog.cjs");
   if (!existsSync(catalogPath)) return FALLBACK_CATALOG;
   try {
-    const candidate = require("../shared/paper-spigot-cli-catalog.cjs") as unknown;
-    return normaliseCatalog(candidate) ?? FALLBACK_CATALOG;
+    const candidate = require("../shared/paper-spigot-cli-catalog.cjs") as CatalogModule;
+    return projectTypedCatalog(candidate) ?? normaliseCatalog(candidate) ?? FALLBACK_CATALOG;
   } catch {
     return FALLBACK_CATALOG;
   }

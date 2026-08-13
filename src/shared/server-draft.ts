@@ -194,46 +194,6 @@ export function normalizeServerDraft(value: unknown): ServerDraft {
   };
 }
 
-function withValue(argv: string[], flag: string, value: string): void {
-  if (value.length > 0) {
-    argv.push(flag, value);
-  }
-}
-
-export function makeDirectArgv(value: unknown): readonly string[] {
-  const draft = normalizeServerDraft(value);
-  const java = draft.javaRuntime === "custom" && draft.javaExecutable.length > 0
-    ? draft.javaExecutable
-    : "java";
-  const argv: string[] = [
-    java,
-    "-Xms" + draft.memoryInitialMiB + "M",
-    "-Xmx" + draft.memoryMaximumMiB + "M",
-    "-jar",
-    draft.serverJar || "server.jar"
-  ];
-
-  if (draft.uiMode === "headless") argv.push("--nogui");
-  withValue(argv, "-h", draft.host);
-  argv.push("-p", String(draft.port), "-o", String(draft.onlineMode), "-w", draft.worldName);
-
-  if (draft.serverKind !== "paper") return argv;
-
-  withValue(argv, "-P", draft.pluginsDirectory);
-  withValue(argv, "-c", draft.serverPropertiesPath);
-  withValue(argv, "-b", draft.bukkitSettingsPath);
-  withValue(argv, "-S", draft.spigotSettingsPath);
-  withValue(argv, "-C", draft.commandsSettingsPath);
-  withValue(argv, "--paper-dir", draft.paperConfigDirectory);
-  if (draft.consoleMode === "no-console") argv.push("--noconsole");
-  if (draft.consoleMode === "vanilla-console") argv.push("--nojline");
-  if (draft.safeMode) argv.push("--safeMode");
-  if (draft.initSettings) argv.push("--initSettings");
-  if (draft.demoMode) argv.push("--demo");
-  if (draft.bonusChest) argv.push("--bonusChest");
-  return argv;
-}
-
 export function describeJavaRuntime(runtime: JavaRuntime): string {
   if (runtime === "auto") return "Use java resolved by the operating system";
   if (runtime === "custom") return "Use the selected Java executable without invoking a shell";

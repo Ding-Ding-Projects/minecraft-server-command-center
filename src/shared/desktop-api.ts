@@ -21,6 +21,18 @@ export interface CliCatalogProjection {
   readonly categories: readonly CliCatalogCategory[];
 }
 
+export interface ArgvPreview {
+  readonly tokens: readonly string[];
+  readonly source: string;
+  readonly unsupported: readonly string[];
+}
+
+export interface UpdateBoundary {
+  readonly state: "unavailable";
+  readonly message: string;
+  readonly reason: string;
+}
+
 export interface DesktopApi {
   readonly draft: {
     load(): Promise<ServerDraft>;
@@ -31,6 +43,12 @@ export interface DesktopApi {
   };
   readonly catalog: {
     get(): Promise<CliCatalogProjection>;
+  };
+  readonly preview: {
+    get(value: unknown): Promise<ArgvPreview>;
+  };
+  readonly updater: {
+    get(): Promise<UpdateBoundary>;
   };
   readonly window: {
     minimize(): Promise<void>;
