@@ -12,6 +12,7 @@
 ### Changed
 
 - The project documentation now distinguishes source-design evidence from build, package, runtime, accessibility, and capture evidence.
+- Future release notes generate their project line-count and surviving-line attribution table from the committed release metadata command.
 
 ### Verification
 
