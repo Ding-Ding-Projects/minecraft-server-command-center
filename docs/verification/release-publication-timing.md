@@ -20,7 +20,7 @@ The final release note records:
 
 - **Workflow started** — earliest actual job `started_at` for the current run
   attempt.
-- **Workflow completed** — the UTC timestamp captured immediately after
+- **Release publication completed** — the UTC timestamp captured immediately after
   `gh release create` returns successfully. This means release publication
   completed, not that the GitHub Actions workflow has reached its terminal
   state.
