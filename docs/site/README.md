@@ -10,6 +10,8 @@ verification evidence.
 
 - [Configuration planner](configuration-planner.md) — page model, structured
   settings, local-state limits, safety boundaries, and continuation guidance.
+- [Static Pages export](static-pages-export.md) — static Vinext output,
+  project-path deployment boundary, and publication requirements.
 
 ## Canonical navigation destinations
 

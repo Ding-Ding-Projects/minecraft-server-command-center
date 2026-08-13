@@ -1,9 +1,8 @@
 # Minecraft Server Command Center Companion Planner
 
-This is the Vinext/Sites-compatible **source** for the browser-local companion
-planner. It supports planning and documentation for Minecraft Server Command
-Center; it is not a deployed site, an installer, or a live server-management
-service.
+This is the Vinext **source** for the browser-local companion planner. It
+supports planning and documentation for Minecraft Server Command Center; it is
+not a deployed site, an installer, or a live server-management service.
 
 ## Scope boundary
 
@@ -35,6 +34,19 @@ but those drafts must never execute commands or become a request to a server.
 | `public/` | Checked-in local assets, including `public/og.png`. |
 | `tests/` | Focused source-level coverage when an owner authorizes it. |
 | `../docs/site/` | Public companion-planner behavior and boundary documentation. |
+
+## Static GitHub Pages export
+
+`next.config.ts` uses Vinext's `output: "export"` mode. A build emits the
+deployable static site to `dist/client`; the Pages publication route must
+publish that directory's contents, not `dist/` and not a Worker server bundle.
+
+The static asset prefix is configured for the project path
+`/minecraft-server-command-center`. Its metadata uses the corresponding
+absolute Pages URL so the local `public/og.png` social image remains under that
+path instead of incorrectly resolving to the owner site's root. Static output
+does not use D1, R2, a Worker, image-optimization endpoint, or runtime request
+headers.
 
 ## Owner-managed source validation
 

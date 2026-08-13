@@ -13,10 +13,6 @@ const vinextCli = path.join(process.cwd(), "node_modules", "vinext", "dist", "cl
 
 const result = spawnSync(executable, [vinextCli, command, ...args], {
   stdio: "inherit",
-  env: {
-    ...process.env,
-    WRANGLER_LOG_PATH: ".wrangler/wrangler.log",
-  },
 });
 
 if (result.error) {

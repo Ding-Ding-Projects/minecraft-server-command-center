@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
+// The planner has no server data; emit its root route as static HTML.
+export const dynamic = "force-static";
+
 type ServerKind = "paper" | "spigot";
 type GameVersion = "1.21.4" | "1.20.6" | "1.20.4";
 type JavaVersion = "21" | "17";
