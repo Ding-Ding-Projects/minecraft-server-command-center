@@ -1,10 +1,11 @@
 # Companion Site Documentation
 
 This category documents the browser-local companion for Minecraft Server
-Command Center. It is intentionally a source-only planning surface: it must
-not be described as deployed, connected to a Minecraft server, or backed by an
-external service unless a future task provides direct implementation and
-verification evidence.
+Command Center. Its planning experience remains local and source-bound: it
+must not be described as connected to a Minecraft server or backed by an
+external service. One narrowly scoped, user-activated immutable installer link
+is documented separately; it is not a release API, download manager, or
+evidence of installation.
 
 ## Articles
 
@@ -12,14 +13,18 @@ verification evidence.
   settings, local-state limits, safety boundaries, and continuation guidance.
 - [Static Pages export](static-pages-export.md) — static Vinext output,
   project-path deployment boundary, and publication requirements.
+- [Verified installer handoff](verified-installer-handoff.md) — embedded
+  immutable release metadata, direct asset-link behavior, unsigned warning,
+  and update boundary.
 
 ## Canonical navigation destinations
 
 The companion documentation uses these exact destination names: **Overview**,
 **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**, **Safety**,
 **Docs**, and **Release status**. They are planning and documentation labels,
-not claims of a live server connection, hosted site, external service, or
-published release.
+not claims of a live server connection, external service, transfer completion,
+installation, or Minecraft server operation. **Release status** can display a
+separately verified, hard-coded immutable release record.
 
 ## Documentation rules
 
@@ -30,8 +35,10 @@ published release.
   and exportable.
 - Do not include passwords, tokens, private addresses, player data, file
   contents, server logs, or other sensitive material in examples or diagrams.
-- Do not add remote URLs, third-party assets, analytics, telemetry, or external
-  service claims to the companion-site documentation.
+- Do not add remote client fetching, third-party assets, analytics, telemetry,
+  or external service claims to the companion-site documentation. The only
+  allowed public-release exception is a user-activated, immutable GitHub
+  release or asset URL documented by the verified installer handoff article.
 
 ## Related records
 

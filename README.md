@@ -8,8 +8,10 @@ foundations:
 - a browser-local companion-site planner under `site/`; and
 - a Windows desktop configuration foundation under `src/`.
 
-Neither surface currently claims a deployment, published installer, live
-server connection, or server-process action.
+Neither planner nor desktop runtime claims a live server connection or
+server-process action. The companion site can display one separately verified,
+immutable published-installer handoff; that static record is not evidence of a
+local download, installation, update, or runtime action.
 
 ## Current boundaries
 
@@ -38,7 +40,9 @@ The browser-local companion uses these planning destinations:
 - **Runtime** — version, Java requirement, and resource planning.
 - **Safety** — consequential-operation and desktop-boundary explanations.
 - **Docs** — local companion documentation.
-- **Release status** — factual source-provided release planning information.
+- **Release status** — a source-embedded immutable release record with a
+  direct Windows installer handoff, explicit unsigned warning, and no browser
+  release lookup or download-completion claim.
 
 See [the companion-site documentation](docs/site/README.md) for its detailed
 contract.
@@ -78,17 +82,26 @@ The repository contains Windows Squirrel.Windows packaging and root
 unsigned. A generated application icon is created from the committed SVG
 master during the build path; packaged icon rendering remains unverified.
 
+The companion's Home and Release status destinations can link directly to one
+verified immutable `Setup.exe` asset. The record includes the exact release
+tag, source commit, published size, release URL, and unsigned warning; it does
+not use a `latest` URL, request release data in the browser, start a background
+transfer, or claim that an installer completed. See
+[the verified installer handoff](docs/site/verified-installer-handoff.md).
+
 Automatic updates are intentionally unavailable in the desktop foundation.
 There is no configured update feed, integrity-validation path, background
 download, staging, restart, rollback, or unsaved-work recovery implementation.
 
 ## Evidence status
 
-These foundations are source-only. The work recorded here does not claim a
-successful test, lint, build, package, runtime interaction, accessibility
-review, capture, deployment, release, installer operation, or server-process
-action. Read the relevant handoff and completeness inventory before calling a
-surface verified.
+The planner and desktop sources remain distinct from runtime evidence. This
+record does not claim a successful local test, browser or desktop interaction,
+accessibility review, local installer operation, automatic-update behavior, or
+server-process action. A separately verified immutable release asset can be
+described by the companion's static handoff without turning those boundaries
+into completed evidence. Read the relevant handoff and completeness inventory
+before calling a surface verified.
 
 ## Continue from here
 

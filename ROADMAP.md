@@ -2,10 +2,11 @@
 
 ## Status
 
-Minecraft Server Command Center currently contains source-only companion-site
-and desktop-foundation work. It has no verified deployment, public endpoint,
-release, installer operation, server integration, external-service connection,
-or live server action.
+Minecraft Server Command Center contains browser-local companion-site and
+desktop-foundation work, a published static companion surface, and a verified
+immutable release-asset record. Those publication records do not prove local
+installer operation, server integration, external-service connection, or live
+server action.
 
 ## Completed source foundations
 
@@ -20,6 +21,9 @@ or live server action.
   installer boundary, and automatic-update-unavailable state.
 - Added categorized desktop records, a hand-written completeness inventory, and
   sanitized contributor guidance.
+- Added a static immutable installer handoff that records one verified Windows
+  `Setup.exe` asset without a browser release lookup, background transfer, or
+  installation-completion claim.
 
 ## Next implementation slices
 
@@ -36,9 +40,9 @@ or live server action.
 5. **Updater implementation** — add a verified unsigned-feed, hash-validation,
    staging, restart, rollback, and unsaved-work route before replacing the
    desktop's unavailable updater state.
-6. **Release evidence** — package through the documented Windows route,
-   validate unsigned artifacts, and record factual release/installer evidence
-   only after it exists.
+6. **Installer-operation evidence** — exercise the published unsigned Windows
+   installer on a suitable test computer and record factual installation,
+   launch, and recovery evidence without overstating the static release record.
 
 ## Explicitly deferred
 
@@ -47,8 +51,8 @@ or live server action.
 - Handling passwords, tokens, keystores, player records, or other secrets.
 - Deploying or hosting a companion site without a separate authorization and
   privacy/deployment record.
-- Representing an unsigned Squirrel packaging definition as a released or
-  installed application.
+- Treating a published unsigned Squirrel asset as proof of local installation,
+  automatic-update behavior, or a running application.
 
 ## Completion criteria for the next implementation task
 

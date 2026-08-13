@@ -2,12 +2,13 @@
 
 ## Current snapshot
 
-The repository currently records two source-only foundations:
+The repository currently records two implementation foundations:
 
 - a browser-local companion-site planner under `site/`; and
 - a Windows desktop configuration foundation under `src/`.
 
-Neither record proves a deployment, publication, release, installer operation,
+A static companion publication and immutable GitHub Release asset record are
+available separately. Neither record proves local installer operation,
 external-service integration, live server connection, or server-process action.
 
 ## Companion-site record
@@ -17,6 +18,12 @@ source documents the exact destinations Overview, Configure, Paper CLI, Spigot
 setup, Runtime, Safety, Docs, and Release status. It must not retain secrets,
 private server data, file contents, logs, player data, or browser information
 outside its bounded non-secret planner contract.
+
+The Home and Release status destinations can hand a person to one verified,
+immutable Windows `Setup.exe` asset. Its record is embedded in source with the
+exact tag, source commit, asset URL, published size, release URL, and unsigned
+warning. It does not fetch a release feed, start or observe a transfer, or
+claim installation, update, application, or server completion.
 
 Read `docs/site/README.md` and
 `docs/site/configuration-planner.md` before changing companion behavior.
@@ -67,10 +74,11 @@ verified.
 
 ## Verification boundary
 
-No build, lint, automated test, browser/desktop interaction, accessibility
-audit, deployment, publishing action, external-service call, package, release,
-or server-process action is claimed by this handoff. Source paths and scripts
-are not proof that they ran.
+No local build, lint, automated test, browser/desktop interaction,
+accessibility audit, installer execution, update operation, or server-process
+action is claimed by this handoff. The embedded installer fields originate from
+a separately verified published release record; source paths and scripts do not
+prove anything beyond that bounded record.
 
 ## Safe continuation
 

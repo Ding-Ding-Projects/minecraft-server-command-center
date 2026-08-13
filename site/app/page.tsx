@@ -51,6 +51,17 @@ type Notice = {
   detail: string;
 };
 
+type VerifiedInstallerManifest = {
+  releaseTag: string;
+  sourceCommit: string;
+  releaseUrl: string;
+  assetName: string;
+  assetUrl: string;
+  assetSizeBytes: number;
+  releasePublishedAt: string;
+  unsigned: true;
+};
+
 const STORAGE_KEY = "minecraft-server-command-center.site.planner.v1";
 const SEARCH_DEFAULT: SearchState = {
   query: "",
@@ -73,6 +84,20 @@ const DEFAULT_DRAFT: PlannerDraft = {
   pluginDirectory: "plugins",
   theme: "dark",
   seed: "#72F6B5",
+};
+
+// This record is deliberately embedded. The site never asks GitHub which
+// release is current, starts a transfer, or observes a download result.
+const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
+  releaseTag: "v0.1.23",
+  sourceCommit: "ff98eb3b59be4c64bbd07233b0737e8b2d23dc14",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.23",
+  assetName: "Setup.exe",
+  assetUrl:
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.23/Setup.exe",
+  assetSizeBytes: 115054592,
+  releasePublishedAt: "2026-08-13T17:58:14Z",
+  unsigned: true,
 };
 
 const PAGE_DEFINITIONS: Array<{
@@ -126,8 +151,8 @@ const PAGE_DEFINITIONS: Array<{
   {
     id: "release-status",
     label: "Release status",
-    eyebrow: "Source boundary",
-    description: "This companion source has not been bound to a hosted project or published release.",
+    eyebrow: "Immutable installer handoff",
+    description: "Review the embedded release record and open its exact Windows installer asset.",
   },
 ];
 
@@ -175,6 +200,10 @@ const DOC_ITEMS = [
   {
     title: "Network safety",
     text: "Port and online-mode choices are plans, not live network checks. RCON credentials are intentionally excluded from browser storage and this page.",
+  },
+  {
+    title: "Installer handoff",
+    text: "The release page embeds one verified immutable Setup.exe link. The browser does not look up releases, start a background transfer, or report installation completion.",
   },
 ];
 
@@ -916,10 +945,17 @@ export default function Home() {
           <h1>Plan a safer Paper or Spigot server.</h1>
           <p className="hero-lede">Configure locally. Launch in the desktop app.</p>
           <p className="body-copy">
-            This companion site turns guided choices into an explainable, read-only runtime plan. It never downloads,
-            writes, starts, or administers a server.
+            This companion site turns guided choices into an explainable, read-only runtime plan. It never
+            autonomously downloads, writes, starts, or administers a server.
           </p>
           <div className="button-row">
+            <a
+              className="primary-button"
+              href={VERIFIED_INSTALLER.assetUrl}
+              aria-describedby="verified-installer-home-note"
+            >
+              Download {VERIFIED_INSTALLER.releaseTag} {VERIFIED_INSTALLER.assetName}
+            </a>
             <button type="button" className="primary-button" onClick={() => navigate("configure")}>
               Open guided configuration
             </button>
@@ -927,6 +963,10 @@ export default function Home() {
               Review safety plan
             </button>
           </div>
+          <p className="field-help release-download-note" id="verified-installer-home-note">
+            Direct handoff to the fixed GitHub release asset. This site does not begin a background transfer or report
+            a download or installation result.
+          </p>
         </div>
         <div className="hero-card__plan" aria-label="Current plan summary">
           <div className="hero-card__plan-header">
@@ -1128,21 +1168,46 @@ export default function Home() {
       <PageHeading page={selectedPage} />
       <section className="release-card">
         <div>
-          <p className="eyebrow">Deployment deliberately absent</p>
-          <h2>This companion source is ready for an owner-managed hosting handoff.</h2>
-          <p className="body-copy">No hosted project has been connected, no URL is claimed, and no release status has been inferred. The source stays local until the owner chooses the Sites project and hosting step.</p>
+          <p className="eyebrow">Verified immutable release record</p>
+          <h2>Download the Windows installer for {VERIFIED_INSTALLER.releaseTag}</h2>
+          <p className="body-copy" id="verified-installer-release-summary">
+            This button targets the exact <code>{VERIFIED_INSTALLER.assetName}</code> asset attached to the published
+            {" "}{VERIFIED_INSTALLER.releaseTag} release. It is not a latest-release URL and this page does not fetch,
+            parse, or refresh release data in the browser.
+          </p>
+          <div className="button-row release-card__actions">
+            <a
+              className="primary-button"
+              href={VERIFIED_INSTALLER.assetUrl}
+              aria-describedby="verified-installer-release-summary verified-installer-unsigned-warning"
+            >
+              Download {VERIFIED_INSTALLER.assetName} ({VERIFIED_INSTALLER.releaseTag})
+            </a>
+            <a className="secondary-button" href={VERIFIED_INSTALLER.releaseUrl}>
+              View the published release record
+            </a>
+          </div>
+          <p className="field-help" id="verified-installer-unsigned-warning">
+            {VERIFIED_INSTALLER.unsigned
+              ? "This installer is unsigned and can cause an unknown-publisher or SmartScreen warning. The link is an external handoff only; GitHub handles any transfer after you activate it."
+              : "The installer signing state is not represented by this source record."}
+          </p>
         </div>
         <dl className="release-facts">
-          <div><dt>Sites project ID</dt><dd>Not set</dd></div>
-          <div><dt>Hosted URL</dt><dd>Not published</dd></div>
-          <div><dt>Server control</dt><dd>Not available</dd></div>
-          <div><dt>Browser persistence</dt><dd>Non-secret local draft only</dd></div>
+          <div><dt>Release tag</dt><dd>{VERIFIED_INSTALLER.releaseTag}</dd></div>
+          <div><dt>Installer asset</dt><dd><code>{VERIFIED_INSTALLER.assetName}</code></dd></div>
+          <div><dt>Published size</dt><dd>{VERIFIED_INSTALLER.assetSizeBytes.toLocaleString("en-US")} bytes</dd></div>
+          <div><dt>Source commit</dt><dd><code className="release-source-sha">{VERIFIED_INSTALLER.sourceCommit}</code></dd></div>
         </dl>
       </section>
       <section className="surface-card">
-        <p className="eyebrow">Next owner action</p>
-        <h2>Bind, build, and host only after reviewing the source boundary</h2>
-        <p className="body-copy">When hosting is intentionally requested, a separate owner-managed step can associate the source with a Sites project and update this status with factual evidence.</p>
+        <p className="eyebrow">Publication boundary</p>
+        <h2>A direct handoff is not download, install, update, or server evidence</h2>
+        <ul className="release-boundary-list">
+          <li>The embedded manifest is updated only from a verified published release record; it is not discovered at runtime.</li>
+          <li>Activating the link hands the browser to GitHub. This site neither transfers the file nor observes completion.</li>
+          <li>The page does not verify installation, automatic updates, application startup, or any Minecraft server action.</li>
+        </ul>
       </section>
     </div>
   );

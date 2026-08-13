@@ -42,7 +42,10 @@ image stays below `/minecraft-server-command-center/og.png` instead of using a
 root-relative `/og.png` path that would point outside this project.
 
 No remote image, CDN, request header, analytics script, token, or hosted
-configuration is added by the static export route.
+configuration is added by the static export route. The static page may contain
+the documented user-activated immutable GitHub Release and installer-asset
+anchors from [Verified installer handoff](verified-installer-handoff.md); those
+links do not make a client-side request until the person activates one.
 
 ## Failure modes
 
@@ -57,8 +60,10 @@ configuration is added by the static export route.
   unsuitable for a static Pages host and requires a separately reviewed
   deployment design.
 - The static export proves only that the source can emit static files. It does
-  not prove a Pages deployment, server connectivity, installer, release, or
-  live Minecraft operation.
+  not prove a Pages deployment, server connectivity, installer operation,
+  transfer completion, application startup, or live Minecraft operation. A
+  hard-coded installer record can describe a separately verified release asset
+  without changing those boundaries.
 
 ## Verification boundary
 
@@ -69,5 +74,6 @@ and browser interaction are separate activities with their own evidence.
 ## Suggested next articles
 
 - [Configuration planner](configuration-planner.md)
+- [Verified installer handoff](verified-installer-handoff.md)
 - [Companion Site Documentation index](README.md)
 - [Repository handoff](../../HANDOFF.md)

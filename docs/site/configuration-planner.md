@@ -23,7 +23,7 @@ plan is guidance for review; it is not a request sent to a server.
 | Runtime | Select a server flavor, Minecraft version, Java requirement, memory range, and user-provided local reference. | Browse arbitrary machine files, install software, or start a process. |
 | Safety | Review consequential plan items, warnings, and desktop-manager boundaries. | Confirm an irreversible server action or change live server state. |
 | Docs | Read local guidance and planner explanations. | Fetch remote documentation or imply third-party service access. |
-| Release status | Read factual, source-provided release planning information. | Invent a published release, download an artifact, or claim deployment. |
+| Release status | Show one source-embedded, verified immutable release record and direct installer handoff. | Invent a release, fetch a release feed, start or observe a download, or claim deployment or installation. |
 
 The implementation may present these pages through persistent tabs, but each
 page must remain independently keyboard-accessible and easy to locate.

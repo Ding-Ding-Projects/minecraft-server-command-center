@@ -15,6 +15,7 @@
 - Future release notes generate their project line-count and surviving-line attribution table from the committed release metadata command.
 - Release notes now resolve a next-unused public dim sum code name and link the published catalog photo when bounded metadata is available; they state an honest omission when it is not, without copying an image into this project.
 - Release timing now derives its start from the earliest actual GitHub Actions job for the current attempt and labels release-publication completion separately from terminal workflow completion.
+- The companion site's Home and Release status destinations now use an embedded immutable installer manifest with the exact release tag, source commit, `Setup.exe` asset URL, published size, release record, and unsigned warning. They do not use a latest-release URL, browser release lookup, background transfer, or completion claim.
 
 ### Verification
 

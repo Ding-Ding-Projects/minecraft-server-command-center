@@ -1,17 +1,21 @@
 # Minecraft Server Command Center Companion Planner
 
 This is the Vinext **source** for the browser-local companion planner. It
-supports planning and documentation for Minecraft Server Command Center; it is
-not a deployed site, an installer, or a live server-management service.
+supports planning and documentation for Minecraft Server Command Center. It is
+not an installer manager or a live server-management service; its release
+surface can only hand a person to one embedded, immutable installer asset.
 
 ## Scope boundary
 
-- Do not claim a deployment, public URL, release, hosted endpoint, or server
-  connection from this source workspace.
+- Do not infer a deployment, public URL, release, hosted endpoint, or server
+  connection from this source workspace. A hard-coded installer manifest must
+  be backed by a separately verified, published release record.
 - Do not start, stop, inspect, configure, query, or otherwise control a
   Minecraft server from the companion planner.
 - Do not add external APIs, authentication, cloud synchronization, telemetry,
-  analytics, remote assets, remote fonts, or third-party services.
+  analytics, remote assets, remote fonts, or third-party services. The narrow
+  exception is a person-activated immutable GitHub Release or asset anchor;
+  client code must not fetch or discover release data.
 - Use local checked-in assets only. `public/og.png` is the approved local social
   preview asset; do not generate, fetch, or replace it as an incidental change.
 
@@ -48,6 +52,19 @@ path instead of incorrectly resolving to the owner site's root. Static output
 does not use D1, R2, a Worker, image-optimization endpoint, or runtime request
 headers.
 
+## Verified installer handoff
+
+The Home and **Release status** destinations consume a typed in-source manifest
+for one verified immutable Windows `Setup.exe` release asset. The site renders
+the exact tag, source commit, published size, unsigned warning, release URL,
+and asset URL. It never uses a moving `latest` link, requests release data,
+starts a background transfer, or claims that a transfer or installation
+completed. Update all manifest fields together only after a published,
+non-draft release record has been verified.
+
+Read [Verified installer handoff](../docs/site/verified-installer-handoff.md)
+before changing the record.
+
 ## Owner-managed source validation
 
 The standard source validation command is:
@@ -66,4 +83,6 @@ Keep the eight public destinations consistent with the parent documentation:
 **Overview**, **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**,
 **Safety**, **Docs**, and **Release status**. Read `../docs/site/` before
 changing planner behavior, preserve the source-only boundary, and update the
-public documentation alongside any user-visible change.
+public documentation alongside any user-visible change. The Release status
+destination is a direct immutable-link handoff, not a release feed or update
+service.
