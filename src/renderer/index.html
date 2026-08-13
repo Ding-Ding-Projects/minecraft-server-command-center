@@ -348,7 +348,10 @@
                       <h3>Direct argv tokens</h3>
                       <p>Each row is one intended process argument. Spaces remain inside the same token; no command interpreter is involved.</p>
                     </div>
-                    <span class="badge badge--safe">No shell</span>
+                    <div class="preview-card__actions">
+                      <span class="badge badge--safe">No shell</span>
+                      <button class="outlined-button outlined-button--compact" type="button" id="copy-argv">Copy JSON argv</button>
+                    </div>
                   </header>
                   <ol class="argv-list" id="argv-preview" aria-label="Direct argument vector preview"></ol>
                 </article>

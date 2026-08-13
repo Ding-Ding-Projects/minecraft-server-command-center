@@ -647,6 +647,25 @@ code,
   margin-bottom: 18px;
 }
 
+.preview-card__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.outlined-button--compact {
+  min-height: 32px;
+  padding: 0 13px;
+  font-size: 11px;
+}
+
+.outlined-button--compact:disabled {
+  cursor: not-allowed;
+  border-color: rgb(224 229 223 / 22%);
+  color: rgb(224 229 223 / 42%);
+}
+
 .preview-card > header p,
 .launch-card p {
   margin-bottom: 0;
@@ -932,6 +951,11 @@ code,
 
   .section-heading,
   .preview-card > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .preview-card__actions {
     align-items: flex-start;
     flex-direction: column;
   }

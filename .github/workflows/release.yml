@@ -33,7 +33,7 @@ jobs:
           cache: npm
 
       - name: Install declared dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Set a unique release version
         id: version

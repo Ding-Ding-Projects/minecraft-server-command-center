@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 set "MSC_SILENT=0"
 if /I "%~1"=="/s" set "MSC_SILENT=1"
 if /I "%~1"=="--silent" set "MSC_SILENT=1"

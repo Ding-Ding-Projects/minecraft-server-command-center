@@ -32,8 +32,9 @@ flowchart LR
   P -->|typed IPC| M[Privileged desktop process]
   M -->|selected local value or persisted draft| P
   P --> UI
-  D -->|tokenized preview data| A[Copyable argv preview]
-  A -. no execution path .-> X[No server process launch]
+  D -->|normalized draft| A[Typed registry preview adapter]
+  A -->|tokenized argv data| V[Copyable argv preview]
+  V -. no execution path .-> X[No server process launch]
 ```
 
 The renderer should present a readable argv sequence and preserve token boundaries. A preview must never be joined into a shell command, interpreted as script text, or sent to a process-launch API merely because the user copied or edited it.

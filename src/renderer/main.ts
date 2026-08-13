@@ -16,8 +16,9 @@ const catalogSource = document.querySelector<HTMLElement>("#catalog-source");
 const workspaceTitle = document.querySelector<HTMLElement>("#workspace-title");
 const workspaceSubtitle = document.querySelector<HTMLElement>("#workspace-subtitle");
 const updateState = document.querySelector<HTMLElement>("#update-state");
+const copyArgvButton = document.querySelector<HTMLButtonElement>("#copy-argv");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -26,6 +27,7 @@ let activeTab = "overview";
 let saveTimer: number | undefined;
 let snackTimer: number | undefined;
 let saveVersion = 0;
+let currentArgvTokens: readonly string[] = [];
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
@@ -74,6 +76,8 @@ async function renderArgv(): Promise<void> {
   try {
     preview = await window.commandCenter.preview.get(draft);
   } catch {
+    currentArgvTokens = [];
+    copyArgvButton.disabled = true;
     argvPreview.replaceChildren();
     const item = document.createElement("li");
     const message = document.createElement("code");
@@ -82,6 +86,8 @@ async function renderArgv(): Promise<void> {
     argvPreview.append(item);
     return;
   }
+  currentArgvTokens = preview.tokens;
+  copyArgvButton.disabled = preview.tokens.length === 0;
   argvPreview.replaceChildren();
   for (const [index, token] of preview.tokens.entries()) {
     const item = document.createElement("li");
@@ -182,6 +188,19 @@ async function usePicker(button: HTMLButtonElement): Promise<void> {
   schedulePersist();
 }
 
+async function copyArgv(): Promise<void> {
+  if (currentArgvTokens.length === 0) {
+    showSnackbar("The direct argv preview is unavailable, so nothing was copied.");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(currentArgvTokens, null, 2));
+    showSnackbar("Copied the direct argv JSON array. It is data, not a shell command.");
+  } catch {
+    showSnackbar("The operating system clipboard did not accept the direct argv preview.");
+  }
+}
+
 function renderCatalog(catalog: CliCatalogProjection): void {
   catalogSource.textContent = catalog.source;
   catalogGrid.replaceChildren();
@@ -255,6 +274,11 @@ function bindInteraction(): void {
       updateLaunchBoundary();
       schedulePersist();
       showSnackbar("Draft reset to the shipped bounded values.");
+      return;
+    }
+    const copy = target.closest<HTMLButtonElement>("#copy-argv");
+    if (copy) {
+      void copyArgv();
       return;
     }
     const action = target.closest<HTMLButtonElement>("[data-window-action]")?.dataset.windowAction;

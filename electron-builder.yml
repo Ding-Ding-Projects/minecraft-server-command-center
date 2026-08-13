@@ -21,7 +21,7 @@ win:
   verifyUpdateCodeSignature: false
 squirrelWindows:
   msi: false
-  artifactName: ${productName}-Setup-${version}.${ext}
+  artifactName: Setup.exe
 publish:
   provider: github
 
