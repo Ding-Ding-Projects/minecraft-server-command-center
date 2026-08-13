@@ -66,6 +66,19 @@ interface InternalSetupPlan {
   }[];
 }
 
+interface InternalPaperTargetCatalog {
+  readonly status?: unknown;
+  readonly versions?: readonly unknown[];
+  readonly versionCount?: unknown;
+  readonly diagnosticCode?: unknown;
+  readonly diagnosticMessage?: unknown;
+  readonly source?: {
+    readonly title?: unknown;
+    readonly url?: unknown;
+    readonly snapshotDate?: unknown;
+  } | null;
+}
+
 interface InternalAssessment {
   readonly requirement?: InternalRequirement;
   readonly probe?: InternalProbe | null;
@@ -76,6 +89,7 @@ interface InternalAssessment {
 interface JavaRuntimeManager {
   discoverJavaCandidates(options?: { readonly selectedPath?: string }): Promise<InternalDiscovery>;
   selectDiscoveredJavaCandidate(discovery: InternalDiscovery, candidateId: string): InternalCandidate | null;
+  getPaperRuntimeTargetCatalog(): InternalPaperTargetCatalog;
   assessSelectedJavaRuntime(options: {
     readonly serverKind: "paper" | "spigot";
     readonly targetVersion: string;
@@ -87,9 +101,6 @@ interface JavaRuntimeManager {
 const javaRuntimeManager = require("./java-runtime-manager.cjs") as JavaRuntimeManager;
 
 const EMPTY_OFFICIAL_PAPER_TARGET_CATALOG: readonly string[] = Object.freeze([]);
-
-const NO_PAPER_TARGET_CATALOG_MESSAGE =
-  "No verified official Paper target catalog is configured in this desktop foundation. Paper compatibility remains unverified until a bounded catalog adapter is supplied.";
 
 const SOURCE_LABELS: Readonly<Record<string, string>> = Object.freeze({
   "user-selected": "Chosen with the native Java picker",
@@ -185,6 +196,48 @@ function projectSetupPlan(plan: InternalSetupPlan | undefined): JavaRuntimeAsses
   };
 }
 
+function projectOfficialTargetCatalog(
+  catalog: InternalPaperTargetCatalog,
+  serverKind: "paper" | "spigot"
+): JavaRuntimeAssessment["officialTargetCatalog"] {
+  const available = catalog.status === "available";
+  const status: JavaRuntimeAssessment["officialTargetCatalog"]["status"] = available ? "available" : "invalid";
+  const declaredVersionCount = integerValue(catalog.versionCount);
+  const versionCount = available && Array.isArray(catalog.versions)
+    ? Math.min(96, catalog.versions.length, Math.max(0, declaredVersionCount ?? catalog.versions.length))
+    : 0;
+  const sourceTitle = stringValue(catalog.source?.title);
+  const sourceUrl = stringValue(catalog.source?.url);
+  const snapshotDate = stringValue(catalog.source?.snapshotDate);
+  const diagnosticCode = stringValue(catalog.diagnosticCode);
+
+  if (!available) {
+    return {
+      status,
+      message: serverKind === "spigot"
+        ? "The bundled official Paper target catalog was rejected as malformed or unknown. Spigot Java compatibility remains unverified because it requires a separate resolver."
+        : "The bundled official Paper target catalog was rejected as malformed or unknown. Paper compatibility remains unverified and no catalog fallback was used.",
+      versionCount: 0,
+      sourceTitle: null,
+      sourceUrl: null,
+      snapshotDate: null,
+      diagnosticCode
+    };
+  }
+
+  return {
+    status,
+    message: serverKind === "spigot"
+      ? `The official Paper target catalog is available with ${versionCount} bounded numeric version keys, but it is not applied to Spigot. Spigot Java compatibility remains unverified until a separate resolver exists.`
+      : `The official Paper target catalog is available with ${versionCount} bounded numeric version keys from the Paper Downloads Service snapshot${snapshotDate ? ` dated ${snapshotDate}` : ""}. Only validated catalog keys are used for Paper requirements.`,
+    versionCount,
+    sourceTitle,
+    sourceUrl,
+    snapshotDate,
+    diagnosticCode: null
+  };
+}
+
 function normalizedAssessmentRequest(value: unknown): JavaRuntimeAssessmentRequest {
   const input = value && typeof value === "object" && !Array.isArray(value)
     ? value as UnknownRecord
@@ -243,21 +296,22 @@ export class JavaRuntimeController {
       : null;
     if (candidate) this.selectedCandidateId = candidate.id;
 
+    const paperCatalog = javaRuntimeManager.getPaperRuntimeTargetCatalog();
+    const officialCatalogVersions = paperCatalog.status === "available"
+      && Array.isArray(paperCatalog.versions)
+      ? paperCatalog.versions.slice(0, 96).filter((version): version is string => typeof version === "string")
+      : EMPTY_OFFICIAL_PAPER_TARGET_CATALOG;
+
     const assessment = await javaRuntimeManager.assessSelectedJavaRuntime({
       serverKind: request.serverKind,
       targetVersion: request.targetVersion,
-      officialCatalogVersions: EMPTY_OFFICIAL_PAPER_TARGET_CATALOG,
+      officialCatalogVersions,
       ...(candidate ? { selectedCandidate: candidate } : {})
     });
 
     return {
       selectedCandidate: candidate ? candidateSummary(candidate) : null,
-      officialTargetCatalog: {
-        status: "unavailable",
-        message: request.serverKind === "spigot"
-          ? "Spigot Java compatibility is unverified because this desktop foundation has no separately sourced Spigot resolver."
-          : NO_PAPER_TARGET_CATALOG_MESSAGE
-      },
+      officialTargetCatalog: projectOfficialTargetCatalog(paperCatalog, request.serverKind),
       probe: projectProbe(assessment.probe),
       requirement: projectRequirement(assessment.requirement),
       compatibility: projectCompatibility(assessment.compatibility),

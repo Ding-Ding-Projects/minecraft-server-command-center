@@ -5,7 +5,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | Document | Purpose |
 | --- | --- |
 | [Paper and Spigot CLI catalog](paper-spigot-cli-catalog.md) | Defines the typed Paper launch catalog, non-launching administrative-command metadata, argument placement, preflight behavior, validation boundaries, and the legacy Spigot boundary. |
-| [Java runtime setup](java-runtime-setup.md) | Defines bounded native Java selection, opaque candidate IDs, direct version probing, Paper catalog-unavailable behavior, explicit Spigot non-mapping, and review-only setup-plan boundaries. |
+| [Java runtime setup](java-runtime-setup.md) | Defines bounded native Java selection, opaque candidate IDs, direct version probing, bundled Paper target-catalog validation and projection, explicit Spigot non-mapping, and review-only setup-plan boundaries. |
 | [Server lifecycle service](server-lifecycle.md) | Defines the implemented validation, direct launch, process-state, and bounded console-handling foundation. |
 | [Server Configuration Schema](server-configuration-schema.md) | Defines version-aware typed configuration controls, provenance, validation, safety classes, and leaf-only world overrides for Paper and Spigot. |
 | [Unsigned automatic-update foundation](unsigned-automatic-updates.md) | Defines the future Squirrel.Windows update-feed, parsing, package-selection, unsigned-artifact, and native-adapter boundaries without claiming a live update flow. |

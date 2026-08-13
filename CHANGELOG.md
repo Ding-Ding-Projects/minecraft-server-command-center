@@ -7,9 +7,10 @@
 - Guided desktop Java-runtime discovery and review controls using opaque
   candidate IDs, bounded conventional locations, a native executable picker,
   fixed direct version probing, and review-only recovery states.
-- Explicit Paper-target-catalog-unavailable and Spigot-unverified runtime
-  compatibility presentation; the desktop foundation does not substitute
-  planner presets or the CLI registry for official target-catalog evidence.
+- Strict schema-version-1 Paper Downloads Service project-version catalog
+  adapter with a bounded 54-entry numeric-key snapshot, including the `1.14`
+  key in group `1.14`, fail-closed malformed/unknown entry handling, and
+  structured catalog provenance/count projection.
 - Planner Handoff v1 documentation for a strict versioned, bounded, non-secret,
   user-mediated local JSON exchange between the browser planner and desktop
   draft boundary.
@@ -41,6 +42,6 @@
 - Planner Handoff v1 documentation adds no verified browser UI, desktop UI,
   selected-file import, preview, apply/save, accessibility, review, website
   publication, source-control publication, or server-control evidence.
-- Java runtime guidance adds no verified discovery, probe, compatibility,
+- Java runtime guidance adds no verified discovery, probe, catalog, compatibility,
   installation, package-manager, build, runtime, or capture evidence.
 

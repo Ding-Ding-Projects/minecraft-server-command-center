@@ -58,7 +58,7 @@ let selectedJavaCandidateId: string | null = null;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
-  runtime: ["Plan and inspect a Java runtime", "Use bounded candidate discovery and fixed direct version probing. Compatibility stays unverified without an official target catalog."],
+  runtime: ["Plan and inspect a Java runtime", "Use bounded candidate discovery, fixed direct version probing, and the bundled official Paper target catalog. Spigot remains separately unverified."],
   world: ["Describe a world", "Record world intent without writing server files or touching a Minecraft save."],
   access: ["Set access intent", "Keep network and RCON planning visible without opening a port or remote console."],
   paths: ["Choose local paths", "Native file and folder pickers supply direct values without a generic command field."],
@@ -198,7 +198,7 @@ function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefin
     javaRuntimeAssessmentBadge.className = "badge";
     javaRuntimeAssessmentBadge.textContent = "Not assessed";
     javaRuntimeAssessmentSummary.textContent = message;
-    javaRuntimeAssessmentRecovery.textContent = "Paper compatibility stays unverified until this desktop foundation has a bounded official target catalog. Spigot requires its own sourced resolver.";
+    javaRuntimeAssessmentRecovery.textContent = "Paper compatibility stays unverified until the selected target is present in the bundled official Paper catalog and covered by the documented requirements table. Spigot requires its own sourced resolver.";
     javaRuntimeAssessmentPlan.textContent = "Any setup plan remains review-only and is not available until the target is officially verified.";
     return;
   }
@@ -211,10 +211,13 @@ function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefin
     : readableRuntimeStatus(assessment.requirement.status);
   const compatibility = readableRuntimeStatus(assessment.compatibility.status);
   const plan = readableRuntimeStatus(assessment.setupPlan.status);
+  const catalog = assessment.officialTargetCatalog.status === "available"
+    ? `${readableRuntimeStatus(assessment.officialTargetCatalog.status)} · ${assessment.officialTargetCatalog.versionCount} numeric versions`
+    : readableRuntimeStatus(assessment.officialTargetCatalog.status);
   const details: ReadonlyArray<readonly [string, string]> = [
     ["Selected runtime", assessment.selectedCandidate?.label ?? "No candidate selected"],
     ["Direct version probe", probe],
-    ["Target catalog", readableRuntimeStatus(assessment.officialTargetCatalog.status)],
+    ["Target catalog", catalog],
     ["Paper requirement", requirement],
     ["Compatibility", compatibility],
     ["Setup plan", `${plan} · ${assessment.setupPlan.executionState}`]

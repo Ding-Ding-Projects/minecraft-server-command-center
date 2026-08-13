@@ -14,7 +14,7 @@ This documentation describes the desktop-foundation branch of Minecraft Server C
 
 ## Current product boundary
 
-The desktop foundation may create and persist a normalized configuration draft, open guided local pickers through a restricted bridge, discover Java only through bounded conventional locations or the native picker, probe one selected Java runtime with fixed direct arguments, and render a copyable argument-vector preview. It must not start, stop, restart, install Java, invoke a package manager, download artifacts, or directly mutate a Minecraft server. Paper target compatibility remains explicitly unverified until a separate bounded official catalog adapter is supplied; Spigot requires its own sourced resolver.
+The desktop foundation may create and persist a normalized configuration draft, open guided local pickers through a restricted bridge, discover Java only through bounded conventional locations or the native picker, probe one selected Java runtime with fixed direct arguments, validate the bundled official Paper Downloads Service project-version snapshot, and render a copyable argument-vector preview. It must not start, stop, restart, install Java, invoke a package manager, download artifacts, or directly mutate a Minecraft server. Paper compatibility is resolved only for a snapshot-present target covered by the documented matrix; Spigot requires its own sourced resolver.
 
 Planner Handoff v1 is a documented user-mediated local JSON contract between
 the browser-local planner and the desktop draft boundary. It remains

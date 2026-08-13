@@ -31,18 +31,22 @@ server action.
   configuration-write, or execution feature.
 - Added a guided desktop Java-runtime review surface that owns candidate paths
   in the privileged process, exposes opaque candidate IDs and parsed probe
-  facts to the renderer, and keeps Paper target-catalog availability and
-  Spigot compatibility explicitly unverified.
+  facts to the renderer, and keeps Paper compatibility conditional on the
+  bundled target catalog and documented matrix while Spigot remains explicitly
+  unverified.
+- Added a strict schema-version-1, bounded Paper Downloads Service project-
+  version snapshot adapter. It rejects malformed or unknown catalog data,
+  feeds only validated numeric version keys into the existing Paper Java
+  requirement resolver, and exposes bounded catalog provenance/count metadata
+  without adding network, download, install, server, configuration, or
+  credential behavior.
 
 ## Next implementation slices
 
 1. **Focused verification** — run authorized checks and exercise both the
    built companion and packaged desktop app through the approved headless path.
-2. **Official runtime catalog integration** — add a separately bounded,
-   validated official Paper target-catalog adapter before turning Paper Java
-   requirement results into anything beyond an explicit `unverified` state;
-   add an independently sourced Spigot resolver rather than reusing Paper
-   mappings.
+2. **Spigot runtime requirements** — add an independently sourced Spigot
+   resolver rather than reusing Paper mappings.
 3. **Companion planner and handoff implementation** — finish browser-local
    controls, validation, provenance, reset, non-secret export/import, bounded
    desktop selected-file parsing, safe normalization preview, and explicit
