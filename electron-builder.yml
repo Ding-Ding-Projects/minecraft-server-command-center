@@ -22,6 +22,7 @@ win:
 squirrelWindows:
   msi: false
   artifactName: Setup.exe
+  iconUrl: https://raw.githubusercontent.com/Ding-Ding-Projects/minecraft-server-command-center/main/assets/app-mark.ico
 publish:
   provider: github
 

@@ -43,5 +43,6 @@
   selected-file import, preview, apply/save, accessibility, review, website
   publication, source-control publication, or server-control evidence.
 - Java runtime guidance adds no verified discovery, probe, catalog, compatibility,
-  installation, package-manager, build, runtime, or capture evidence.
+  installation, package-manager, runtime, or capture evidence. The supported
+  build and package result is reported separately with the exact candidate artifact.
 

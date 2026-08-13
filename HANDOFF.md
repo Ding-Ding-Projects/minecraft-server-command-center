@@ -115,9 +115,10 @@ requirements to Spigot.
 
 ## Verification boundary
 
-No local build, lint, automated test, browser/desktop interaction,
-accessibility audit, installer execution, update operation, or server-process
-action is claimed by this handoff. The embedded installer fields originate from
+No local lint, automated test, browser/desktop interaction, accessibility audit,
+installer execution, update operation, or server-process action is claimed by
+this handoff. The supported build and package route is reported with the exact
+candidate artifact when that lane completes. The embedded installer fields originate from
 a separately verified published release record; source paths and scripts do not
 prove anything beyond that bounded record.
 
