@@ -65,6 +65,51 @@ jobs:
             "runner=$env:RUNNER_OS"
           ) | Set-Content -Encoding utf8 artifacts/build-context.txt
 
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          WORKFLOW_STARTED: ${{ steps.timing.outputs.started }}
+        shell: pwsh
+        run: |
+          $started = [DateTimeOffset]::Parse($env:WORKFLOW_STARTED)
+          $initialNotes = @(
+            "# Minecraft Server Command Center $env:RELEASE_VERSION",
+            "",
+            "Windows Squirrel.Windows artifacts are unsigned and may trigger an unknown-publisher warning.",
+            "",
+            "Workflow started: $($started.ToUniversalTime().ToString('o'))",
+            "Release-publication timing is finalized immediately after gh release create succeeds.",
+            "GitHub Actions records terminal workflow completion after remaining steps; this release note does not claim a terminal workflow completion time.",
+            "",
+            "A separate safe-packaging artifact upload is attempted after release publication. It is evidence-only, not a release asset, and is excluded from the release-publication elapsed time.",
+            "",
+            "This workflow builds and packages only; it does not run tests or lint."
+          )
+          $initialNotes | Set-Content -Encoding utf8 release-notes.md
+          $assets = Get-ChildItem $env:SQUIRREL_OUTPUT -File | Select-Object -ExpandProperty FullName
+          if ($assets.Count -eq 0) { throw "No Squirrel.Windows assets were produced." }
+          gh release create $env:RELEASE_TAG @assets --target $env:GITHUB_SHA --title "Minecraft Server Command Center $env:RELEASE_VERSION" --notes-file release-notes.md
+          $published = [DateTimeOffset]::UtcNow
+          $duration = $published - $started
+          $finalNotes = @(
+            "# Minecraft Server Command Center $env:RELEASE_VERSION",
+            "",
+            "Windows Squirrel.Windows artifacts are unsigned and may trigger an unknown-publisher warning.",
+            "",
+            "Workflow started: $($started.ToUniversalTime().ToString('o'))",
+            "Release publication completed: $($published.ToUniversalTime().ToString('o'))",
+            "Elapsed through gh release create: $($duration.ToString('hh\:mm\:ss'))",
+            "GitHub Actions records terminal workflow completion after remaining steps; this release note does not claim a terminal workflow completion time.",
+            "",
+            "A separate safe-packaging artifact upload is attempted after release publication. It is evidence-only, not a release asset, and is excluded from the release-publication elapsed time.",
+            "",
+            "This workflow builds and packages only; it does not run tests or lint."
+          )
+          $finalNotes | Set-Content -Encoding utf8 release-notes.md
+          gh release edit $env:RELEASE_TAG --notes-file release-notes.md
+
       - name: Upload safe packaging outputs
         if: ${{ always() }}
         continue-on-error: true
@@ -74,30 +119,3 @@ jobs:
           path: artifacts
           if-no-files-found: warn
           retention-days: 14
-
-      - name: Publish GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          RELEASE_VERSION: ${{ steps.version.outputs.version }}
-          WORKFLOW_STARTED: ${{ steps.timing.outputs.started }}
-        shell: pwsh
-        run: |
-          $completed = [DateTimeOffset]::UtcNow
-          $started = [DateTimeOffset]::Parse($env:WORKFLOW_STARTED)
-          $duration = $completed - $started
-          $notes = @(
-            "# Minecraft Server Command Center $env:RELEASE_VERSION",
-            "",
-            "Windows Squirrel.Windows artifacts are unsigned and may trigger an unknown-publisher warning.",
-            "",
-            "Workflow started: $($started.ToUniversalTime().ToString('o'))",
-            "Workflow completed: $($completed.ToUniversalTime().ToString('o'))",
-            "Workflow duration: $($duration.ToString('hh\:mm\:ss'))",
-            "",
-            "This workflow builds and packages only; it does not run tests or lint."
-          )
-          $notes | Set-Content -Encoding utf8 release-notes.md
-          $assets = Get-ChildItem $env:SQUIRREL_OUTPUT -File | Select-Object -ExpandProperty FullName
-          if ($assets.Count -eq 0) { throw "No Squirrel.Windows assets were produced." }
-          gh release create $env:RELEASE_TAG @assets --target $env:GITHUB_SHA --title "Minecraft Server Command Center $env:RELEASE_VERSION" --notes-file release-notes.md
