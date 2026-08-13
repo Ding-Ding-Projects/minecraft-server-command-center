@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 
-const output = resolve("release", "squirrel-windows");
+const output = resolve("release", "squirrel-windows", "squirrel-windows");
 const required = ["Setup.exe", "RELEASES"];
 const entries = existsSync(output) ? readdirSync(output) : [];
 

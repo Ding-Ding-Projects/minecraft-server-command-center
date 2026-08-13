@@ -25,7 +25,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-for %%F in ("release\squirrel-windows\Setup.exe") do (
+for %%F in ("release\squirrel-windows\squirrel-windows\Setup.exe") do (
   certutil -hashfile "%%~fF" SHA256 | findstr /R /V "hash CertUtil" > "%TEMP%\msc-installer-sha256.txt"
   set /p MSC_SHA256=<"%TEMP%\msc-installer-sha256.txt"
   del "%TEMP%\msc-installer-sha256.txt"
