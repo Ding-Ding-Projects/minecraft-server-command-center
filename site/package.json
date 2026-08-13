@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node scripts/run-vinext.mjs dev",
     "build": "node scripts/run-vinext.mjs build",
+    "stage:github-pages": "node scripts/stage-github-pages.mjs",
     "start": "node scripts/run-vinext.mjs start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },

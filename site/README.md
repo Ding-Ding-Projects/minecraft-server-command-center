@@ -41,9 +41,15 @@ but those drafts must never execute commands or become a request to a server.
 
 ## Static GitHub Pages export
 
-`next.config.ts` uses Vinext's `output: "export"` mode. A build emits the
-deployable static site to `dist/client`; the Pages publication route must
-publish that directory's contents, not `dist/` and not a Worker server bundle.
+`next.config.ts` uses Vinext's `output: "export"` mode. A build emits raw
+static output to `dist/client`. Run `npm run stage:github-pages` after the
+build before publishing to GitHub Pages. That command creates the deployable
+`dist/github-pages` root, keeps the root document and local assets together,
+places `_next` at that same root for the project's asset URLs, adds `.nojekyll`,
+and refuses to stage if an emitted project-prefixed asset reference lacks its
+file. The Pages publication route must publish the contents of
+`dist/github-pages`, not `dist/`, `dist/client`, its nested prefix directory,
+or a Worker server bundle.
 
 The static asset prefix is configured for the project path
 `/minecraft-server-command-center`. Its metadata uses the corresponding
