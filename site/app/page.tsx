@@ -89,14 +89,14 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.23",
-  sourceCommit: "ff98eb3b59be4c64bbd07233b0737e8b2d23dc14",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.23",
+  releaseTag: "v0.1.24",
+  sourceCommit: "4ab99ec34a4fc340e216ef9a4822c98031647cd7",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.24",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.23/Setup.exe",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.24/Setup.exe",
   assetSizeBytes: 115054592,
-  releasePublishedAt: "2026-08-13T17:58:14Z",
+  releasePublishedAt: "2026-08-13T18:07:19Z",
   unsigned: true,
 };
 
