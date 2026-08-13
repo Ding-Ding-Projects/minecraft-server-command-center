@@ -14,6 +14,7 @@
 - The project documentation now distinguishes source-design evidence from build, package, runtime, accessibility, and capture evidence.
 - Future release notes generate their project line-count and surviving-line attribution table from the committed release metadata command.
 - Release notes now resolve a next-unused public dim sum code name and link the published catalog photo when bounded metadata is available; they state an honest omission when it is not, without copying an image into this project.
+- Release timing now derives its start from the earliest actual GitHub Actions job for the current attempt and labels release-publication completion separately from terminal workflow completion.
 
 ### Verification
 

@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
@@ -20,11 +21,70 @@ jobs:
       WIN_CSC_KEY_PASSWORD: ""
       SQUIRREL_OUTPUT: release/squirrel-windows/squirrel-windows
     steps:
-      - name: Record workflow start
+      - name: Record actual first job start
         id: timing
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          "started=$([DateTimeOffset]::UtcNow.ToString('o'))" >> $env:GITHUB_OUTPUT
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          $endpoint = "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/attempts/$env:GITHUB_RUN_ATTEMPT/jobs?per_page=100"
+          $deadline = [DateTimeOffset]::UtcNow.AddSeconds(45)
+          $firstJobStarted = $null
+          $lastFailure = 'No job with started_at has been listed yet.'
+
+          while ($null -eq $firstJobStarted -and [DateTimeOffset]::UtcNow -lt $deadline) {
+            try {
+              $raw = gh api --paginate --slurp `
+                -H 'Accept: application/vnd.github+json' `
+                -H 'X-GitHub-Api-Version: 2022-11-28' `
+                $endpoint
+
+              if ($LASTEXITCODE -ne 0) {
+                throw "gh api exited with code $LASTEXITCODE."
+              }
+
+              $rawText = @($raw) -join [Environment]::NewLine
+              $pages = @($rawText | ConvertFrom-Json)
+              $jobs = @(
+                $pages |
+                  ForEach-Object { @($_.jobs) } |
+                  Where-Object {
+                    -not [string]::IsNullOrWhiteSpace([string]$_.started_at)
+                  }
+              )
+
+              if ($jobs.Count -gt 0) {
+                $timestamps = @(
+                  $jobs |
+                    ForEach-Object {
+                      [DateTimeOffset]::Parse(
+                        [string]$_.started_at,
+                        [Globalization.CultureInfo]::InvariantCulture,
+                        [Globalization.DateTimeStyles]::RoundtripKind
+                      )
+                    }
+                )
+                $firstJobStarted = $timestamps | Sort-Object | Select-Object -First 1
+                break
+              }
+
+              $lastFailure = 'No job with started_at has been listed yet.'
+            }
+            catch {
+              $lastFailure = $_.Exception.Message
+            }
+
+            Start-Sleep -Seconds 2
+          }
+
+          if ($null -eq $firstJobStarted) {
+            throw "Unable to obtain the earliest actual job started_at within 45 seconds: $lastFailure"
+          }
+
+          "started=$($firstJobStarted.ToUniversalTime().ToString('o'))" >> $env:GITHUB_OUTPUT
 
       - name: Check out source
         uses: actions/checkout@v4
@@ -106,7 +166,7 @@ jobs:
             "Windows Squirrel.Windows artifacts are unsigned and may trigger an unknown-publisher warning.",
             "",
             "Workflow started: $($started.ToUniversalTime().ToString('o'))",
-            "Release-publication timing is finalized immediately after gh release create succeeds.",
+            "Workflow completed and Workflow duration are finalized immediately after gh release create succeeds.",
             "GitHub Actions records terminal workflow completion after remaining steps; this release note does not claim a terminal workflow completion time.",
             "",
             "A separate safe-packaging artifact upload is attempted after release publication. It is evidence-only, not a release asset, and is excluded from the release-publication elapsed time.",
@@ -142,8 +202,8 @@ jobs:
             "Windows Squirrel.Windows artifacts are unsigned and may trigger an unknown-publisher warning.",
             "",
             "Workflow started: $($started.ToUniversalTime().ToString('o'))",
-            "Release publication completed: $($published.ToUniversalTime().ToString('o'))",
-            "Elapsed through gh release create: $($duration.ToString('hh\:mm\:ss'))",
+            "Workflow completed: $($published.ToUniversalTime().ToString('o')) (release publication completed; post-publication evidence upload is excluded)",
+            "Workflow duration: $($duration.ToString('hh\:mm\:ss')) (through final release-publication step)",
             "GitHub Actions records terminal workflow completion after remaining steps; this release note does not claim a terminal workflow completion time.",
             "",
             "A separate safe-packaging artifact upload is attempted after release publication. It is evidence-only, not a release asset, and is excluded from the release-publication elapsed time.",
