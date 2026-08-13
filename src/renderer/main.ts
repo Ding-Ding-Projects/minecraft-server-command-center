@@ -1,5 +1,12 @@
 import "./styles.css";
-import type { ArgvPreview, CliCatalogProjection, PickerKind } from "../shared/desktop-api";
+import type {
+  ArgvPreview,
+  CliCatalogProjection,
+  JavaRuntimeAssessment,
+  JavaRuntimeCandidateSummary,
+  JavaRuntimeDiscovery,
+  PickerKind
+} from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
 import {
   DEFAULT_SERVER_DRAFT,
@@ -23,8 +30,19 @@ const applyPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#ap
 const discardPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#discard-planner-handoff");
 const plannerHandoffState = document.querySelector<HTMLElement>("#planner-handoff-state");
 const plannerHandoffPreview = document.querySelector<HTMLDListElement>("#planner-handoff-preview");
+const discoverJavaRuntimesButton = document.querySelector<HTMLButtonElement>("#discover-java-runtimes");
+const chooseJavaRuntimeButton = document.querySelector<HTMLButtonElement>("#choose-java-runtime");
+const assessJavaRuntimeButton = document.querySelector<HTMLButtonElement>("#assess-java-runtime");
+const javaRuntimeState = document.querySelector<HTMLElement>("#java-runtime-state");
+const selectedJavaRuntime = document.querySelector<HTMLElement>("#selected-java-runtime");
+const javaRuntimeCandidates = document.querySelector<HTMLElement>("#java-runtime-candidates");
+const javaRuntimeAssessmentBadge = document.querySelector<HTMLElement>("#java-runtime-assessment-badge");
+const javaRuntimeAssessmentSummary = document.querySelector<HTMLElement>("#java-runtime-assessment-summary");
+const javaRuntimeAssessmentDetails = document.querySelector<HTMLDListElement>("#java-runtime-assessment-details");
+const javaRuntimeAssessmentRecovery = document.querySelector<HTMLElement>("#java-runtime-assessment-recovery");
+const javaRuntimeAssessmentPlan = document.querySelector<HTMLElement>("#java-runtime-assessment-plan");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -35,10 +53,12 @@ let snackTimer: number | undefined;
 let saveVersion = 0;
 let currentArgvTokens: readonly string[] = [];
 let pendingPlannerHandoff: PlannerHandoffPreview | undefined;
+let latestJavaRuntimeDiscovery: JavaRuntimeDiscovery | undefined;
+let selectedJavaCandidateId: string | null = null;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
-  runtime: ["Plan a Java runtime", "Choose resource boundaries and acknowledgement state before a future safety route exists."],
+  runtime: ["Plan and inspect a Java runtime", "Use bounded candidate discovery and fixed direct version probing. Compatibility stays unverified without an official target catalog."],
   world: ["Describe a world", "Record world intent without writing server files or touching a Minecraft save."],
   access: ["Set access intent", "Keep network and RCON planning visible without opening a port or remote console."],
   paths: ["Choose local paths", "Native file and folder pickers supply direct values without a generic command field."],
@@ -148,6 +168,238 @@ async function discardPlannerHandoff(): Promise<void> {
   renderPlannerHandoff(undefined, "No planner handoff is selected.");
   writeSaveState("Local draft ready");
   showSnackbar("Imported planner handoff discarded. The local draft was not changed.");
+}
+
+function readableRuntimeStatus(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function currentJavaRuntimeCandidate(): JavaRuntimeCandidateSummary | undefined {
+  return latestJavaRuntimeDiscovery?.candidates.find((candidate) => candidate.id === selectedJavaCandidateId);
+}
+
+function setJavaRuntimeBusy(busy: boolean): void {
+  discoverJavaRuntimesButton.disabled = busy;
+  chooseJavaRuntimeButton.disabled = busy;
+  assessJavaRuntimeButton.disabled = busy || selectedJavaCandidateId === null;
+  for (const candidate of javaRuntimeCandidates.querySelectorAll<HTMLButtonElement>("[data-java-candidate-id]")) {
+    candidate.disabled = busy;
+  }
+}
+
+function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefined, message: string): void {
+  javaRuntimeAssessmentDetails.replaceChildren();
+  javaRuntimeAssessmentDetails.hidden = assessment === undefined;
+  if (!assessment) {
+    javaRuntimeAssessmentBadge.className = "badge";
+    javaRuntimeAssessmentBadge.textContent = "Not assessed";
+    javaRuntimeAssessmentSummary.textContent = message;
+    javaRuntimeAssessmentRecovery.textContent = "Paper compatibility stays unverified until this desktop foundation has a bounded official target catalog. Spigot requires its own sourced resolver.";
+    javaRuntimeAssessmentPlan.textContent = "Any setup plan remains review-only and is not available until the target is officially verified.";
+    return;
+  }
+
+  const probe = assessment.probe.status === "valid" && assessment.probe.javaMajor !== null
+    ? `Java ${assessment.probe.normalizedVersion ?? assessment.probe.javaMajor} (major ${assessment.probe.javaMajor})`
+    : readableRuntimeStatus(assessment.probe.status);
+  const requirement = assessment.requirement.requiredJavaMajor !== null
+    ? `Recommended Java ${assessment.requirement.requiredJavaMajor}`
+    : readableRuntimeStatus(assessment.requirement.status);
+  const compatibility = readableRuntimeStatus(assessment.compatibility.status);
+  const plan = readableRuntimeStatus(assessment.setupPlan.status);
+  const details: ReadonlyArray<readonly [string, string]> = [
+    ["Selected runtime", assessment.selectedCandidate?.label ?? "No candidate selected"],
+    ["Direct version probe", probe],
+    ["Target catalog", readableRuntimeStatus(assessment.officialTargetCatalog.status)],
+    ["Paper requirement", requirement],
+    ["Compatibility", compatibility],
+    ["Setup plan", `${plan} · ${assessment.setupPlan.executionState}`]
+  ];
+  for (const [label, value] of details) {
+    const row = document.createElement("div");
+    const name = document.createElement("dt");
+    const content = document.createElement("dd");
+    name.textContent = label;
+    content.textContent = value;
+    row.append(name, content);
+    javaRuntimeAssessmentDetails.append(row);
+  }
+
+  javaRuntimeAssessmentBadge.className = assessment.compatibility.status === "compatible" ? "badge badge--safe" : "badge";
+  javaRuntimeAssessmentBadge.textContent = compatibility;
+  javaRuntimeAssessmentSummary.textContent = assessment.probe.status === "valid"
+    ? "The selected candidate was probed by the privileged process with fixed direct Java version arguments. Raw version output and executable paths are not shown here."
+    : "The selected candidate could not produce a validated Java version. The result remains a review state; no fallback command, installation, or server action was attempted.";
+  javaRuntimeAssessmentRecovery.textContent = assessment.officialTargetCatalog.message;
+  const routeSummary = assessment.setupPlan.routes.length > 0
+    ? ` Review-only route metadata: ${assessment.setupPlan.routes.map((route) => `${route.label} (${route.availability})`).join(", ")}.`
+    : "";
+  javaRuntimeAssessmentPlan.textContent = `Setup-plan state: ${plan}. ${assessment.setupPlan.mutationState.replaceAll("-", " ")}.${routeSummary}`;
+}
+
+function renderJavaRuntimeSelection(candidate: JavaRuntimeCandidateSummary | undefined, assessmentMessage: string): void {
+  selectedJavaCandidateId = candidate?.id ?? null;
+  selectedJavaRuntime.textContent = candidate
+    ? `${candidate.label} · ${candidate.sourceLabel}`
+    : "No Java runtime candidate is selected.";
+  assessJavaRuntimeButton.disabled = selectedJavaCandidateId === null;
+  for (const button of javaRuntimeCandidates.querySelectorAll<HTMLButtonElement>("[data-java-candidate-id]")) {
+    const selected = button.dataset.javaCandidateId === selectedJavaCandidateId;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+  renderJavaRuntimeAssessment(undefined, assessmentMessage);
+}
+
+function renderJavaRuntimeDiscovery(discovery: JavaRuntimeDiscovery, message: string): void {
+  latestJavaRuntimeDiscovery = discovery;
+  const boundarySummary = `${discovery.searchedLocations.knownRootCount} bounded location roots checked; PATH search and recursive search remain off.`;
+  const diagnosticSummary = discovery.diagnostics.length > 0
+    ? ` ${discovery.diagnostics.map((diagnostic) => diagnostic.message).join(" ")}`
+    : "";
+  javaRuntimeState.textContent = `${message} ${boundarySummary}${diagnosticSummary}`;
+  javaRuntimeCandidates.replaceChildren();
+
+  if (discovery.candidates.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "java-runtime-candidates__empty";
+    empty.textContent = "No usable Java executables were found in the bounded locations. Choose a Java executable with the native picker; this card will not widen the search.";
+    javaRuntimeCandidates.append(empty);
+  } else {
+    for (const candidate of discovery.candidates) {
+      const button = document.createElement("button");
+      const top = document.createElement("span");
+      const label = document.createElement("strong");
+      const source = document.createElement("span");
+      const description = document.createElement("small");
+      button.type = "button";
+      button.className = "java-runtime-candidate";
+      button.dataset.javaCandidateId = candidate.id;
+      button.setAttribute("aria-pressed", "false");
+      top.className = "java-runtime-candidate__top";
+      label.textContent = candidate.label;
+      source.className = "badge";
+      source.textContent = candidate.selectedByUser ? "Native choice" : "Bounded discovery";
+      description.textContent = candidate.sourceLabel;
+      top.append(label, source);
+      button.append(top, description);
+      javaRuntimeCandidates.append(button);
+    }
+  }
+
+  const selected = discovery.selectedCandidateId
+    ? discovery.candidates.find((candidate) => candidate.id === discovery.selectedCandidateId)
+    : undefined;
+  renderJavaRuntimeSelection(selected, "Choose a candidate, then probe it with fixed direct Java version arguments. No command text, package manager, installer, server, or configuration write is available.");
+}
+
+function resetJavaRuntimeGuidance(message: string): void {
+  latestJavaRuntimeDiscovery = undefined;
+  selectedJavaCandidateId = null;
+  javaRuntimeState.textContent = message;
+  javaRuntimeCandidates.replaceChildren();
+  const empty = document.createElement("p");
+  empty.className = "java-runtime-candidates__empty";
+  empty.textContent = "Use Find bounded runtimes or Choose Java executable to begin a local, non-installing review.";
+  javaRuntimeCandidates.append(empty);
+  renderJavaRuntimeSelection(undefined, "Choose a candidate, then probe it with fixed direct Java version arguments. No command text, package manager, installer, server, or configuration write is available.");
+}
+
+async function discoverJavaRuntimes(): Promise<void> {
+  setJavaRuntimeBusy(true);
+  writeSaveState("Discovering bounded Java runtimes…");
+  try {
+    renderJavaRuntimeDiscovery(await window.commandCenter.runtime.discover(), "Bounded Java discovery completed.");
+    writeSaveState("Local draft ready");
+    showSnackbar("Bounded Java discovery completed. No PATH, disk, registry, or recursive scan was used.");
+  } catch {
+    javaRuntimeState.textContent = "Bounded Java discovery could not complete. No wider discovery or system change was attempted.";
+    writeSaveState("Java runtime discovery unavailable");
+    showSnackbar("Java runtime discovery could not complete. The local draft was not changed.");
+  } finally {
+    setJavaRuntimeBusy(false);
+  }
+}
+
+async function chooseJavaRuntime(): Promise<void> {
+  setJavaRuntimeBusy(true);
+  writeSaveState("Waiting for a Java executable selection…");
+  try {
+    const discovery = await window.commandCenter.runtime.choose();
+    if (!discovery) {
+      writeSaveState("Local draft ready");
+      return;
+    }
+    renderJavaRuntimeDiscovery(discovery, "The native Java selection was checked within the bounded discovery service.");
+    const selected = currentJavaRuntimeCandidate();
+    if (selected) {
+      draft = normalizeServerDraft({ ...draft, javaRuntime: "custom", javaExecutable: "" });
+      hydrateForm();
+      void renderArgv();
+      schedulePersist();
+    }
+    showSnackbar(selected
+      ? "A Java runtime was selected for review. Its path remains in the privileged process."
+      : "The selected item was not a usable Java executable. Choose another executable through the native picker.");
+  } catch {
+    javaRuntimeState.textContent = "The native Java selection could not be used. The local draft and server configuration were not changed.";
+    writeSaveState("Java selection unavailable");
+    showSnackbar("The Java selection could not be used. Choose another executable through the native picker.");
+  } finally {
+    setJavaRuntimeBusy(false);
+  }
+}
+
+async function selectJavaRuntimeCandidate(candidateId: string): Promise<void> {
+  setJavaRuntimeBusy(true);
+  try {
+    const candidate = await window.commandCenter.runtime.select(candidateId);
+    if (!candidate) {
+      javaRuntimeState.textContent = "That Java candidate is no longer available. Refresh bounded discovery and choose a listed candidate.";
+      return;
+    }
+    draft = normalizeServerDraft({ ...draft, javaRuntime: "custom", javaExecutable: "" });
+    hydrateForm();
+    void renderArgv();
+    schedulePersist();
+    renderJavaRuntimeSelection(candidate, "The selected runtime is ready for a fixed direct version probe. It is not an argv text field and no executable path is sent to this renderer.");
+    javaRuntimeState.textContent = "Java runtime candidate selected. Probe it to obtain a bounded parsed Java version result.";
+    showSnackbar("Java runtime candidate selected for review. No server action or installer route was opened.");
+  } catch {
+    javaRuntimeState.textContent = "The Java candidate could not be selected. Refresh bounded discovery and choose a listed candidate.";
+    showSnackbar("The Java candidate could not be selected. The local draft was not changed.");
+  } finally {
+    setJavaRuntimeBusy(false);
+  }
+}
+
+async function assessJavaRuntime(): Promise<void> {
+  if (!selectedJavaCandidateId) {
+    renderJavaRuntimeAssessment(undefined, "Choose a Java runtime candidate before requesting a version probe.");
+    return;
+  }
+  setJavaRuntimeBusy(true);
+  writeSaveState("Probing the selected Java runtime…");
+  try {
+    const assessment = await window.commandCenter.runtime.assess({
+      candidateId: selectedJavaCandidateId,
+      serverKind: draft.serverKind,
+      targetVersion: draft.minecraftVersion
+    });
+    renderJavaRuntimeAssessment(assessment, "Java runtime assessment completed.");
+    writeSaveState("Java runtime review complete");
+    showSnackbar("Java runtime review completed. Compatibility remains honest about the available catalog evidence.");
+  } catch {
+    renderJavaRuntimeAssessment(undefined, "The selected runtime could not be probed. No shell, fallback command, installation, or server action was attempted.");
+    writeSaveState("Java runtime review unavailable");
+    showSnackbar("The Java runtime could not be probed. The local draft and server configuration were not changed.");
+  } finally {
+    setJavaRuntimeBusy(false);
+  }
 }
 
 function fieldElements(): Array<HTMLInputElement | HTMLSelectElement> {
@@ -340,6 +592,9 @@ function bindInteraction(): void {
     hydrateForm();
     void renderArgv();
     updateLaunchBoundary();
+    if (target.dataset.field === "serverKind" || target.dataset.field === "minecraftVersion") {
+      renderJavaRuntimeAssessment(undefined, "The Paper or Spigot target changed. Probe the selected runtime again to review the new target without making any server change.");
+    }
     schedulePersist();
   });
   form.addEventListener("change", (event) => {
@@ -350,6 +605,9 @@ function bindInteraction(): void {
     hydrateForm();
     void renderArgv();
     updateLaunchBoundary();
+    if (target.dataset.field === "serverKind" || target.dataset.field === "minecraftVersion") {
+      renderJavaRuntimeAssessment(undefined, "The Paper or Spigot target changed. Probe the selected runtime again to review the new target without making any server change.");
+    }
     schedulePersist();
   });
   document.addEventListener("click", (event) => {
@@ -375,6 +633,26 @@ function bindInteraction(): void {
       void discardPlannerHandoff();
       return;
     }
+    const discoverJava = target.closest<HTMLButtonElement>("#discover-java-runtimes");
+    if (discoverJava) {
+      void discoverJavaRuntimes();
+      return;
+    }
+    const chooseJava = target.closest<HTMLButtonElement>("#choose-java-runtime");
+    if (chooseJava) {
+      void chooseJavaRuntime();
+      return;
+    }
+    const assessJava = target.closest<HTMLButtonElement>("#assess-java-runtime");
+    if (assessJava) {
+      void assessJavaRuntime();
+      return;
+    }
+    const javaCandidate = target.closest<HTMLButtonElement>("[data-java-candidate-id]");
+    if (javaCandidate?.dataset.javaCandidateId) {
+      void selectJavaRuntimeCandidate(javaCandidate.dataset.javaCandidateId);
+      return;
+    }
     const tab = target.closest<HTMLButtonElement>("[data-tab]");
     if (tab?.dataset.tab) {
       activateTab(tab.dataset.tab, true);
@@ -386,6 +664,8 @@ function bindInteraction(): void {
       draft = DEFAULT_SERVER_DRAFT;
       renderPlannerHandoff(undefined, "No planner handoff is selected.");
       void window.commandCenter.handoff.clear();
+      void window.commandCenter.runtime.clear();
+      resetJavaRuntimeGuidance("The Java runtime review was cleared with the local draft. No Java path, server file, or process was changed.");
       hydrateForm();
       void renderArgv();
       updateLaunchBoundary();
@@ -423,6 +703,7 @@ function bindInteraction(): void {
 
 async function start(): Promise<void> {
   bindInteraction();
+  resetJavaRuntimeGuidance("No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.");
   try {
     draft = await window.commandCenter.draft.load();
     hydrateForm();

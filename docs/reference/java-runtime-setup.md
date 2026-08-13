@@ -2,19 +2,19 @@
 
 ## Purpose
 
-Minecraft Server Command Center uses `src/main/java-runtime-manager.cjs` to make Java runtime selection a guided, reviewable configuration step. It discovers a deliberately bounded set of Java executable candidates, validates one selected executable with a fixed direct process invocation, resolves the Java release recommended by Paper for the selected Paper target, and produces a review-only installation plan when needed.
+Minecraft Server Command Center uses `src/main/java-runtime-manager.cjs` and the narrow `src/main/java-runtime-controller.ts` bridge to make Java runtime selection a guided, reviewable desktop step. The Runtime tab discovers a deliberately bounded set of Java executable candidates, binds selection to opaque candidate IDs, validates one selected executable with a fixed direct process invocation, and renders structured compatibility and review-only-plan status.
 
-The service does **not** install Java, alter package-manager state, launch a terminal, launch a server, write credentials, or assume a proposed runtime was installed. A later UI integration must require an explicit user confirmation before it attempts any installation route.
+The service and its current desktop integration do **not** install Java, alter package-manager state, launch a terminal, launch a server, write credentials, download a catalog, write server configuration, or assume a proposed runtime was installed. The renderer receives no Java executable path, raw version output, shell text, or generic filesystem/process capability. A later installation feature would need its own explicit user confirmation and separately reviewed privileged route.
 
 ## Guided selection model
 
 The UI should expose Java through a candidate picker, not a generic command or CLI text field.
 
-1. A person can choose a Java executable or Java home with the native file/folder picker.
+1. A person can choose a Java executable with the native file picker, or request bounded discovery from the Runtime tab.
 2. `discoverJavaCandidates()` adds that explicit selection first, then checks only bounded conventional locations.
 3. The picker binds to candidate IDs returned by the discovery result and calls `selectDiscoveredJavaCandidate()`.
 4. `probeJavaExecutable()` validates the selected candidate with direct process arguments equivalent to `java -version` and returns a structured status.
-5. `assessSelectedJavaRuntime()` combines the selected Paper target, an official Paper catalog result, the Java probe, and a review-only plan.
+5. `assessSelectedJavaRuntime()` combines the selected Paper target, an official Paper catalog result when one has been supplied by a separate bounded adapter, the Java probe, and a review-only plan.
 
 Discovery intentionally does **not** scan `PATH`, disks, the registry, arbitrary user folders, or locations recursively. The bounded locations are:
 
@@ -26,6 +26,11 @@ Discovery intentionally does **not** scan `PATH`, disks, the registry, arbitrary
 | System locations | Conventional Java vendor folders below the operating-system program-files location on Windows, `/usr/lib/jvm` and `/opt/java` on Linux, and `/Library/Java/JavaVirtualMachines` on macOS |
 
 Only direct children of a known root are considered, and the service enforces root, child, and overall candidate limits. An unavailable directory is a normal absence, not an invitation to broaden the search.
+
+The current Runtime tab deliberately offers only an actual Java executable in
+its native picker. The underlying manager can normalize a Java home or `bin`
+directory when used by a future privileged caller, but no such raw-path input
+is exposed to the renderer.
 
 ## Probe safety and status
 
@@ -59,6 +64,12 @@ The selected target must first be present in the official Paper catalog supplied
 
 This mapping is Paper-specific. A Spigot target returns `unverified` until a separately sourced Spigot compatibility resolver exists; Paper documentation is never silently applied to Spigot.
 
+### Current catalog boundary
+
+The Runtime tab currently has **no bundled verified Paper Downloads target catalog**. The existing CLI catalog and planner presets are not substituted for that evidence. The main-process controller therefore supplies no target entries to the requirement resolver and shows an explicit `unavailable` catalog row; a Paper assessment remains `unverified` even if the Java probe itself succeeds. This source path makes no network request to Paper or any other service.
+
+Spigot remains separately unverified. The controller labels that state explicitly and does not apply the Paper recommendation matrix to a Spigot target.
+
 For version-scheme context, Paper's [project setup documentation](https://docs.papermc.io/paper/dev/project-setup/) explains that versions before `26.1` correspond to `1.21.11` and below. The official [downloads service documentation](https://docs.papermc.io/misc/downloads-service/) describes its catalog keys and recommends stable builds.
 
 ## Compatibility states
@@ -89,39 +100,29 @@ No plan contains a shell command string, a password, a token, a package-manager 
 
 Paper's installation guidance recommends a full Java runtime rather than a `-headless` variant. The UI should present that as an informed default, while preserving the explicit user decision before any external installer is opened or invoked.
 
-## Integration boundary
+## Desktop integration boundary
 
-An Electron main-process integration can use this service as follows:
+The Runtime tab calls only these narrow bridge operations:
 
-```js
-const javaRuntime = require('./java-runtime-manager.cjs');
+| Bridge operation | Privileged behavior | Renderer result |
+| --- | --- | --- |
+| `runtime.discover()` | Uses bounded conventional discovery only. | Opaque candidate IDs, source labels, bounded diagnostics, and search-boundary facts. |
+| `runtime.choose()` | Opens the native Java-executable picker, then feeds the selected path directly into bounded discovery. | The same safe candidate summaries; no selected path. |
+| `runtime.select(id)` | Resolves an ID only from the current main-process discovery result. | Selected safe candidate summary only. |
+| `runtime.assess(...)` | Calls the manager's fixed `java -version` probe for the selected candidate and projects its structured result. | Parsed Java-major/status data, compatibility state, explicit catalog-unavailable state, and review-only plan facts. |
+| `runtime.clear()` | Drops the in-memory discovery and selection state. | No local server or configuration mutation. |
 
-const discovery = await javaRuntime.discoverJavaCandidates({
-  selectedPath: pickerResult.path,
-});
-const candidate = javaRuntime.selectDiscoveredJavaCandidate(
-  discovery,
-  selectedCandidateId,
-);
-const assessment = await javaRuntime.assessSelectedJavaRuntime({
-  serverKind: 'paper',
-  targetVersion: selectedPaperVersion,
-  officialCatalogVersions: paperCatalogVersions,
-  selectedCandidate: candidate,
-});
-```
-
-The renderer should receive structured candidates, statuses, and plan data through a narrowly scoped IPC bridge. It should not receive a mechanism for arbitrary process execution, installation, or a generic raw CLI entry field. An install action belongs to a later, explicitly confirmed main-process feature with its own documentation, interaction proof, and safety review.
+The main process owns candidate paths and probing. The renderer cannot supply a raw Java path to the new runtime bridge, cannot supply raw command text, and cannot invoke an installer, package manager, download, server lifecycle action, configuration writer, or credential route. The existing direct-argument preview deliberately renders `java` as a non-executable placeholder rather than treating a renderer-held custom path as a process target.
 
 ## Security and failure boundaries
 
-- The candidate picker is the only intended source of an explicit Java path; relative paths are rejected.
+- The native picker is the only intended source of an explicit Java path; relative paths are rejected before a candidate can be listed.
 - Candidate discovery is bounded and shallow to avoid unexpected filesystem traversal.
 - Java version probing uses direct argv, a timeout, and a maximum captured-output size. It uses no shell.
 - Raw output is not retained after version parsing, which reduces the risk of leaking unexpected program output through application logs or exports.
-- Discovery and planning are local-only. They make no network request and do not write a setting, secret, installer state, or runtime file.
+- Discovery, probing, and plan projection are local-only. They make no network request and do not write a server setting, secret, installer state, runtime file, or configuration file. Selecting a candidate may update the local planning preference only after the existing draft-save path runs; it never writes a selected Java path into the renderer-controlled preview.
 - A failed or unknown result remains unknown. It does not silently fall back to `PATH`, mark a runtime as compatible, install anything, or start a server.
 
 ## Verification boundary
 
-This foundation intentionally did not run tests, lint, a build, a package, a runtime Java installation, a server launch, or a screen capture during the active ultra-speed delivery pass. Follow-up work must add focused automated coverage for bounded discovery, version parsing, official catalog requirement resolution, probe timeout/output-limit behavior, and review-only plan invariants before broad release assurance is claimed.
+This source implementation intentionally did not run tests, lint, review, a build, a package, a runtime Java installation, a server launch, or a screen capture during the active ultra-speed delivery pass. Follow-up work must add focused automated coverage for the bridge's opaque-ID ownership, native-picker cancellation, bounded discovery, version parsing, catalog-unavailable state, officially sourced Paper catalog resolution, Spigot non-mapping, probe timeout/output-limit behavior, and review-only plan invariants before broad release assurance is claimed.

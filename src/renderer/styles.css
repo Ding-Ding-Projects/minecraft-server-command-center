@@ -532,6 +532,162 @@ h3 {
   font-weight: 700;
 }
 
+.java-runtime-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-secondary) 46%, var(--md-sys-color-outline-variant));
+  border-radius: var(--md-sys-shape-corner-large);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-secondary-container) 52%, var(--md-sys-color-surface-container)), var(--md-sys-color-surface-container));
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+.java-runtime-card__heading,
+.java-runtime-assessment__heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.java-runtime-card__heading h3,
+.java-runtime-assessment__heading h4 {
+  margin: 4px 0 6px;
+}
+
+.java-runtime-card__heading p:last-child,
+.java-runtime-card__status,
+.java-runtime-card__selected,
+.java-runtime-assessment__summary,
+.java-runtime-assessment__recovery,
+.java-runtime-assessment__plan {
+  max-width: 940px;
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.java-runtime-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.java-runtime-card__selected {
+  padding: 11px 13px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 72%, transparent);
+  color: var(--md-sys-color-on-surface);
+  font-weight: 700;
+}
+
+.java-runtime-candidates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.java-runtime-candidate,
+.java-runtime-candidates__empty {
+  display: grid;
+  min-height: 104px;
+  align-content: start;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+}
+
+.java-runtime-candidate {
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.java-runtime-candidate:hover {
+  border-color: var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 42%, var(--md-sys-color-surface-container-high));
+  transform: translateY(-1px);
+}
+
+.java-runtime-candidate.is-selected {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.java-runtime-candidate__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.java-runtime-candidate strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.java-runtime-candidate small,
+.java-runtime-candidates__empty {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.java-runtime-candidate.is-selected small {
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.java-runtime-assessment {
+  display: grid;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 70%, transparent);
+}
+
+.java-runtime-assessment__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+}
+
+.java-runtime-assessment__details div {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container);
+}
+
+.java-runtime-assessment__details dt {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.java-runtime-assessment__details dd {
+  overflow-wrap: anywhere;
+  margin: 4px 0 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.java-runtime-assessment__recovery {
+  padding-left: 12px;
+  border-left: 3px solid var(--md-sys-color-secondary);
+}
+
+.java-runtime-assessment__plan {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -995,7 +1151,8 @@ code,
 
   .form-grid,
   .preview-layout,
-  .handoff-preview {
+  .handoff-preview,
+  .java-runtime-assessment__details {
     grid-template-columns: 1fr;
   }
 }
@@ -1015,6 +1172,7 @@ code,
 
   .notice-card,
   .handoff-card,
+  .java-runtime-card,
   .field,
   .toggle-field,
   .preview-card,
@@ -1025,7 +1183,9 @@ code,
 
   .section-heading,
   .preview-card > header,
-  .handoff-card__heading {
+  .handoff-card__heading,
+  .java-runtime-card__heading,
+  .java-runtime-assessment__heading {
     align-items: flex-start;
     flex-direction: column;
   }

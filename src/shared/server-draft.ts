@@ -160,7 +160,11 @@ export function normalizeServerDraft(value: unknown): ServerDraft {
     minecraftVersion: boundedText(input.minecraftVersion, DEFAULT_SERVER_DRAFT.minecraftVersion, 32),
     paperBuild: boundedText(input.paperBuild, DEFAULT_SERVER_DRAFT.paperBuild, 32),
     javaRuntime: enumValue(input.javaRuntime, JAVA_RUNTIMES, DEFAULT_SERVER_DRAFT.javaRuntime),
-    javaExecutable: boundedPath(input.javaExecutable, DEFAULT_SERVER_DRAFT.javaExecutable),
+    // A Java executable path is selected and retained only in the privileged
+    // runtime-review controller. Older draft payloads may contain this field,
+    // but normalizing them intentionally removes it rather than relaying a
+    // renderer-supplied path into any future process boundary.
+    javaExecutable: "",
     memoryInitialMiB: Math.min(initialCandidate, maximumMemoryMiB),
     memoryMaximumMiB: maximumMemoryMiB,
     diskReserveMiB: boundedInteger(
@@ -196,6 +200,6 @@ export function normalizeServerDraft(value: unknown): ServerDraft {
 
 export function describeJavaRuntime(runtime: JavaRuntime): string {
   if (runtime === "auto") return "Use java resolved by the operating system";
-  if (runtime === "custom") return "Use the selected Java executable without invoking a shell";
+  if (runtime === "custom") return "Use a Java runtime selected for privileged review; this renderer does not receive its executable path";
   return "Prefer Java " + runtime.replace("java-", "");
 }

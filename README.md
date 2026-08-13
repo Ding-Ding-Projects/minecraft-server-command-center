@@ -25,10 +25,15 @@ operation, configuration-file writes, and arbitrary filesystem read or
 execution. See [Planner Handoff v1](docs/site/planner-handoff-v1.md).
 
 The desktop foundation can collect a typed normalized draft, use narrow native
-folder/JAR/Java/configuration pickers, persist a local draft, display a
-tokenized direct-argument preview, and show typed Paper/Spigot catalog
-categories. It deliberately does not expose a renderer process launcher, shell
-field, RCON route, arbitrary command route, or automatic-update transport.
+folder/JAR/Java/configuration pickers, guide bounded Java runtime discovery
+through opaque candidate IDs, probe one selected Java runtime with fixed direct
+arguments, persist a local draft, display a tokenized direct-argument preview,
+and show typed Paper/Spigot catalog categories. Paper compatibility remains
+explicitly unverified until a bounded official target catalog exists, and
+Spigot compatibility remains separately unverified. It deliberately does not
+expose a renderer process launcher, Java-path text field, shell field, RCON
+route, arbitrary command route, installer, package-manager action, or
+automatic-update transport.
 
 Sensitive material is out of scope across both surfaces. Do not put RCON
 passwords, keystores, tokens, SSH material, private server addresses, player
@@ -65,6 +70,7 @@ not a shell command and remains non-launching.
 - [Planner Handoff v1](docs/site/planner-handoff-v1.md)
 - [Paper and Spigot CLI guidance](docs/server-configuration/paper-spigot-cli.md)
 - [Typed Paper and Spigot registry reference](docs/reference/paper-spigot-cli-catalog.md)
+- [Java runtime setup reference](docs/reference/java-runtime-setup.md)
 - [Desktop completeness inventory](docs/verification/completeness-inventory.md)
 
 ## Source layout
@@ -110,10 +116,11 @@ described by the companion's static handoff without turning those boundaries
 into completed evidence. Read the relevant handoff and completeness inventory
 before calling a surface verified.
 
-The Planner Handoff v1 record is source-design documentation only. It does not
-claim that JSON export/import, native selected-file parsing, preview, apply,
-save, browser UI, desktop UI, or any excluded action boundary has been
-exercised.
+The Planner Handoff v1 record and Java runtime guidance remain source-design
+implementation records only. They do not claim that JSON export/import, native
+selected-file parsing, Java discovery/probing, compatibility assessment,
+preview, apply, save, browser UI, desktop UI, or any excluded action boundary
+has been exercised.
 
 ## Continue from here
 

@@ -57,9 +57,14 @@ Planner Handoff v1 article before implementing this boundary.
 The desktop source contains:
 
 - a normalized schema-version-1 server draft stored under Electron user data;
-- narrow native folder, JAR, Java, and configuration picker requests;
+- narrow generic native folder, JAR, and configuration picker requests, plus a
+  dedicated privileged Java-runtime chooser;
 - a frameless, sandboxed, context-isolated Material Design 3 renderer with
   seven vertical setup tabs;
+- a guided Java runtime card that keeps candidate paths in the main process,
+  shows opaque candidate/source summaries, probes selected Java with fixed
+  direct arguments, and renders explicit Paper-catalog-unavailable and Spigot
+  unverified states;
 - typed Paper/Spigot registry projection and direct argument-array preview;
 - explicit no-launch IPC and automatic-update-unavailable boundaries;
 - Windows Squirrel.Windows packaging configuration, unsigned-only settings,
@@ -83,6 +88,8 @@ src/shared/planner-handoff.ts
 src/shared/desktop-api.ts
 src/main/index.ts
 src/main/planner-handoff-file.ts
+src/main/java-runtime-manager.cjs
+src/main/java-runtime-controller.ts
 src/main/draft-store.ts
 src/main/argv-preview.ts
 src/main/cli-catalog.ts
@@ -97,6 +104,12 @@ The desktop renderer has no process-start IPC, shell command field, RCON
 transport, arbitrary-command execution route, or update transport. It should
 continue to render those facts honestly until separately implemented and
 verified.
+
+The Java runtime bridge has no generic Java-path input, command execution,
+install, package-manager, download, configuration-write, credential, or server
+route. It uses no Paper target catalog today, so a successful Java probe remains
+an explicit unverified Paper compatibility state. It never applies Paper
+requirements to Spigot.
 
 ## Verification boundary
 

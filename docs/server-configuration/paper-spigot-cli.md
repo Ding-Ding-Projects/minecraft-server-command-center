@@ -17,7 +17,7 @@ synthesizing unchecked tokens.
 
 | Category | Current direct token mapping or availability | Notes |
 | --- | --- | --- |
-| Java and JAR | Java executable or `java`; `-Xms`, `-Xmx`, `-jar` | The preview is a list of direct argument tokens. |
+| Java and JAR | Non-executable `java` placeholder; `-Xms`, `-Xmx`, `-jar` | The selected Java executable remains in the privileged runtime-review controller; the preview is a list of direct argument tokens, not a process request. |
 | Server overrides | `-h`, `-p`, `-o`, `-w` | The draft bounds host text and port values before producing preview tokens. |
 | Paper configuration and plugins | `-P`, `-c`, `-b`, `-S`, `-C`, `--paper-dir` | These are emitted only for a Paper draft. |
 | Console and UI | `--nogui`, `--noconsole`, `--nojline` | These affect a later server launch and remain preview-only here. |
@@ -29,7 +29,7 @@ The canonical option spelling, availability, and deprecation status must be chec
 
 ## Native selection boundary
 
-The privileged desktop process accepts only four picker kinds: server folder, server JAR, Java executable, and configuration file. The file-picker filters are source-level implementation detail, not proof that an eventual selected file is valid for a selected server version.
+The generic privileged desktop picker accepts only three kinds: server folder, server JAR, and configuration file. Java selection is a separate Runtime-tab route that sends the native result directly to the main-process Java runtime controller and returns only an opaque candidate summary to the renderer. The file-picker filters are source-level implementation detail, not proof that an eventual selected file is valid for a selected server version.
 
 ## Spigot availability boundary
 
@@ -61,4 +61,5 @@ This article is based on source inspection of the shared draft and catalog adapt
 ## Related documentation
 
 - [Desktop foundation architecture](../architecture/desktop-foundation.md)
+- [Java runtime setup](../reference/java-runtime-setup.md)
 - [Completeness inventory](../verification/completeness-inventory.md)

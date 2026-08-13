@@ -14,6 +14,13 @@ const desktopApi: DesktopApi = {
   picker: {
     select: (kind: PickerKind) => ipcRenderer.invoke("picker:select", kind)
   },
+  runtime: {
+    discover: () => ipcRenderer.invoke("runtime:discover"),
+    choose: () => ipcRenderer.invoke("runtime:choose"),
+    select: (candidateId: string) => ipcRenderer.invoke("runtime:select", candidateId),
+    assess: (value) => ipcRenderer.invoke("runtime:assess", value),
+    clear: () => ipcRenderer.invoke("runtime:clear")
+  },
   catalog: {
     get: () => ipcRenderer.invoke("catalog:get")
   },

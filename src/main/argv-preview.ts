@@ -94,9 +94,11 @@ export function buildArgvPreview(value: unknown): ArgvPreview {
     throw new Error("The CLI catalog does not provide the required no-shell, non-launching argument-array contract.");
   }
 
-  const javaExecutable = draft.javaRuntime === "custom" && present(draft.javaExecutable)
-    ? draft.javaExecutable
-    : "java";
+  // The Java-runtime guidance flow keeps an actual selected executable inside
+  // the privileged discovery controller. This source-only argv preview must
+  // never turn a renderer-provided path into a process target, so its first
+  // token is intentionally the non-executable placeholder `java`.
+  const javaExecutable = "java";
   const requested = requestedPaperSelections(draft);
   const cliTokens = draft.serverKind === "paper"
     ? catalog.emitPaperCliArgv(requested)
@@ -113,7 +115,7 @@ export function buildArgvPreview(value: unknown): ArgvPreview {
       draft.serverJar || "server.jar",
       ...cliTokens
     ],
-    source: "Typed Paper/Spigot registry: direct argument arrays only; shell execution and server launch remain unavailable.",
+    source: "Typed Paper/Spigot registry: direct argument arrays only. The Java executable remains a privileged review selection; shell execution and server launch remain unavailable.",
     unsupported
   };
 }

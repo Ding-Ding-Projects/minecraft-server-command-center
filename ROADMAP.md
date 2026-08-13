@@ -29,14 +29,20 @@ server action.
   user-mediated local JSON boundary between the companion planner and desktop
   draft; it is not a server operation, remote transport, filesystem-control,
   configuration-write, or execution feature.
+- Added a guided desktop Java-runtime review surface that owns candidate paths
+  in the privileged process, exposes opaque candidate IDs and parsed probe
+  facts to the renderer, and keeps Paper target-catalog availability and
+  Spigot compatibility explicitly unverified.
 
 ## Next implementation slices
 
 1. **Focused verification** — run authorized checks and exercise both the
    built companion and packaged desktop app through the approved headless path.
-2. **Desktop configuration integration** — bind the desktop form to the
-   versioned configuration schema and version-aware Java requirements without
-   weakening its typed/no-shell boundary.
+2. **Official runtime catalog integration** — add a separately bounded,
+   validated official Paper target-catalog adapter before turning Paper Java
+   requirement results into anything beyond an explicit `unverified` state;
+   add an independently sourced Spigot resolver rather than reusing Paper
+   mappings.
 3. **Companion planner and handoff implementation** — finish browser-local
    controls, validation, provenance, reset, non-secret export/import, bounded
    desktop selected-file parsing, safe normalization preview, and explicit
@@ -65,6 +71,9 @@ server action.
 - Treating the Planner Handoff v1 documentation as proof of browser-to-desktop
   communication, selected-file access, configuration-file writes, filesystem
   access, server control, or any execution path.
+- Treating Java discovery or a parsed `java -version` result as proof of a
+  compatible Paper target, Java installation, server configuration, server
+  launch, package-manager action, or Spigot compatibility.
 
 ## Completion criteria for the next implementation task
 

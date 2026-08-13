@@ -4,6 +4,7 @@ import type { PickerKind } from "../shared/desktop-api";
 import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
+import { JavaRuntimeController } from "./java-runtime-controller";
 import { getUpdateBoundary } from "./update-boundary";
 import {
   applyPlannerHandoffToDraft,
@@ -16,6 +17,7 @@ import { readSelectedPlannerHandoff } from "./planner-handoff-file";
 const isSquirrelStartup = require("electron-squirrel-startup") as boolean;
 let mainWindow: BrowserWindow | undefined;
 let pendingPlannerHandoff: PlannerHandoffV1 | undefined;
+const javaRuntimeController = new JavaRuntimeController();
 
 function requireWindow(): BrowserWindow {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -36,17 +38,11 @@ async function selectPath(kind: PickerKind): Promise<string | null> {
           properties: ["openFile"],
           filters: [{ name: "Java archive", extensions: ["jar"] }]
         }
-      : kind === "java"
-        ? {
-            title: "Choose Java executable",
-            properties: ["openFile"],
-            filters: [{ name: "Executable files", extensions: ["exe", "cmd", "bat"] }]
-          }
-        : {
-            title: "Choose configuration file",
-            properties: ["openFile"],
-            filters: [{ name: "Configuration files", extensions: ["properties", "yml", "yaml"] }]
-          };
+      : {
+          title: "Choose configuration file",
+          properties: ["openFile"],
+          filters: [{ name: "Configuration files", extensions: ["properties", "yml", "yaml"] }]
+        };
 
   const result = await dialog.showOpenDialog(requireWindow(), options);
   return result.canceled ? null : result.filePaths[0] ?? null;
@@ -70,6 +66,16 @@ async function choosePlannerHandoff() {
     pendingPlannerHandoff = undefined;
     throw new Error("The selected JSON file is not a valid non-secret planner handoff v1.");
   }
+}
+
+async function chooseJavaRuntime() {
+  const result = await dialog.showOpenDialog(requireWindow(), {
+    title: "Choose Java executable",
+    properties: ["openFile"],
+    filters: [{ name: "Java executable", extensions: ["exe"] }]
+  });
+  const selectedPath = result.canceled ? null : result.filePaths[0] ?? null;
+  return selectedPath ? javaRuntimeController.discoverFromNativeSelection(selectedPath) : null;
 }
 
 async function applyPendingPlannerHandoff(currentDraft: unknown): Promise<Awaited<ReturnType<typeof loadDraft>>> {
@@ -116,6 +122,11 @@ function registerIpc(): void {
     pendingPlannerHandoff = undefined;
   });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
+  ipcMain.handle("runtime:discover", () => javaRuntimeController.discover());
+  ipcMain.handle("runtime:choose", () => chooseJavaRuntime());
+  ipcMain.handle("runtime:select", (_event, candidateId: unknown) => javaRuntimeController.select(candidateId));
+  ipcMain.handle("runtime:assess", (_event, value: unknown) => javaRuntimeController.assess(value));
+  ipcMain.handle("runtime:clear", () => javaRuntimeController.clear());
   ipcMain.handle("catalog:get", () => loadCliCatalog());
   ipcMain.handle("preview:argv", (_event, value: unknown) => buildArgvPreview(value));
   ipcMain.handle("updater:status", () => getUpdateBoundary());

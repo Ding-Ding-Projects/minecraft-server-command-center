@@ -9,15 +9,16 @@ Minecraft Server Command Center is being established as a guided Material Design
 | Layer | Source path | Responsibility | Explicit limit |
 | --- | --- | --- | --- |
 | Shared draft | `src/shared/server-draft.ts` | Defines a schema-version-1 server draft, bounded normalization, and defaults. | Does not access the filesystem or spawn processes. |
-| Shared bridge contract | `src/shared/desktop-api.ts` | Defines the limited draft, picker, typed-preview, catalog, update-boundary, and window-control API. | Does not define a process-launch method. |
+| Shared bridge contract | `src/shared/desktop-api.ts` | Defines the limited draft, picker, Java-runtime summary, typed-preview, catalog, update-boundary, and window-control API. | Does not define a process-launch method or generic raw-path/process bridge. |
 | Draft persistence | `src/main/draft-store.ts` | Loads and writes `server-draft.v1.json` under Electron's `userData` directory after normalization. | Does not write into a selected Minecraft server directory. |
 | Privileged desktop process | `src/main/index.ts` | Owns draft persistence, native picker requests, typed-preview/catalog retrieval, update-boundary state, custom window controls, and IPC handlers. | Does not expose an arbitrary command launcher. |
+| Java runtime controller | `src/main/java-runtime-controller.ts`, `src/main/java-runtime-manager.cjs` | Keeps Java candidate paths in the main process, performs bounded discovery and fixed direct version probing, and projects opaque candidate summaries plus review-only compatibility data. | Does not scan PATH/disks/registry recursively, fetch a Paper catalog, install Java, invoke a package manager, or start a server. |
 | Typed preview adapter | `src/main/argv-preview.ts` | Composes Java/JAR tokens with only the versioned Paper/Spigot registry's direct-array emitters. | Does not invoke a shell or start a process. |
 | Catalog adapter | `src/main/cli-catalog.ts` | Projects the versioned Paper/Spigot catalog when present and otherwise returns a bounded visible fallback. | Does not accept arbitrary raw command input. |
 | Update boundary | `src/main/update-boundary.ts` | Exposes an explicit unavailable automatic-update state. | Does not query a feed, download, stage, or install an update. |
 | Preload bridge | `src/preload/index.ts` | Exposes the smallest typed renderer-facing API. | Does not expose unrestricted filesystem or process APIs. |
-| Renderer document | `src/renderer/index.html` | Defines the custom title bar, vertical tab shell, guided form controls, preview panel, catalog panel, and explicit no-launch notice. | Does not contain privileged operations. |
-| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires four picker kinds, renders direct argv tokens and the catalog, and keeps launch unavailable. | Does not execute a process or shell command. |
+| Renderer document | `src/renderer/index.html` | Defines the custom title bar, vertical tab shell, guided form controls, Java runtime candidate/assessment card, preview panel, catalog panel, and explicit no-launch notice. | Does not contain privileged operations or a Java-path text field. |
+| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires bounded runtime discovery, opaque candidate selection, direct-probe assessment rendering, direct argv tokens, and the catalog while keeping launch unavailable. | Does not execute a process, shell command, installer, package manager, or configuration writer. |
 | Renderer presentation | `src/renderer/styles.css` | Supplies Material Design 3 color roles, shape, elevation, focus styling, reduced-motion handling, and responsive tab/form layouts. | Source styling only; it has not been rendered in a built application. |
 | Planner Handoff v1 envelope | src/shared/planner-handoff.ts | Defines the versioned, bounded, non-secret planning exchange shape and normalization boundary. | Does not carry paths, URLs, secrets, raw command text, file contents, or execution instructions. |
 
@@ -33,6 +34,9 @@ flowchart LR
   P -->|typed IPC| M[Privileged desktop process]
   M -->|selected local value or persisted draft| P
   P --> UI
+  UI -->|opaque runtime request| P
+  P -->|typed IPC| J[Java runtime controller]
+  J -->|bounded candidate summary / parsed probe state| P
   D -->|normalized draft| A[Typed registry preview adapter]
   A -->|tokenized argv data| V[Copyable argv preview]
   V -. no execution path .-> X[No server process launch]
@@ -43,14 +47,18 @@ The renderer should present a readable argv sequence and preserve token boundari
 ## Renderer surface boundary
 
 The inspected renderer has seven vertically oriented setup tabs: Overview,
-Runtime, World, Access, Paths, Start preview, and CLI catalog. It renders
+Runtime, World, Access, Paths, Start preview, and CLI catalog. The Runtime tab
+adds rich bounded-discovery and native-selection controls, opaque candidate
+rows, a direct-version-probe action, an explicit Paper-target-catalog-unavailable
+status, explicit Spigot non-mapping, and review-only plan state. It renders
 bounded controls, direct argv tokens, mapped/unavailable catalog rows, local
 draft status, and non-blocking save feedback. A disabled visible action states
 that server launch is intentionally unavailable.
 
 Input changes are normalized before they are scheduled for local draft
 persistence. The renderer requests only the narrow preload API for draft
-load/save, picker selection, catalog retrieval, and desktop-window controls.
+load/save, picker selection, bounded Java runtime discovery/selection/assessment,
+catalog retrieval, and desktop-window controls.
 This is source-only evidence; the tab behavior, feedback timing, and
 accessibility semantics have not been exercised in a built application.
 
@@ -66,7 +74,7 @@ The configuration draft is typed and normalized before it is persisted or return
 
 The draft store serializes the normalized draft as UTF-8 JSON named `server-draft.v1.json` in Electron's `userData` directory. It writes a temporary file and renames it into place. This is source-only behavior documentation; no persistence behavior has been exercised.
 
-Native local pickers belong behind the privileged desktop boundary. The inspected picker API supports only folder, server-JAR, Java executable, and configuration-file selection. The renderer may ask for one of those supported picker operations, but it does not receive broad local filesystem capability as a side effect.
+Native local pickers belong behind the privileged desktop boundary. The generic picker API supports only folder, server-JAR, and configuration-file selection. The Runtime tab owns the separate Java-executable picker; its result goes directly into the main-process Java runtime controller, while the renderer receives only an opaque candidate ID and safe summary, not its executable path. The renderer may ask for one of the supported picker operations, but it does not receive broad local filesystem capability as a side effect.
 
 The inspected desktop window is frameless and uses `contextIsolation: true`, `nodeIntegration: false`, and `sandbox: true`. These settings are source evidence only; they have not yet been observed in a built application.
 
@@ -120,10 +128,12 @@ When a catalog module is present, the adapter normalizes its projected categorie
 
 The typed-preview adapter uses only the versioned Paper/Spigot registry's
 direct argument-array emitters. It requires the registry to state that it is
-non-launching and shell-free before composing Java, managed JVM, JAR, and
-selected server tokens. It has no local raw-flag list. For a Spigot target,
-selections outside the registry's documented compatibility set remain visible
-as omitted, rather than being guessed or passed through.
+non-launching and shell-free before composing the `java` placeholder, managed
+JVM, JAR, and selected server tokens. The actual selected Java executable
+remains in the privileged runtime-review controller and is not renderer input
+to the preview. It has no local raw-flag list. For a Spigot target, selections
+outside the registry's documented compatibility set remain visible as omitted,
+rather than being guessed or passed through.
 
 ## Update boundary
 
@@ -136,7 +146,9 @@ represented as a functioning update client.
 
 ## Lifecycle boundary
 
-The inspected bridge exposes only draft load/save, four picker kinds, typed
+The inspected bridge exposes only draft load/save, three generic picker kinds,
+bounded
+Java runtime discovery/selection/assessment/clear requests, typed
 preview/catalog retrieval, update-boundary status, and window-control methods.
 It intentionally has no launch IPC and no server supervisor. The foundation
 therefore does not claim any capability to start, stop, restart, attach to, or
@@ -147,4 +159,5 @@ A later lifecycle feature must define process ownership, cancellation, logging, 
 ## Related documentation
 
 - [Paper and Spigot CLI guidance](../server-configuration/paper-spigot-cli.md)
+- [Java runtime setup](../reference/java-runtime-setup.md)
 - [Completeness inventory](../verification/completeness-inventory.md)

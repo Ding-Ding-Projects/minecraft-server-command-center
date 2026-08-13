@@ -156,8 +156,8 @@
               </div>
               <div class="form-grid">
                 <label class="field">
-                  <span class="field__label">Java runtime</span>
-                  <span class="field__hint" id="java-runtime-hint">Choose a managed planning target or a local executable.</span>
+                  <span class="field__label">Java planning preference</span>
+                  <span class="field__hint" id="java-runtime-hint">Choose a managed planning target, or let the guided selector represent a Java runtime without exposing its path in this renderer.</span>
                   <select data-field="javaRuntime" aria-describedby="java-runtime-hint">
                     <option value="auto">Automatically resolve Java</option>
                     <option value="java-17">Prefer Java 17</option>
@@ -166,14 +166,37 @@
                     <option value="custom">Choose a Java executable</option>
                   </select>
                 </label>
-                <label class="field">
-                  <span class="field__label">Custom Java executable</span>
-                  <span class="field__hint">Used only when “Choose a Java executable” is selected.</span>
-                  <span class="path-control">
-                    <input data-field="javaExecutable" type="text" maxlength="2048" spellcheck="false" autocomplete="off" />
-                    <button class="input-action" type="button" data-picker-kind="java" data-picker-target="javaExecutable">Browse Java</button>
-                  </span>
-                </label>
+                <section class="java-runtime-card field--wide" aria-labelledby="java-runtime-guidance-title">
+                  <div class="java-runtime-card__heading">
+                    <div>
+                      <p class="eyebrow">Guided local discovery</p>
+                      <h3 id="java-runtime-guidance-title">Choose and inspect a Java runtime</h3>
+                      <p>The native picker and bounded conventional locations can supply candidates. The renderer receives opaque IDs and parsed version facts only; it never receives a Java path, shell command, or installer control.</p>
+                    </div>
+                    <span class="badge badge--safe">No installation</span>
+                  </div>
+                  <div class="java-runtime-card__actions">
+                    <button class="outlined-button" type="button" id="discover-java-runtimes" aria-describedby="java-runtime-state">Find bounded runtimes</button>
+                    <button class="outlined-button" type="button" id="choose-java-runtime" aria-describedby="java-runtime-state">Choose Java executable</button>
+                    <button class="filled-button filled-button--compact" type="button" id="assess-java-runtime" disabled>Probe selected runtime</button>
+                  </div>
+                  <p class="java-runtime-card__status" id="java-runtime-state" role="status" aria-live="polite">No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.</p>
+                  <p class="java-runtime-card__selected" id="selected-java-runtime" role="status" aria-live="polite">No Java runtime candidate is selected.</p>
+                  <div class="java-runtime-candidates" id="java-runtime-candidates" aria-label="Discovered Java runtime candidates"></div>
+                  <section class="java-runtime-assessment" aria-labelledby="java-runtime-assessment-title">
+                    <div class="java-runtime-assessment__heading">
+                      <div>
+                        <p class="eyebrow">Compatibility review</p>
+                        <h4 id="java-runtime-assessment-title">Paper and Spigot status</h4>
+                      </div>
+                      <span class="badge" id="java-runtime-assessment-badge">Not assessed</span>
+                    </div>
+                    <p class="java-runtime-assessment__summary" id="java-runtime-assessment-summary">Choose a candidate, then probe it with fixed direct Java version arguments. No server, installer, package manager, or configuration write can run from this card.</p>
+                    <dl class="java-runtime-assessment__details" id="java-runtime-assessment-details" aria-label="Java runtime compatibility details" hidden></dl>
+                    <p class="java-runtime-assessment__recovery" id="java-runtime-assessment-recovery">Paper compatibility stays unverified until this desktop foundation has a bounded official target catalog. Spigot requires its own sourced resolver.</p>
+                    <p class="java-runtime-assessment__plan" id="java-runtime-assessment-plan">Any setup plan remains review-only and is not available until the target is officially verified.</p>
+                  </section>
+                </section>
                 <label class="field">
                   <span class="field__label">Initial memory (MiB)</span>
                   <span class="field__hint">Bounded from 256 MiB to 1 TiB. It becomes a direct -Xms token in the preview.</span>
