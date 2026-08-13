@@ -93,7 +93,7 @@ jobs:
             "",
             "Workflow started: $($started.ToUniversalTime().ToString('o'))",
             "Workflow completed: $($completed.ToUniversalTime().ToString('o'))",
-            ("Workflow duration: {0:hh\\:mm\\:ss}" -f $duration),
+            "Workflow duration: $($duration.ToString('hh\:mm\:ss'))",
             "",
             "This workflow builds and packages only; it does not run tests or lint."
           )
