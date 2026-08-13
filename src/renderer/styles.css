@@ -460,6 +460,78 @@ h3 {
   color: var(--md-sys-color-on-secondary-container);
 }
 
+.handoff-card {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 46%, var(--md-sys-color-outline-variant));
+  border-radius: var(--md-sys-shape-corner-large);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-primary-container) 56%, var(--md-sys-color-surface-container)), var(--md-sys-color-surface-container));
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+.handoff-card__heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.handoff-card__heading h3 {
+  margin: 4px 0 6px;
+}
+
+.handoff-card__heading p:last-child,
+.handoff-card__status {
+  max-width: 820px;
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.handoff-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filled-button.filled-button--compact {
+  width: auto;
+  min-height: 40px;
+  margin-top: 0;
+}
+
+.handoff-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+}
+
+.handoff-preview div {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 72%, transparent);
+}
+
+.handoff-preview dt {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.handoff-preview dd {
+  overflow-wrap: anywhere;
+  margin: 4px 0 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -922,7 +994,8 @@ code,
   }
 
   .form-grid,
-  .preview-layout {
+  .preview-layout,
+  .handoff-preview {
     grid-template-columns: 1fr;
   }
 }
@@ -941,6 +1014,7 @@ code,
   }
 
   .notice-card,
+  .handoff-card,
   .field,
   .toggle-field,
   .preview-card,
@@ -950,7 +1024,8 @@ code,
   }
 
   .section-heading,
-  .preview-card > header {
+  .preview-card > header,
+  .handoff-card__heading {
     align-items: flex-start;
     flex-direction: column;
   }

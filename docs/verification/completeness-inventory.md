@@ -30,14 +30,16 @@ This is a hand-written inventory for the desktop foundation, not a discovered li
 | No server-launch IPC | `src/shared/desktop-api.ts`, `src/main/index.ts`, `src/preload/index.ts` | [architecture](../architecture/desktop-foundation.md), [CLI guidance](../server-configuration/paper-spigot-cli.md) | Source inspected intentional boundary; no launch method exists | Not recorded; no launch behavior should be tested as present |
 | Documentation indexes and handoff | `README.md`, `ROADMAP.md`, `HANDOFF.md`, `CHANGELOG.md`, `docs/**`, `AGENTS.md` | This inventory and category indexes | Documented | Documentation-only evidence |
 
+| Planner Handoff v1 envelope and selected-file import boundary | src/shared/planner-handoff.ts, src/shared/desktop-api.ts, src/main/planner-handoff-file.ts, src/main/index.ts, src/preload/index.ts, src/renderer/main.ts | [Planner Handoff v1](../site/planner-handoff-v1.md), [architecture](../architecture/desktop-foundation.md) | Source-design contract recorded; implementation, selected-file flow, preview, apply/save behavior, local-only draft retention, and prohibited-route enforcement remain unverified | Not recorded |
+
 ## Required evidence before a release claim
 
 Before release documentation can mark a row verified, it must name the exact source revision, focused test or check, built-artifact interaction, and capture evidence where a visible surface exists. The evidence should also record whether the server-launch boundary remained unavailable.
 
 ## Negative regression requirement
 
-A future verification suite should include explicit negative checks that fail when the typed draft registration, restricted bridge, argv tokenization, Paper/Spigot category registration, documentation article, or explicit no-launch boundary is removed. The checks must be exact enough to detect an entirely missing registration rather than merely a renamed descendant.
+A future verification suite should include explicit negative checks that fail when the typed draft registration, Planner Handoff v1 schema or prohibited-field rejection, restricted bridge, argv tokenization, Paper/Spigot category registration, documentation article, or explicit no-launch boundary is removed. The checks must be exact enough to detect an entirely missing registration rather than merely a renamed descendant.
 
 ## Current status
 
-At this documentation revision, the listed shared/main/preload, renderer, and build/package definitions have source-only inspection evidence. No test, build, package, runtime, accessibility, server integration, or capture result has been recorded.
+At this documentation revision, the listed shared/main/preload, renderer, and build/package definitions have source-only inspection evidence. Planner Handoff v1 is a source-design record whose selected-file, preview, apply/save, and prohibited-route behavior remains unverified. No test, lint, review, accessibility assessment, browser UI interaction, screen capture, build, package, release, website publication, source-control publication, runtime, or server-integration result has been recorded for this documentation lane.

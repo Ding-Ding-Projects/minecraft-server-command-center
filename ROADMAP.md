@@ -25,6 +25,11 @@ server action.
   `Setup.exe` asset without a browser release lookup, background transfer, or
   installation-completion claim.
 
+- Documented Planner Handoff v1 as a strict versioned, non-secret,
+  user-mediated local JSON boundary between the companion planner and desktop
+  draft; it is not a server operation, remote transport, filesystem-control,
+  configuration-write, or execution feature.
+
 ## Next implementation slices
 
 1. **Focused verification** — run authorized checks and exercise both the
@@ -32,8 +37,11 @@ server action.
 2. **Desktop configuration integration** — bind the desktop form to the
    versioned configuration schema and version-aware Java requirements without
    weakening its typed/no-shell boundary.
-3. **Companion planner completion** — finish browser-local controls,
-   validation, provenance, reset, and non-secret export behavior.
+3. **Companion planner and handoff implementation** — finish browser-local
+   controls, validation, provenance, reset, non-secret export/import, bounded
+   desktop selected-file parsing, safe normalization preview, and explicit
+   apply/save behavior without weakening the no-path/no-secret/no-execution
+   boundary.
 4. **Lifecycle integration** — connect a separately reviewed lifecycle service
    only after explicit confirmation, process ownership, logging, cancellation,
    recovery, and real runtime evidence are in place.
@@ -53,6 +61,10 @@ server action.
   privacy/deployment record.
 - Treating a published unsigned Squirrel asset as proof of local installation,
   automatic-update behavior, or a running application.
+
+- Treating the Planner Handoff v1 documentation as proof of browser-to-desktop
+  communication, selected-file access, configuration-file writes, filesystem
+  access, server control, or any execution path.
 
 ## Completion criteria for the next implementation task
 

@@ -19,6 +19,7 @@ Minecraft Server Command Center is being established as a guided Material Design
 | Renderer document | `src/renderer/index.html` | Defines the custom title bar, vertical tab shell, guided form controls, preview panel, catalog panel, and explicit no-launch notice. | Does not contain privileged operations. |
 | Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires four picker kinds, renders direct argv tokens and the catalog, and keeps launch unavailable. | Does not execute a process or shell command. |
 | Renderer presentation | `src/renderer/styles.css` | Supplies Material Design 3 color roles, shape, elevation, focus styling, reduced-motion handling, and responsive tab/form layouts. | Source styling only; it has not been rendered in a built application. |
+| Planner Handoff v1 envelope | src/shared/planner-handoff.ts | Defines the versioned, bounded, non-secret planning exchange shape and normalization boundary. | Does not carry paths, URLs, secrets, raw command text, file contents, or execution instructions. |
 
 All mappings above have source-only inspection evidence. This does not claim that any mapped file has compiled, packaged, or been interacted with in a built application.
 
@@ -68,6 +69,46 @@ The draft store serializes the normalized draft as UTF-8 JSON named `server-draf
 Native local pickers belong behind the privileged desktop boundary. The inspected picker API supports only folder, server-JAR, Java executable, and configuration-file selection. The renderer may ask for one of those supported picker operations, but it does not receive broad local filesystem capability as a side effect.
 
 The inspected desktop window is frameless and uses `contextIsolation: true`, `nodeIntegration: false`, and `sandbox: true`. These settings are source evidence only; they have not yet been observed in a built application.
+
+## Planner Handoff v1 boundary
+
+Planner Handoff v1 is a strictly local, user-mediated exchange between the
+browser companion and the desktop planning draft. The browser does not call the
+desktop application. Instead, a user chooses a local JSON export or import in
+the browser and separately chooses the resulting .json file through a native
+desktop picker.
+
+The v1 plan contains only serverName, serverKind, minecraftVersion,
+javaRuntime, memoryMiB, worldName, eulaAcknowledged, onlineMode, port,
+rconEnabled, and rconPort. The supported Minecraft presets are 1.21.4, 1.20.6,
+and 1.20.4. Java 21 is required for the first two presets and Java 17 for
+1.20.4. Memory is an integer from 1024 through 32768 MiB in whole-GiB
+increments. World values are the bounded world, creative-lab, and
+adventure-hub presets. Ports are integers from 1 through 65535 and must differ
+when RCON planning is enabled.
+
+The shared envelope is versioned, bounded, typed, and non-secret. It
+allows only those selected planning fields; it excludes local paths, URLs,
+private server addresses, credentials, secrets, raw argument or command text,
+file contents, opaque data, and arbitrary execution instructions. It is not a
+Minecraft server configuration file and must never be used to write one.
+
+The desktop flow is: native selected-file picker, privileged
+main-process bounded read and parse, deterministic normalization, a safe
+renderer preview for a valid exact v1 payload, and a separate explicit apply or
+save action. Selecting or previewing a file does not mutate the current draft.
+Applying a valid v1 plan overlays only the listed fields; local-only paths,
+executable locations, seed, and other desktop-local draft values remain local.
+Invalid, unsupported, oversized, malformed, or prohibited input fails closed
+with generic rejection and no raw file-content disclosure, preview, partial
+application, arbitrary filesystem traversal, configuration-file writes, server
+operation, remote transfer, or process execution.
+
+This is source-design documentation only. No selected-file interaction,
+browser-local JSON flow, accessibility behavior, renderer preview, persistence
+result, build, or packaged desktop runtime has been verified. See
+[Planner Handoff v1](../site/planner-handoff-v1.md) for the full cross-surface
+contract.
 
 ## Catalog availability boundary
 

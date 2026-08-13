@@ -117,6 +117,25 @@ The persistent state contract is deliberately narrow:
 No synchronization, analytics, telemetry, remote backup, or external API is
 part of this contract.
 
+## Planner Handoff v1
+
+The planner's optional v1 handoff is a user-mediated, local JSON exchange with
+the Windows desktop draft boundary. It does not create a browser-to-desktop
+service channel. A user may choose a non-secret planner export or import in the
+browser; the desktop separately opens a user-selected .json file, parses it
+through its privileged bounded boundary, shows normalized values for review,
+and requires an explicit apply or save action.
+
+The handoff is deliberately smaller than the planner's display state. It may
+contain only recognized, bounded planning fields. It excludes paths, URLs,
+private server addresses, credentials, secrets, raw command or argument text,
+file contents, remote transfer, server operation, configuration-file writes,
+and arbitrary filesystem read or execution. A rejected file must leave the
+existing local draft intact; importing a file alone must not apply it.
+
+See [Planner Handoff v1](planner-handoff-v1.md) for the full contract,
+validation boundary, and evidence status.
+
 ## Privacy and service boundary
 
 The companion is not a server management endpoint. It must not create a
@@ -127,7 +146,7 @@ complete boundary until a separately scoped change establishes otherwise.
 
 ## Verification boundary
 
-This article records the intended planner contract. The documentation-only
+This article records the planner contract as source-design evidence. The documentation-only
 foundation lane did not run a build, test suite, lint, browser interaction,
 accessibility audit, deployment, publication, or release. Future feature work
 must add focused verification for the exact planner behavior it implements,
@@ -137,5 +156,6 @@ and no-network behavior.
 ## Suggested next articles
 
 - [Companion Site Documentation index](README.md)
+- [Planner Handoff v1](planner-handoff-v1.md)
 - [Repository roadmap](../../ROADMAP.md)
 - [Current handoff](../../HANDOFF.md)

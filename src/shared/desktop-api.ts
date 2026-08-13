@@ -1,4 +1,5 @@
 import type { ServerDraft } from "./server-draft";
+import type { PlannerHandoffPreview } from "./planner-handoff";
 
 export type PickerKind = "folder" | "jar" | "java" | "config";
 
@@ -37,6 +38,11 @@ export interface DesktopApi {
   readonly draft: {
     load(): Promise<ServerDraft>;
     save(value: unknown): Promise<ServerDraft>;
+  };
+  readonly handoff: {
+    choose(): Promise<PlannerHandoffPreview | null>;
+    apply(currentDraft: unknown): Promise<ServerDraft>;
+    clear(): Promise<void>;
   };
   readonly picker: {
     select(kind: PickerKind): Promise<string | null>;

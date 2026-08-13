@@ -11,6 +11,10 @@ evidence of installation.
 
 - [Configuration planner](configuration-planner.md) — page model, structured
   settings, local-state limits, safety boundaries, and continuation guidance.
+- [Planner Handoff v1](planner-handoff-v1.md) — strict versioned, non-secret,
+  user-mediated local JSON exchange between the browser planner and desktop
+  draft boundary; it excludes paths, commands, credentials, remote transfer,
+  server operation, configuration writes, and arbitrary filesystem access.
 - [Static Pages export](static-pages-export.md) — static Vinext output,
   project-path deployment boundary, and publication requirements.
 - [Verified installer handoff](verified-installer-handoff.md) — embedded
@@ -33,6 +37,8 @@ separately verified, hard-coded immutable release record.
   of hosting, live server control, or production availability.
 - Describe browser-local data as non-secret, bounded, versioned, resettable,
   and exportable.
+- Describe planner handoff as user-selected local JSON import/export, never as
+  a browser-to-desktop transport, server-control route, or filesystem escape.
 - Do not include passwords, tokens, private addresses, player data, file
   contents, server logs, or other sensitive material in examples or diagrams.
 - Do not add remote client fetching, third-party assets, analytics, telemetry,

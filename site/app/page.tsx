@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type ReactNode } from "react";
+import {
+  PLANNER_HANDOFF_FILENAME,
+  PLANNER_HANDOFF_MAX_BYTES,
+  createPlannerHandoff,
+  isPlannerHandoffName,
+  parsePlannerHandoffJson,
+  previewPlannerHandoff,
+  type PlannerHandoffV1
+} from "../../src/shared/planner-handoff";
 
 // The planner has no server data; emit its root route as static HTML.
 export const dynamic = "force-static";
@@ -22,6 +31,7 @@ type PageId =
   | "release-status";
 
 type PlannerDraft = {
+  serverName: string;
   kind: ServerKind;
   version: GameVersion;
   javaVersion: JavaVersion;
@@ -51,6 +61,11 @@ type Notice = {
   detail: string;
 };
 
+type HandoffStatus = {
+  tone: "neutral" | "warning" | "success" | "info";
+  message: string;
+};
+
 type VerifiedInstallerManifest = {
   releaseTag: string;
   sourceCommit: string;
@@ -71,6 +86,7 @@ const SEARCH_DEFAULT: SearchState = {
   builderOpen: false,
 };
 const DEFAULT_DRAFT: PlannerDraft = {
+  serverName: "My Minecraft Server",
   kind: "paper",
   version: "1.21.4",
   javaVersion: "21",
@@ -224,6 +240,7 @@ function restoreDraft(value: string | null): PlannerDraft {
       ? (saved.version as GameVersion)
       : DEFAULT_DRAFT.version;
     return {
+      serverName: isPlannerHandoffName(saved.serverName) ? saved.serverName : DEFAULT_DRAFT.serverName,
       kind: saved.kind === "spigot" ? "spigot" : "paper",
       version,
       javaVersion: saved.javaVersion === "17" ? "17" : "21",
@@ -259,6 +276,40 @@ function makeArgv(draft: PlannerDraft, kind: ServerKind = draft.kind) {
     launcher,
     "--nogui",
   ];
+}
+
+function createBrowserPlannerHandoff(draft: PlannerDraft): PlannerHandoffV1 {
+  return createPlannerHandoff({
+    serverName: draft.serverName,
+    serverKind: draft.kind,
+    minecraftVersion: draft.version,
+    javaRuntime: draft.javaVersion === "17" ? "java-17" : "java-21",
+    memoryMiB: draft.memoryGiB * 1024,
+    worldName: draft.world,
+    eulaAcknowledged: draft.eulaAccepted,
+    onlineMode: draft.onlineMode,
+    port: draft.port,
+    rconEnabled: draft.rconEnabled,
+    rconPort: draft.rconPort,
+  });
+}
+
+function applyPlannerHandoffToBrowserDraft(current: PlannerDraft, handoff: PlannerHandoffV1): PlannerDraft {
+  const plan = handoff.plan;
+  return {
+    ...current,
+    serverName: plan.serverName,
+    kind: plan.serverKind,
+    version: plan.minecraftVersion,
+    javaVersion: plan.javaRuntime === "java-17" ? "17" : "21",
+    memoryGiB: plan.memoryMiB / 1024,
+    world: plan.worldName,
+    eulaAccepted: plan.eulaAcknowledged,
+    onlineMode: plan.onlineMode,
+    port: plan.port,
+    rconEnabled: plan.rconEnabled,
+    rconPort: plan.rconPort,
+  };
 }
 
 function testSearch(text: string, state: SearchState) {
@@ -522,6 +573,12 @@ export default function Home() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [pendingPlannerHandoff, setPendingPlannerHandoff] = useState<PlannerHandoffV1 | null>(null);
+  const [handoffStatus, setHandoffStatus] = useState<HandoffStatus>({
+    tone: "neutral",
+    message: "No planner handoff is selected. JSON files stay local to this browser session until you apply one.",
+  });
+  const plannerHandoffInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
@@ -646,8 +703,61 @@ export default function Home() {
   };
   const resetDraft = () => {
     setDraft(DEFAULT_DRAFT);
+    setPendingPlannerHandoff(null);
+    setHandoffStatus({ tone: "neutral", message: "Browser draft reset. No planner handoff is selected." });
     window.localStorage.removeItem(STORAGE_KEY);
     setNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
+  };
+  const exportPlannerHandoff = () => {
+    try {
+      const handoff = createBrowserPlannerHandoff(draft);
+      const content = `${JSON.stringify(handoff, null, 2)}\n`;
+      const objectUrl = URL.createObjectURL(new Blob([content], { type: "application/json" }));
+      const download = document.createElement("a");
+      download.href = objectUrl;
+      download.download = PLANNER_HANDOFF_FILENAME;
+      download.click();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+      setHandoffStatus({ tone: "success", message: "Structured planner handoff JSON was prepared for a user-triggered download. It contains only the displayed non-secret planning values." });
+      setNotice({ tone: "success", title: "Planner handoff exported", detail: "The JSON download contains no paths, URLs, credentials, or raw command text." });
+    } catch {
+      setHandoffStatus({ tone: "warning", message: "The current choices cannot be exported until every required handoff field is compatible and complete." });
+      setNotice({ tone: "warning", title: "Planner handoff was not exported", detail: "Review the version, Java, and port choices before trying again." });
+    }
+  };
+  const selectPlannerHandoff = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.currentTarget.files?.item(0);
+    event.currentTarget.value = "";
+    if (!selected) return;
+    if (selected.size <= 0 || selected.size > PLANNER_HANDOFF_MAX_BYTES) {
+      setPendingPlannerHandoff(null);
+      setHandoffStatus({ tone: "warning", message: "The selected JSON is empty or exceeds the v1 handoff size limit, so it was not imported." });
+      return;
+    }
+    try {
+      const handoff = parsePlannerHandoffJson(await selected.text());
+      const preview = previewPlannerHandoff(handoff);
+      setPendingPlannerHandoff(handoff);
+      setHandoffStatus({ tone: "info", message: `${preview.serverName} is ready for review. Apply it to replace only the safe planner fields shown below.` });
+      setNotice({ tone: "info", title: "Planner handoff ready to review", detail: "No browser draft value changed until you explicitly apply the imported plan." });
+    } catch {
+      setPendingPlannerHandoff(null);
+      setHandoffStatus({ tone: "warning", message: "The selected JSON was rejected. A complete, bounded non-secret planner-handoff v1 is required." });
+      setNotice({ tone: "warning", title: "Planner handoff rejected", detail: "The browser draft was left unchanged." });
+    }
+  };
+  const applyImportedPlannerHandoff = () => {
+    if (!pendingPlannerHandoff) return;
+    const preview = previewPlannerHandoff(pendingPlannerHandoff);
+    setDraft((current) => applyPlannerHandoffToBrowserDraft(current, pendingPlannerHandoff));
+    setPendingPlannerHandoff(null);
+    setHandoffStatus({ tone: "success", message: `${preview.serverName} was applied to this browser-local draft. Appearance-only settings remained local.` });
+    setNotice({ tone: "success", title: "Imported planner handoff applied", detail: "Only the non-secret planning fields were replaced. No server action was started." });
+  };
+  const discardImportedPlannerHandoff = () => {
+    setPendingPlannerHandoff(null);
+    setHandoffStatus({ tone: "neutral", message: "Imported planner handoff discarded. The browser-local draft was not changed." });
+    setNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
   };
   const copyPlan = async () => {
     try {
@@ -660,6 +770,7 @@ export default function Home() {
 
   const appStyle = { "--seed": draft.seed } as CSSProperties;
   const selectedPage = PAGE_DEFINITIONS.find((page) => page.id === activePage) ?? PAGE_DEFINITIONS[0];
+  const pendingPlannerHandoffPreview = pendingPlannerHandoff ? previewPlannerHandoff(pendingPlannerHandoff) : null;
 
   const configurePage = (
     <div className="page-stack">
@@ -692,6 +803,23 @@ export default function Home() {
             </div>
           </fieldset>
           <div className="form-grid">
+            <div className="field-group">
+              <label className="field-label" htmlFor="server-name">
+                Plan name
+              </label>
+              <input
+                id="server-name"
+                className="text-input"
+                value={draft.serverName}
+                maxLength={80}
+                onChange={(event) => updateDraft("serverName", event.target.value)}
+                aria-describedby="server-name-help"
+                autoComplete="off"
+              />
+              <p className={isPlannerHandoffName(draft.serverName) ? "field-help" : "field-error"} id="server-name-help">
+                {isPlannerHandoffName(draft.serverName) ? "A short plan label included in the structured handoff. It is not a host, path, or command." : "Use a non-empty plan label with letters, numbers, spaces, and basic punctuation only; dots, hosts, and URLs are not allowed."}
+              </p>
+            </div>
             <div className="field-group">
               <label className="field-label" htmlFor="version">
                 Minecraft version preset
@@ -985,6 +1113,55 @@ export default function Home() {
             Inspect runtime plan <span aria-hidden="true">→</span>
           </button>
         </div>
+      </section>
+
+      <section className="surface-card handoff-card" aria-labelledby="browser-handoff-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Desktop handoff</p>
+            <h2 id="browser-handoff-title">Move a non-secret plan through a structured JSON file</h2>
+          </div>
+          <span className={`status-chip status-chip--${handoffStatus.tone}`}>{pendingPlannerHandoff ? "Ready to apply" : "Local only"}</span>
+        </div>
+        <p className="body-copy">Export only the guided planning fields, or choose a local JSON file to preview before applying it. This companion never uploads, fetches, sends, or stores file paths, URLs, credentials, raw argv, or server addresses.</p>
+        <input
+          ref={plannerHandoffInput}
+          className="sr-only"
+          type="file"
+          accept="application/json,.json"
+          onChange={selectPlannerHandoff}
+          aria-label="Choose planner handoff JSON file"
+        />
+        <div className="button-row" aria-label="Planner handoff actions">
+          <button type="button" className="primary-button" onClick={exportPlannerHandoff}>
+            Download planner JSON
+          </button>
+          <button type="button" className="secondary-button" onClick={() => plannerHandoffInput.current?.click()}>
+            Choose planner JSON
+          </button>
+          <button type="button" className="secondary-button" onClick={applyImportedPlannerHandoff} disabled={!pendingPlannerHandoff}>
+            Apply imported plan
+          </button>
+          <button type="button" className="secondary-button" onClick={discardImportedPlannerHandoff} disabled={!pendingPlannerHandoff}>
+            Discard imported plan
+          </button>
+        </div>
+        <p className={handoffStatus.tone === "warning" ? "field-error" : "field-help"} role="status" aria-live="polite">
+          {handoffStatus.message}
+        </p>
+        {pendingPlannerHandoffPreview ? (
+          <dl className="handoff-preview" aria-label="Imported planner handoff preview">
+            <div><dt>Plan</dt><dd>{pendingPlannerHandoffPreview.serverName}</dd></div>
+            <div><dt>Server</dt><dd>{pendingPlannerHandoffPreview.serverKind === "paper" ? "Paper" : "Spigot"}</dd></div>
+            <div><dt>Minecraft</dt><dd>{pendingPlannerHandoffPreview.minecraftVersion}</dd></div>
+            <div><dt>Java</dt><dd>{pendingPlannerHandoffPreview.javaRuntime.replace("java-", "Java ")}</dd></div>
+            <div><dt>Memory</dt><dd>{pendingPlannerHandoffPreview.memoryMiB} MiB</dd></div>
+            <div><dt>World</dt><dd>{pendingPlannerHandoffPreview.worldName}</dd></div>
+            <div><dt>Network</dt><dd>{pendingPlannerHandoffPreview.port} · {pendingPlannerHandoffPreview.onlineMode ? "online mode" : "offline mode"}</dd></div>
+            <div><dt>RCON</dt><dd>{pendingPlannerHandoffPreview.rconEnabled ? `planned on ${pendingPlannerHandoffPreview.rconPort}` : "not planned"}</dd></div>
+            <div><dt>EULA</dt><dd>{pendingPlannerHandoffPreview.eulaAcknowledged ? "acknowledged" : "not acknowledged"}</dd></div>
+          </dl>
+        ) : null}
       </section>
 
       <div className="overview-grid">

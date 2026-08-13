@@ -6,6 +6,11 @@ const desktopApi: DesktopApi = {
     load: () => ipcRenderer.invoke("draft:load"),
     save: (value: unknown) => ipcRenderer.invoke("draft:save", value)
   },
+  handoff: {
+    choose: () => ipcRenderer.invoke("handoff:choose"),
+    apply: (currentDraft: unknown) => ipcRenderer.invoke("handoff:apply", currentDraft),
+    clear: () => ipcRenderer.invoke("handoff:clear")
+  },
   picker: {
     select: (kind: PickerKind) => ipcRenderer.invoke("picker:select", kind)
   },

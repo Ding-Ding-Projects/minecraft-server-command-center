@@ -17,6 +17,12 @@ local download, installation, update, or runtime action.
 
 The companion site is a browser-local planning and documentation surface. It
 does not access a local server, external API, private browser data, or secrets.
+Planner Handoff v1 is specified as a separate user-mediated local JSON exchange
+with the desktop planning draft boundary. It carries only versioned, bounded,
+non-secret selected planning fields. It excludes paths, URLs, credentials,
+secrets, raw command or argument text, file contents, remote transfer, server
+operation, configuration-file writes, and arbitrary filesystem read or
+execution. See [Planner Handoff v1](docs/site/planner-handoff-v1.md).
 
 The desktop foundation can collect a typed normalized draft, use narrow native
 folder/JAR/Java/configuration pickers, persist a local draft, display a
@@ -56,6 +62,7 @@ not a shell command and remains non-launching.
 
 - [Desktop documentation index](docs/README.md)
 - [Desktop foundation architecture](docs/architecture/desktop-foundation.md)
+- [Planner Handoff v1](docs/site/planner-handoff-v1.md)
 - [Paper and Spigot CLI guidance](docs/server-configuration/paper-spigot-cli.md)
 - [Typed Paper and Spigot registry reference](docs/reference/paper-spigot-cli-catalog.md)
 - [Desktop completeness inventory](docs/verification/completeness-inventory.md)
@@ -102,6 +109,11 @@ server-process action. A separately verified immutable release asset can be
 described by the companion's static handoff without turning those boundaries
 into completed evidence. Read the relevant handoff and completeness inventory
 before calling a surface verified.
+
+The Planner Handoff v1 record is source-design documentation only. It does not
+claim that JSON export/import, native selected-file parsing, preview, apply,
+save, browser UI, desktop UI, or any excluded action boundary has been
+exercised.
 
 ## Continue from here
 

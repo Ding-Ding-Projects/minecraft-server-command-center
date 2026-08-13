@@ -5,9 +5,17 @@ import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
 import { getUpdateBoundary } from "./update-boundary";
+import {
+  applyPlannerHandoffToDraft,
+  previewPlannerHandoff,
+  type PlannerHandoffV1
+} from "../shared/planner-handoff";
+import { normalizeServerDraft } from "../shared/server-draft";
+import { readSelectedPlannerHandoff } from "./planner-handoff-file";
 
 const isSquirrelStartup = require("electron-squirrel-startup") as boolean;
 let mainWindow: BrowserWindow | undefined;
+let pendingPlannerHandoff: PlannerHandoffV1 | undefined;
 
 function requireWindow(): BrowserWindow {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -44,6 +52,37 @@ async function selectPath(kind: PickerKind): Promise<string | null> {
   return result.canceled ? null : result.filePaths[0] ?? null;
 }
 
+async function choosePlannerHandoff() {
+  const result = await dialog.showOpenDialog(requireWindow(), {
+    title: "Choose planner handoff JSON",
+    properties: ["openFile"],
+    filters: [{ name: "Planner handoff JSON", extensions: ["json"] }]
+  });
+  if (result.canceled) return null;
+
+  const selectedPath = result.filePaths[0];
+  if (!selectedPath) return null;
+  try {
+    const handoff = await readSelectedPlannerHandoff(selectedPath);
+    pendingPlannerHandoff = handoff;
+    return previewPlannerHandoff(handoff);
+  } catch {
+    pendingPlannerHandoff = undefined;
+    throw new Error("The selected JSON file is not a valid non-secret planner handoff v1.");
+  }
+}
+
+async function applyPendingPlannerHandoff(currentDraft: unknown): Promise<Awaited<ReturnType<typeof loadDraft>>> {
+  if (!pendingPlannerHandoff) {
+    throw new Error("Choose a valid planner handoff before applying it.");
+  }
+  const current = normalizeServerDraft(currentDraft);
+  const applied = applyPlannerHandoffToDraft(pendingPlannerHandoff, current);
+  const saved = await saveDraft(app.getPath("userData"), applied);
+  pendingPlannerHandoff = undefined;
+  return saved;
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -71,6 +110,11 @@ function createWindow(): void {
 function registerIpc(): void {
   ipcMain.handle("draft:load", () => loadDraft(app.getPath("userData")));
   ipcMain.handle("draft:save", (_event, value: unknown) => saveDraft(app.getPath("userData"), value));
+  ipcMain.handle("handoff:choose", () => choosePlannerHandoff());
+  ipcMain.handle("handoff:apply", (_event, currentDraft: unknown) => applyPendingPlannerHandoff(currentDraft));
+  ipcMain.handle("handoff:clear", () => {
+    pendingPlannerHandoff = undefined;
+  });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
   ipcMain.handle("catalog:get", () => loadCliCatalog());
   ipcMain.handle("preview:argv", (_event, value: unknown) => buildArgvPreview(value));

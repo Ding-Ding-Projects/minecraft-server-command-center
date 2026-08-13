@@ -28,6 +28,30 @@ claim installation, update, application, or server completion.
 Read `docs/site/README.md` and
 `docs/site/configuration-planner.md` before changing companion behavior.
 
+## Planner Handoff v1 record
+
+Planner Handoff v1 is documented as a strict, versioned, bounded, non-secret
+planning envelope between the browser-local companion and the Windows desktop
+draft boundary. The user mediates it with local JSON export/import: the browser
+uses only browser storage and user-selected local JSON files, while the
+desktop uses a native .json picker, main-process bounded parse, safe preview,
+and a separate explicit apply or save action.
+
+The record permits only selected structured planning fields: a server name and
+kind, selected Minecraft and Java presets, a memory target, a world preset,
+EULA acknowledgement, online-mode intent, server port, and RCON enabled and
+port planning values. It excludes RCON passwords, paths, URLs, private server
+addresses, credentials, secrets, raw argument or command text, file contents,
+remote transfer, server operation, configuration-file writes, arbitrary
+filesystem reads, and arbitrary execution. It must not be described as a
+browser-to-desktop service channel or as proof that a server was configured.
+
+This is source-design documentation only. No test, lint, review, accessibility
+assessment, browser UI interaction, screen capture, build, package, release,
+website publication, source-control publication, selected-file flow, preview,
+apply/save action, or server action is represented as verified. Read the
+Planner Handoff v1 article before implementing this boundary.
+
 ## Desktop foundation record
 
 The desktop source contains:
@@ -55,8 +79,10 @@ build-installer.bat
 scripts/verify-unsigned.mjs
 assets/app-mark.svg
 src/shared/server-draft.ts
+src/shared/planner-handoff.ts
 src/shared/desktop-api.ts
 src/main/index.ts
+src/main/planner-handoff-file.ts
 src/main/draft-store.ts
 src/main/argv-preview.ts
 src/main/cli-catalog.ts
@@ -90,3 +116,6 @@ prove anything beyond that bounded record.
    authorized verification or release lane performs it.
 5. Obtain explicit scope before adding secrets, live server control, updater
    transport, deployment, or external integration.
+6. Preserve the Planner Handoff v1 boundary: selected local JSON only,
+   privileged bounded parse, safe preview, explicit apply/save, and no
+   path/secret/command/filesystem/execution escape.

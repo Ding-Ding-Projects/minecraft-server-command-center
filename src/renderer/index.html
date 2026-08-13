@@ -86,6 +86,23 @@
                 </div>
                 <span class="section-heading__chip">Local draft</span>
               </div>
+              <section class="handoff-card" aria-labelledby="planner-handoff-title">
+                <div class="handoff-card__heading">
+                  <div>
+                    <p class="eyebrow">Browser companion handoff</p>
+                    <h3 id="planner-handoff-title">Import a structured planner JSON</h3>
+                    <p>Choose a user-selected v1 JSON plan. The desktop validates it in the main process, previews only safe planning values, and changes the local draft only after explicit apply.</p>
+                  </div>
+                  <span class="badge badge--safe">No paths or argv</span>
+                </div>
+                <div class="handoff-card__actions">
+                  <button class="outlined-button" type="button" id="choose-planner-handoff" aria-describedby="planner-handoff-state">Choose planner JSON</button>
+                  <button class="filled-button filled-button--compact" type="button" id="apply-planner-handoff" disabled>Apply imported plan</button>
+                  <button class="outlined-button" type="button" id="discard-planner-handoff" disabled>Discard imported plan</button>
+                </div>
+                <p class="handoff-card__status" id="planner-handoff-state" role="status" aria-live="polite">No planner handoff is selected.</p>
+                <dl class="handoff-preview" id="planner-handoff-preview" aria-label="Imported planner handoff preview" hidden></dl>
+              </section>
               <div class="form-grid">
                 <label class="field field--wide">
                   <span class="field__label">Server display name</span>

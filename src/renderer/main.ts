@@ -1,5 +1,6 @@
 import "./styles.css";
 import type { ArgvPreview, CliCatalogProjection, PickerKind } from "../shared/desktop-api";
+import type { PlannerHandoffPreview } from "../shared/planner-handoff";
 import {
   DEFAULT_SERVER_DRAFT,
   describeJavaRuntime,
@@ -17,8 +18,13 @@ const workspaceTitle = document.querySelector<HTMLElement>("#workspace-title");
 const workspaceSubtitle = document.querySelector<HTMLElement>("#workspace-subtitle");
 const updateState = document.querySelector<HTMLElement>("#update-state");
 const copyArgvButton = document.querySelector<HTMLButtonElement>("#copy-argv");
+const choosePlannerHandoffButton = document.querySelector<HTMLButtonElement>("#choose-planner-handoff");
+const applyPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#apply-planner-handoff");
+const discardPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#discard-planner-handoff");
+const plannerHandoffState = document.querySelector<HTMLElement>("#planner-handoff-state");
+const plannerHandoffPreview = document.querySelector<HTMLDListElement>("#planner-handoff-preview");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -28,6 +34,7 @@ let saveTimer: number | undefined;
 let snackTimer: number | undefined;
 let saveVersion = 0;
 let currentArgvTokens: readonly string[] = [];
+let pendingPlannerHandoff: PlannerHandoffPreview | undefined;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
@@ -50,6 +57,97 @@ function showSnackbar(message: string): void {
 
 function writeSaveState(message: string): void {
   saveState.textContent = message;
+}
+
+function invalidatePendingSave(): void {
+  if (saveTimer !== undefined) {
+    window.clearTimeout(saveTimer);
+    saveTimer = undefined;
+  }
+  // A prior IPC save must not overwrite an explicitly applied imported plan.
+  saveVersion += 1;
+}
+
+function handoffValue(value: boolean): string {
+  return value ? "Enabled" : "Off";
+}
+
+function renderPlannerHandoff(preview: PlannerHandoffPreview | undefined, message: string): void {
+  pendingPlannerHandoff = preview;
+  applyPlannerHandoffButton.disabled = preview === undefined;
+  discardPlannerHandoffButton.disabled = preview === undefined;
+  plannerHandoffState.textContent = message;
+  plannerHandoffPreview.hidden = preview === undefined;
+  plannerHandoffPreview.replaceChildren();
+  if (!preview) return;
+
+  const details: ReadonlyArray<readonly [string, string]> = [
+    ["Plan", preview.serverName],
+    ["Server", preview.serverKind === "paper" ? "Paper" : "Spigot"],
+    ["Minecraft", preview.minecraftVersion],
+    ["Java", preview.javaRuntime.replace("java-", "Java ")],
+    ["Memory", `${preview.memoryMiB} MiB`],
+    ["World", preview.worldName],
+    ["Network", `${preview.port} · ${preview.onlineMode ? "online mode" : "offline mode"}`],
+    ["RCON", preview.rconEnabled ? `planned on ${preview.rconPort}` : "not planned"],
+    ["EULA", handoffValue(preview.eulaAcknowledged)]
+  ];
+  for (const [label, value] of details) {
+    const row = document.createElement("div");
+    const name = document.createElement("dt");
+    const content = document.createElement("dd");
+    name.textContent = label;
+    content.textContent = value;
+    row.append(name, content);
+    plannerHandoffPreview.append(row);
+  }
+}
+
+async function choosePlannerHandoff(): Promise<void> {
+  writeSaveState("Waiting for a planner JSON selection…");
+  try {
+    const preview = await window.commandCenter.handoff.choose();
+    if (!preview) {
+      writeSaveState("Local draft ready");
+      return;
+    }
+    renderPlannerHandoff(preview, "Imported plan is ready for review. Apply it to replace only its safe planning fields.");
+    writeSaveState("Imported plan ready to apply");
+    showSnackbar("Planner handoff parsed locally. Review the safe values before applying them.");
+  } catch {
+    renderPlannerHandoff(undefined, "The selected JSON could not be used. Choose a complete non-secret planner handoff v1.");
+    writeSaveState("Planner handoff rejected");
+    showSnackbar("The selected JSON was rejected before it could change this local draft.");
+  }
+}
+
+async function applyPlannerHandoff(): Promise<void> {
+  if (!pendingPlannerHandoff) return;
+  invalidatePendingSave();
+  writeSaveState("Applying imported plan locally…");
+  try {
+    draft = await window.commandCenter.handoff.apply(draft);
+    hydrateForm();
+    void renderArgv();
+    updateLaunchBoundary();
+    renderPlannerHandoff(undefined, "Imported plan applied and saved locally. Paths, executable locations, and other local-only values were retained.");
+    writeSaveState("Imported plan applied locally");
+    showSnackbar("Imported plan applied and saved locally. No server files or processes were changed.");
+  } catch {
+    writeSaveState("Imported plan could not be applied");
+    showSnackbar("The imported plan was not applied. Review or choose a new JSON plan.");
+  }
+}
+
+async function discardPlannerHandoff(): Promise<void> {
+  try {
+    await window.commandCenter.handoff.clear();
+  } catch {
+    // The preview is local UI state. Never retain an unavailable pending import.
+  }
+  renderPlannerHandoff(undefined, "No planner handoff is selected.");
+  writeSaveState("Local draft ready");
+  showSnackbar("Imported planner handoff discarded. The local draft was not changed.");
 }
 
 function fieldElements(): Array<HTMLInputElement | HTMLSelectElement> {
@@ -172,6 +270,7 @@ function schedulePersist(): void {
   if (saveTimer !== undefined) window.clearTimeout(saveTimer);
   writeSaveState("Draft changes pending…");
   saveTimer = window.setTimeout(() => {
+    saveTimer = undefined;
     void persistDraft();
   }, 450);
 }
@@ -261,6 +360,21 @@ function bindInteraction(): void {
       void usePicker(picker);
       return;
     }
+    const chooseHandoff = target.closest<HTMLButtonElement>("#choose-planner-handoff");
+    if (chooseHandoff) {
+      void choosePlannerHandoff();
+      return;
+    }
+    const applyHandoff = target.closest<HTMLButtonElement>("#apply-planner-handoff");
+    if (applyHandoff) {
+      void applyPlannerHandoff();
+      return;
+    }
+    const discardHandoff = target.closest<HTMLButtonElement>("#discard-planner-handoff");
+    if (discardHandoff) {
+      void discardPlannerHandoff();
+      return;
+    }
     const tab = target.closest<HTMLButtonElement>("[data-tab]");
     if (tab?.dataset.tab) {
       activateTab(tab.dataset.tab, true);
@@ -268,7 +382,10 @@ function bindInteraction(): void {
     }
     const reset = target.closest<HTMLButtonElement>("#reset-draft");
     if (reset) {
+      invalidatePendingSave();
       draft = DEFAULT_SERVER_DRAFT;
+      renderPlannerHandoff(undefined, "No planner handoff is selected.");
+      void window.commandCenter.handoff.clear();
       hydrateForm();
       void renderArgv();
       updateLaunchBoundary();
