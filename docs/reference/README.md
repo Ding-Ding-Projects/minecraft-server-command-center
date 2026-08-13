@@ -1,10 +1,11 @@
 # Runtime reference
 
-This directory holds source-governed launch-reference material for the Paper and legacy Spigot portions of Minecraft Server Command Center.
+This directory holds source-governed reusable technical contracts for Minecraft Server Command Center.
 
 | Document | Purpose |
 | --- | --- |
 | [Paper and Spigot CLI catalog](paper-spigot-cli-catalog.md) | Defines the typed Paper launch catalog, non-launching administrative-command metadata, argument placement, preflight behavior, validation boundaries, and the legacy Spigot boundary. |
+| [Server lifecycle service](server-lifecycle.md) | Defines the implemented validation, direct launch, process-state, and bounded console-handling foundation. |
 
 ## Source policy
 
@@ -16,4 +17,4 @@ This directory holds source-governed launch-reference material for the Paper and
 
 ## Maintenance rule
 
-When Paper or Spigot release behavior changes, update the catalog from the linked official source and preserve the support status of every affected row. Do not extend the list from blog posts, forum replies, copied launch scripts, or an unverified JAR help output.
+When Paper or Spigot release behavior changes, update the catalog from the linked official source and preserve the support status of every affected row. Do not extend the list from blog posts, forum replies, copied launch scripts, or an unverified JAR help output. Keep lifecycle behavior in the separate lifecycle reference, and do not use catalog metadata to imply a server launch occurred.
