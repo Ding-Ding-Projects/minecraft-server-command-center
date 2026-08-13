@@ -66,8 +66,13 @@ export interface JavaRuntimeAssessmentRequest {
 export interface JavaRuntimeAssessment {
   readonly selectedCandidate: JavaRuntimeCandidateSummary | null;
   readonly officialTargetCatalog: {
-    readonly status: "unavailable";
+    readonly status: "available" | "invalid";
     readonly message: string;
+    readonly versionCount: number;
+    readonly sourceTitle: string | null;
+    readonly sourceUrl: string | null;
+    readonly snapshotDate: string | null;
+    readonly diagnosticCode: string | null;
   };
   readonly probe: {
     readonly status: string;

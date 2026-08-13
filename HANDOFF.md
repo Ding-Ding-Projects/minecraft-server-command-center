@@ -63,8 +63,8 @@ The desktop source contains:
   seven vertical setup tabs;
 - a guided Java runtime card that keeps candidate paths in the main process,
   shows opaque candidate/source summaries, probes selected Java with fixed
-  direct arguments, and renders explicit Paper-catalog-unavailable and Spigot
-  unverified states;
+  direct arguments, validates a bounded official Paper project-version
+  snapshot, and renders structured catalog and Spigot-unverified states;
 - typed Paper/Spigot registry projection and direct argument-array preview;
 - explicit no-launch IPC and automatic-update-unavailable boundaries;
 - Windows Squirrel.Windows packaging configuration, unsigned-only settings,
@@ -107,15 +107,18 @@ verified.
 
 The Java runtime bridge has no generic Java-path input, command execution,
 install, package-manager, download, configuration-write, credential, or server
-route. It uses no Paper target catalog today, so a successful Java probe remains
-an explicit unverified Paper compatibility state. It never applies Paper
+route. It validates a checked-in versioned numeric-key snapshot of the official
+Paper Downloads Service project catalog and passes only the bounded validated
+version array into the existing Paper requirement resolver. Malformed, unknown,
+absent, or out-of-matrix targets remain unverified. It never applies Paper
 requirements to Spigot.
 
 ## Verification boundary
 
-No local build, lint, automated test, browser/desktop interaction,
-accessibility audit, installer execution, update operation, or server-process
-action is claimed by this handoff. The embedded installer fields originate from
+No local lint, automated test, browser/desktop interaction, accessibility audit,
+installer execution, update operation, or server-process action is claimed by
+this handoff. The supported build and package route is reported with the exact
+candidate artifact when that lane completes. The embedded installer fields originate from
 a separately verified published release record; source paths and scripts do not
 prove anything beyond that bounded record.
 
@@ -123,12 +126,15 @@ prove anything beyond that bounded record.
 
 1. Preserve the companion site's browser-local, non-secret contract.
 2. Keep desktop changes behind the narrow bridge and typed registry seam.
-3. Exercise the built desktop application through the approved headless route
+3. Keep future catalog refreshes on the official Paper project-version
+   semantics, preserving schema validation, entry bounds, and the no-network
+   runtime boundary.
+4. Exercise the built desktop application through the approved headless route
    before claiming visual or interaction behavior.
-4. Record exact command, artifact, version, and capture evidence when a future
+5. Record exact command, artifact, version, and capture evidence when a future
    authorized verification or release lane performs it.
-5. Obtain explicit scope before adding secrets, live server control, updater
+6. Obtain explicit scope before adding secrets, live server control, updater
    transport, deployment, or external integration.
-6. Preserve the Planner Handoff v1 boundary: selected local JSON only,
+7. Preserve the Planner Handoff v1 boundary: selected local JSON only,
    privileged bounded parse, safe preview, explicit apply/save, and no
    path/secret/command/filesystem/execution escape.

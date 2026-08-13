@@ -25,6 +25,87 @@ const PAPER_RUNTIME_REQUIREMENT_SOURCE = Object.freeze({
   terminology: 'recommended Java version',
 });
 
+const PAPER_RUNTIME_TARGET_CATALOG_SCHEMA_VERSION = 1;
+const PAPER_RUNTIME_TARGET_CATALOG_LIMITS = Object.freeze({
+  maxGroups: 32,
+  maxVersionsPerGroup: 24,
+  maxVersions: 96,
+  maxGroupLength: 16,
+  maxVersionLength: 32,
+});
+
+/**
+ * This is a checked-in snapshot of the numeric version-key projection of the
+ * official Paper Downloads Service project catalog. It is deliberately not a
+ * build catalog: it contains no build numbers, download URLs, or install
+ * instructions. The adapter below validates the envelope before any version
+ * is handed to the Paper requirement resolver.
+ */
+const PAPER_RUNTIME_TARGET_CATALOG_SOURCE = Object.freeze({
+  schemaVersion: PAPER_RUNTIME_TARGET_CATALOG_SCHEMA_VERSION,
+  source: Object.freeze({
+    kind: 'official-paper-downloads-service-v3-project',
+    title: 'Paper Downloads Service project catalog',
+    url: 'https://fill.papermc.io/v3/projects/paper',
+    snapshotDate: '2026-08-13',
+    selection: 'numeric-version-keys-only',
+  }),
+  project: Object.freeze({
+    id: 'paper',
+    name: 'Paper',
+  }),
+  versions: Object.freeze({
+    '26.2': Object.freeze(['26.2']),
+    '26.1': Object.freeze(['26.1.2', '26.1.1']),
+    '1.21': Object.freeze([
+      '1.21.11',
+      '1.21.10',
+      '1.21.9',
+      '1.21.8',
+      '1.21.7',
+      '1.21.6',
+      '1.21.5',
+      '1.21.4',
+      '1.21.3',
+      '1.21.1',
+      '1.21',
+    ]),
+    '1.20': Object.freeze(['1.20.6', '1.20.5', '1.20.4', '1.20.2', '1.20.1', '1.20']),
+    '1.19': Object.freeze(['1.19.4', '1.19.3', '1.19.2', '1.19.1', '1.19']),
+    '1.18': Object.freeze(['1.18.2', '1.18.1', '1.18']),
+    '1.17': Object.freeze(['1.17.1', '1.17']),
+    '1.16': Object.freeze(['1.16.5', '1.16.4', '1.16.3', '1.16.2', '1.16.1']),
+    '1.15': Object.freeze(['1.15.2', '1.15.1', '1.15']),
+    '1.14': Object.freeze(['1.14.4', '1.14.3', '1.14.2', '1.14.1', '1.14']),
+    '1.13': Object.freeze(['1.13.2', '1.13.1', '1.13']),
+    '1.12': Object.freeze(['1.12.2', '1.12.1', '1.12']),
+    '1.11': Object.freeze(['1.11.2']),
+    '1.10': Object.freeze(['1.10.2']),
+    '1.9': Object.freeze(['1.9.4']),
+    '1.8': Object.freeze(['1.8.8']),
+    '1.7': Object.freeze(['1.7.10']),
+  }),
+});
+
+const PAPER_RUNTIME_TARGET_CATALOG_DIAGNOSTICS = Object.freeze({
+  'catalog-source-must-be-a-record': 'The bundled Paper target catalog is not a record.',
+  'catalog-source-has-unknown-fields': 'The bundled Paper target catalog has unknown fields.',
+  'catalog-schema-version-unsupported': 'The bundled Paper target catalog uses an unsupported schema version.',
+  'catalog-source-metadata-invalid': 'The bundled Paper target catalog has invalid source metadata.',
+  'catalog-project-identity-invalid': 'The bundled Paper target catalog is not for the Paper project.',
+  'catalog-version-groups-invalid': 'The bundled Paper target catalog has invalid version groups.',
+  'catalog-version-group-limit-exceeded': 'The bundled Paper target catalog exceeds its version-group limit.',
+  'catalog-version-group-key-invalid': 'The bundled Paper target catalog has an invalid version-group key.',
+  'catalog-version-list-invalid': 'The bundled Paper target catalog has an invalid version list.',
+  'catalog-version-list-limit-exceeded': 'The bundled Paper target catalog exceeds its per-group version limit.',
+  'catalog-version-entry-invalid': 'The bundled Paper target catalog has an invalid version entry.',
+  'catalog-version-entry-limit-exceeded': 'The bundled Paper target catalog exceeds its total version limit.',
+  'catalog-version-group-mismatch': 'The bundled Paper target catalog has a version in the wrong group.',
+  'catalog-version-duplicate': 'The bundled Paper target catalog contains a duplicate version.',
+  'catalog-empty': 'The bundled Paper target catalog contains no verified numeric versions.',
+  'catalog-source-read-failed': 'The bundled Paper target catalog could not be read safely.',
+});
+
 const PAPER_JAVA_INSTALL_GUIDE =
   'https://docs.papermc.io/misc/java-install/';
 
@@ -429,6 +510,177 @@ function normalizeNumericVersion(input, { maxComponents = 3 } = {}) {
     components,
     normalized: components.join('.'),
   };
+}
+
+function isPlainRecord(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  try {
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  } catch {
+    return false;
+  }
+}
+
+function hasExactKeys(record, expectedKeys) {
+  if (!isPlainRecord(record)) {
+    return false;
+  }
+
+  const actualKeys = Object.keys(record);
+  return actualKeys.length === expectedKeys.length
+    && expectedKeys.every((key) => actualKeys.includes(key));
+}
+
+function boundedCatalogText(value, maxLength) {
+  return typeof value === 'string'
+    && value.length > 0
+    && value.length <= maxLength
+    && value.trim() === value
+    && !/[\u0000-\u001f\u007f]/.test(value);
+}
+
+function invalidPaperRuntimeTargetCatalog(diagnosticCode) {
+  return Object.freeze({
+    status: 'invalid',
+    schemaVersion: null,
+    source: null,
+    versions: Object.freeze([]),
+    versionCount: 0,
+    diagnosticCode,
+    diagnosticMessage: PAPER_RUNTIME_TARGET_CATALOG_DIAGNOSTICS[diagnosticCode]
+      || 'The bundled Paper target catalog was rejected before it could be used.',
+  });
+}
+
+/**
+ * Validate the checked-in Paper Downloads Service project-version snapshot.
+ * This accepts only the deliberately reduced source shape used by this
+ * source-only foundation: the official project identity and numeric version
+ * keys grouped by their official version-group key. Any malformed or unknown
+ * entry invalidates the complete catalog instead of being silently skipped.
+ */
+function normalizePaperRuntimeTargetCatalog(source = PAPER_RUNTIME_TARGET_CATALOG_SOURCE) {
+  try {
+    if (!isPlainRecord(source)) {
+      return invalidPaperRuntimeTargetCatalog('catalog-source-must-be-a-record');
+    }
+
+    if (!hasExactKeys(source, ['schemaVersion', 'source', 'project', 'versions'])) {
+      return invalidPaperRuntimeTargetCatalog('catalog-source-has-unknown-fields');
+    }
+
+    if (source.schemaVersion !== PAPER_RUNTIME_TARGET_CATALOG_SCHEMA_VERSION) {
+      return invalidPaperRuntimeTargetCatalog('catalog-schema-version-unsupported');
+    }
+
+    const metadata = source.source;
+    if (!hasExactKeys(metadata, ['kind', 'title', 'url', 'snapshotDate', 'selection'])
+      || metadata.kind !== 'official-paper-downloads-service-v3-project'
+      || metadata.title !== 'Paper Downloads Service project catalog'
+      || metadata.url !== 'https://fill.papermc.io/v3/projects/paper'
+      || !/^\d{4}-\d{2}-\d{2}$/.test(metadata.snapshotDate)
+      || metadata.selection !== 'numeric-version-keys-only'
+      || !Object.values(metadata).every((value) => boundedCatalogText(value, 240))) {
+      return invalidPaperRuntimeTargetCatalog('catalog-source-metadata-invalid');
+    }
+
+    if (!hasExactKeys(source.project, ['id', 'name'])
+      || source.project.id !== 'paper'
+      || source.project.name !== 'Paper') {
+      return invalidPaperRuntimeTargetCatalog('catalog-project-identity-invalid');
+    }
+
+    if (!isPlainRecord(source.versions)) {
+      return invalidPaperRuntimeTargetCatalog('catalog-version-groups-invalid');
+    }
+
+    const groupKeys = Object.keys(source.versions);
+    if (groupKeys.length === 0) {
+      return invalidPaperRuntimeTargetCatalog('catalog-empty');
+    }
+    if (groupKeys.length > PAPER_RUNTIME_TARGET_CATALOG_LIMITS.maxGroups) {
+      return invalidPaperRuntimeTargetCatalog('catalog-version-group-limit-exceeded');
+    }
+
+    const versions = [];
+    const seenVersions = new Set();
+    for (const groupKey of groupKeys) {
+      if (!boundedCatalogText(groupKey, PAPER_RUNTIME_TARGET_CATALOG_LIMITS.maxGroupLength)) {
+        return invalidPaperRuntimeTargetCatalog('catalog-version-group-key-invalid');
+      }
+
+      const group = normalizeNumericVersion(groupKey, { maxComponents: 2 });
+      if (!group || group.raw !== groupKey || group.normalized !== groupKey || group.components[0] < 1) {
+        return invalidPaperRuntimeTargetCatalog('catalog-version-group-key-invalid');
+      }
+
+      const groupEntries = source.versions[groupKey];
+      if (!Array.isArray(groupEntries) || groupEntries.length === 0) {
+        return invalidPaperRuntimeTargetCatalog('catalog-version-list-invalid');
+      }
+      if (groupEntries.length > PAPER_RUNTIME_TARGET_CATALOG_LIMITS.maxVersionsPerGroup) {
+        return invalidPaperRuntimeTargetCatalog('catalog-version-list-limit-exceeded');
+      }
+      if (versions.length + groupEntries.length > PAPER_RUNTIME_TARGET_CATALOG_LIMITS.maxVersions) {
+        return invalidPaperRuntimeTargetCatalog('catalog-version-entry-limit-exceeded');
+      }
+
+      for (const entry of groupEntries) {
+        if (!boundedCatalogText(entry, PAPER_RUNTIME_TARGET_CATALOG_LIMITS.maxVersionLength)) {
+          return invalidPaperRuntimeTargetCatalog('catalog-version-entry-invalid');
+        }
+
+        const normalized = normalizeNumericVersion(entry, { maxComponents: 3 });
+        const prefix = normalized && normalized.components.slice(0, group.components.length);
+        if (!normalized
+          || normalized.raw !== entry
+          || normalized.normalized !== entry
+          || normalized.components[0] < 1
+          || !prefix
+          || compareVersionComponents(prefix, group.components) !== 0) {
+          return invalidPaperRuntimeTargetCatalog('catalog-version-group-mismatch');
+        }
+
+        if (seenVersions.has(entry)) {
+          return invalidPaperRuntimeTargetCatalog('catalog-version-duplicate');
+        }
+
+        seenVersions.add(entry);
+        versions.push(entry);
+      }
+    }
+
+    versions.sort((left, right) => {
+      const leftVersion = normalizeNumericVersion(left);
+      const rightVersion = normalizeNumericVersion(right);
+      return compareVersionComponents(rightVersion.components, leftVersion.components);
+    });
+
+    return Object.freeze({
+      status: 'available',
+      schemaVersion: PAPER_RUNTIME_TARGET_CATALOG_SCHEMA_VERSION,
+      source: Object.freeze({
+        title: metadata.title,
+        url: metadata.url,
+        snapshotDate: metadata.snapshotDate,
+        selection: metadata.selection,
+      }),
+      versions: Object.freeze(versions),
+      versionCount: versions.length,
+      diagnosticCode: null,
+      diagnosticMessage: null,
+    });
+  } catch {
+    return invalidPaperRuntimeTargetCatalog('catalog-source-read-failed');
+  }
+}
+
+function getPaperRuntimeTargetCatalog() {
+  return normalizePaperRuntimeTargetCatalog();
 }
 
 function compareVersionComponents(left, right) {
@@ -972,6 +1224,9 @@ module.exports = {
   PAPER_JAVA_INSTALL_GUIDE,
   PAPER_JAVA_RULES,
   PAPER_RUNTIME_REQUIREMENT_SOURCE,
+  PAPER_RUNTIME_TARGET_CATALOG_LIMITS,
+  PAPER_RUNTIME_TARGET_CATALOG_SCHEMA_VERSION,
+  PAPER_RUNTIME_TARGET_CATALOG_SOURCE,
   assessJavaCompatibility,
   assessSelectedJavaRuntime,
   candidatePathsFromSelection,
@@ -979,9 +1234,11 @@ module.exports = {
   createJavaSetupPlan,
   discoverJavaCandidates,
   executableNameForPlatform,
+  getPaperRuntimeTargetCatalog,
   knownJavaRoots,
   normalizeJavaVersion,
   normalizeNumericVersion,
+  normalizePaperRuntimeTargetCatalog,
   parseJavaVersionOutput,
   probeJavaExecutable,
   resolvePaperJavaRequirement,

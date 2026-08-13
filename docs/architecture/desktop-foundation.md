@@ -49,8 +49,9 @@ The renderer should present a readable argv sequence and preserve token boundari
 The inspected renderer has seven vertically oriented setup tabs: Overview,
 Runtime, World, Access, Paths, Start preview, and CLI catalog. The Runtime tab
 adds rich bounded-discovery and native-selection controls, opaque candidate
-rows, a direct-version-probe action, an explicit Paper-target-catalog-unavailable
-status, explicit Spigot non-mapping, and review-only plan state. It renders
+rows, a direct-version-probe action, a bounded Paper-target-catalog
+status/count/provenance projection, explicit Spigot non-mapping, and review-only
+plan state. It renders
 bounded controls, direct argv tokens, mapped/unavailable catalog rows, local
 draft status, and non-blocking save feedback. A disabled visible action states
 that server launch is intentionally unavailable.

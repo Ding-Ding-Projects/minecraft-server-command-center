@@ -14,7 +14,7 @@ The UI should expose Java through a candidate picker, not a generic command or C
 2. `discoverJavaCandidates()` adds that explicit selection first, then checks only bounded conventional locations.
 3. The picker binds to candidate IDs returned by the discovery result and calls `selectDiscoveredJavaCandidate()`.
 4. `probeJavaExecutable()` validates the selected candidate with direct process arguments equivalent to `java -version` and returns a structured status.
-5. `assessSelectedJavaRuntime()` combines the selected Paper target, an official Paper catalog result when one has been supplied by a separate bounded adapter, the Java probe, and a review-only plan.
+5. `getPaperRuntimeTargetCatalog()` validates the bundled official Paper Downloads Service project-version snapshot, and `assessSelectedJavaRuntime()` combines its bounded version keys with the selected Paper target, the Java probe, and a review-only plan.
 
 Discovery intentionally does **not** scan `PATH`, disks, the registry, arbitrary user folders, or locations recursively. The bounded locations are:
 
@@ -60,15 +60,43 @@ The resolver uses the current official [Paper getting started requirements table
 | `1.20` through `1.21.11` | 21 |
 | `26.1+` | 25 |
 
-The selected target must first be present in the official Paper catalog supplied by the downloads layer. `resolvePaperJavaRequirement()` fails closed as `unverified` for malformed versions, a target absent from that catalog, pre-`1.7.10` targets, known numeric gaps such as `1.16.6`, values between `1.21.11` and `26.1`, and any future range not covered by the table. The rich recovery action is to refresh or choose an official Paper target; there is no raw override field.
+The selected target must first be present in the official Paper catalog supplied by the downloads layer. `resolvePaperJavaRequirement()` fails closed as `unverified` for malformed versions, a target absent from that catalog, pre-`1.7.10` targets, known numeric gaps such as `1.16.6`, values between `1.21.11` and `26.1`, and any future range not covered by the table. The rich recovery action is to choose a supported official Paper target or update the checked-in snapshot through source maintenance; there is no runtime refresh route or raw override field.
 
 This mapping is Paper-specific. A Spigot target returns `unverified` until a separately sourced Spigot compatibility resolver exists; Paper documentation is never silently applied to Spigot.
 
-### Current catalog boundary
+### Bundled official catalog adapter
 
-The Runtime tab currently has **no bundled verified Paper Downloads target catalog**. The existing CLI catalog and planner presets are not substituted for that evidence. The main-process controller therefore supplies no target entries to the requirement resolver and shows an explicit `unavailable` catalog row; a Paper assessment remains `unverified` even if the Java probe itself succeeds. This source path makes no network request to Paper or any other service.
+The Runtime tab now uses a checked-in, source-only snapshot in
+`src/main/java-runtime-manager.cjs`. Its schema version is `1`, its source is
+the official Paper Downloads Service project catalog at
+[`https://fill.papermc.io/v3/projects/paper`](https://fill.papermc.io/v3/projects/paper),
+and its snapshot date is `2026-08-13`. The snapshot keeps only the official
+project identity (`paper`) and numeric version keys grouped by the catalog's
+version-group keys. It contains 54 numeric version keys and no build numbers, channel
+records, download URLs, installer metadata, or credentials.
 
-Spigot remains separately unverified. The controller labels that state explicitly and does not apply the Paper recommendation matrix to a Spigot target.
+`normalizePaperRuntimeTargetCatalog()` accepts only the exact versioned
+envelope, source metadata, Paper project identity, numeric group keys, and
+numeric entries that belong to their group. It enforces bounded group, per-group
+entry, total-entry, and string-length limits. Pre-release suffixes, unknown
+fields, malformed values, duplicate versions, empty groups, misplaced entries,
+and unsupported schema versions invalidate the complete catalog; the adapter
+does not silently discard an entry and continue with a partial result.
+
+`getPaperRuntimeTargetCatalog()` returns either the bounded validated version
+array or an empty invalid result with a diagnostic code. The controller passes
+only the validated version array to `resolvePaperJavaRequirement()`. A target
+that is present in the catalog and covered by the documented Paper matrix can
+therefore produce the existing `resolved` requirement state; an absent,
+malformed, or out-of-matrix target remains `unverified`. This is an offline
+snapshot: the runtime never requests the Paper endpoint, downloads a build, or
+refreshes the catalog automatically. Updating the snapshot is a separate
+source-maintenance action that must preserve the same official semantics and
+schema bounds.
+
+Spigot remains separately unverified. The controller exposes the Paper catalog's
+bounded availability metadata but never applies the Paper recommendation matrix
+to a Spigot target.
 
 For version-scheme context, Paper's [project setup documentation](https://docs.papermc.io/paper/dev/project-setup/) explains that versions before `26.1` correspond to `1.21.11` and below. The official [downloads service documentation](https://docs.papermc.io/misc/downloads-service/) describes its catalog keys and recommends stable builds.
 
@@ -109,7 +137,7 @@ The Runtime tab calls only these narrow bridge operations:
 | `runtime.discover()` | Uses bounded conventional discovery only. | Opaque candidate IDs, source labels, bounded diagnostics, and search-boundary facts. |
 | `runtime.choose()` | Opens the native Java-executable picker, then feeds the selected path directly into bounded discovery. | The same safe candidate summaries; no selected path. |
 | `runtime.select(id)` | Resolves an ID only from the current main-process discovery result. | Selected safe candidate summary only. |
-| `runtime.assess(...)` | Calls the manager's fixed `java -version` probe for the selected candidate and projects its structured result. | Parsed Java-major/status data, compatibility state, explicit catalog-unavailable state, and review-only plan facts. |
+| `runtime.assess(...)` | Validates the bundled Paper catalog, passes only its bounded version keys to the manager, and calls the fixed `java -version` probe for the selected candidate. | Parsed Java-major/status data, bounded catalog status/count/provenance, compatibility state, and review-only plan facts; raw catalog entries are not exposed. |
 | `runtime.clear()` | Drops the in-memory discovery and selection state. | No local server or configuration mutation. |
 
 The main process owns candidate paths and probing. The renderer cannot supply a raw Java path to the new runtime bridge, cannot supply raw command text, and cannot invoke an installer, package manager, download, server lifecycle action, configuration writer, or credential route. The existing direct-argument preview deliberately renders `java` as a non-executable placeholder rather than treating a renderer-held custom path as a process target.
@@ -120,9 +148,9 @@ The main process owns candidate paths and probing. The renderer cannot supply a 
 - Candidate discovery is bounded and shallow to avoid unexpected filesystem traversal.
 - Java version probing uses direct argv, a timeout, and a maximum captured-output size. It uses no shell.
 - Raw output is not retained after version parsing, which reduces the risk of leaking unexpected program output through application logs or exports.
-- Discovery, probing, and plan projection are local-only. They make no network request and do not write a server setting, secret, installer state, runtime file, or configuration file. Selecting a candidate may update the local planning preference only after the existing draft-save path runs; it never writes a selected Java path into the renderer-controlled preview.
+- Catalog validation, discovery, probing, and plan projection are local-only. They make no network request and do not write a server setting, secret, installer state, runtime file, or configuration file. Selecting a candidate may update the local planning preference only after the existing draft-save path runs; it never writes a selected Java path into the renderer-controlled preview.
 - A failed or unknown result remains unknown. It does not silently fall back to `PATH`, mark a runtime as compatible, install anything, or start a server.
 
 ## Verification boundary
 
-This source implementation intentionally did not run tests, lint, review, a build, a package, a runtime Java installation, a server launch, or a screen capture during the active ultra-speed delivery pass. Follow-up work must add focused automated coverage for the bridge's opaque-ID ownership, native-picker cancellation, bounded discovery, version parsing, catalog-unavailable state, officially sourced Paper catalog resolution, Spigot non-mapping, probe timeout/output-limit behavior, and review-only plan invariants before broad release assurance is claimed.
+This bounded source change intentionally did not run tests, lint, review, a runtime Java installation, a server launch, or a screen capture. The supported build and package route is reported with the exact candidate artifact when that lane completes. Focused automated coverage for the bridge's opaque-ID ownership, native-picker cancellation, bounded discovery, version parsing, malformed/unknown catalog rejection, officially sourced Paper catalog resolution, Spigot non-mapping, probe timeout/output-limit behavior, and review-only plan invariants remains future verification work.
