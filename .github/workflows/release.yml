@@ -55,6 +55,13 @@ jobs:
           "tag=v$version" >> $env:GITHUB_OUTPUT
           npm pkg set version=$version
 
+      - name: Resolve dim sum release metadata
+        id: dim_sum
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+          PROJECT_REPOSITORY: ${{ github.repository }}
+        run: node scripts/resolve-release-dim-sum.mjs
+
       - name: Build Windows Squirrel artifacts
         run: npm run dist
 
@@ -82,6 +89,12 @@ jobs:
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           WORKFLOW_STARTED: ${{ steps.timing.outputs.started }}
+          DIM_SUM_AVAILABLE: ${{ steps.dim_sum.outputs.available }}
+          DIM_SUM_NAME_EN: ${{ steps.dim_sum.outputs.name_en }}
+          DIM_SUM_NAME_ZH_HANT: ${{ steps.dim_sum.outputs.name_zh_hant }}
+          DIM_SUM_IMAGE_URL: ${{ steps.dim_sum.outputs.image_url }}
+          DIM_SUM_IMAGE_RELEASE_TAG: ${{ steps.dim_sum.outputs.image_release_tag }}
+          DIM_SUM_IMAGE_ASSET_NAME: ${{ steps.dim_sum.outputs.image_asset_name }}
         shell: pwsh
         run: |
           $started = [DateTimeOffset]::Parse($env:WORKFLOW_STARTED)
@@ -101,6 +114,21 @@ jobs:
             "This workflow builds and packages only; it does not run tests or lint.",
             ""
           )
+          if ($env:DIM_SUM_AVAILABLE -eq "true") {
+            $initialNotes += @(
+              "",
+              "Dim sum code name: $env:DIM_SUM_NAME_EN · $env:DIM_SUM_NAME_ZH_HANT",
+              "Catalog asset: $env:DIM_SUM_IMAGE_RELEASE_TAG / $env:DIM_SUM_IMAGE_ASSET_NAME",
+              "Public dish photo: <$env:DIM_SUM_IMAGE_URL>",
+              "The public catalog photo is linked only; no image copy is attached to this release."
+            )
+          } else {
+            $initialNotes += @(
+              "",
+              "Dim sum code name: unavailable for this release.",
+              "No eligible published catalog-v1 image was resolved; no dim sum image is attached or copied."
+            )
+          }
           $initialNotes | Set-Content -Encoding utf8 release-notes.md
           Add-Content -Encoding utf8 -LiteralPath release-notes.md -Value $lineCount
           $assets = Get-ChildItem $env:SQUIRREL_OUTPUT -File | Select-Object -ExpandProperty FullName
@@ -123,6 +151,21 @@ jobs:
             "This workflow builds and packages only; it does not run tests or lint.",
             ""
           )
+          if ($env:DIM_SUM_AVAILABLE -eq "true") {
+            $finalNotes += @(
+              "",
+              "Dim sum code name: $env:DIM_SUM_NAME_EN · $env:DIM_SUM_NAME_ZH_HANT",
+              "Catalog asset: $env:DIM_SUM_IMAGE_RELEASE_TAG / $env:DIM_SUM_IMAGE_ASSET_NAME",
+              "Public dish photo: <$env:DIM_SUM_IMAGE_URL>",
+              "The public catalog photo is linked only; no image copy is attached to this release."
+            )
+          } else {
+            $finalNotes += @(
+              "",
+              "Dim sum code name: unavailable for this release.",
+              "No eligible published catalog-v1 image was resolved; no dim sum image is attached or copied."
+            )
+          }
           $finalNotes | Set-Content -Encoding utf8 release-notes.md
           Add-Content -Encoding utf8 -LiteralPath release-notes.md -Value $lineCount
           gh release edit $env:RELEASE_TAG --notes-file release-notes.md
