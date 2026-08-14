@@ -71,6 +71,21 @@ non-draft release record has been verified.
 Read [Verified installer handoff](../docs/site/verified-installer-handoff.md)
 before changing the record.
 
+## Changelog viewer
+
+The **Changelog** destination renders all 26 non-draft, non-prerelease versions
+available from the repository's factual release records. It uses the
+categorized checked-in `CHANGELOG.md` records where available and the verified
+published release records for the remaining versions. Each entry keeps its release date, categories, exact
+commit SHA links, and release-record links. The browser-local controls provide
+plain-text search with the adjacent anchored regex builder, typed ISO or local
+date input, inclusive range filtering, date presets, clipboard copy, and
+durable Markdown export of the active filtered view. The viewer does not fetch
+release data, include `Unreleased` notes, or claim runtime or capture evidence.
+
+Read [Changelog viewer](../docs/site/changelog-viewer.md) before changing this
+surface. The focused source guard is `npm run test:site-changelog-viewer`.
+
 ## Owner-managed source validation
 
 The standard source validation command is:
@@ -85,10 +100,11 @@ runtime behavior, or a published artifact.
 
 ## Continue safely
 
-Keep the nine public destinations consistent with the parent documentation:
+Keep the ten public destinations consistent with the parent documentation:
 **Overview**, **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**,
-**Safety**, **Docs**, **Notification centre**, and **Release status**. Read `../docs/site/` before
+**Safety**, **Docs**, **Release status**, **Changelog**, and **Notification centre**. Read `../docs/site/` before
 changing planner behavior, preserve the source-only boundary, and update the
 public documentation alongside any user-visible change. The Release status
 destination is a direct version-pinned-link handoff, not a release feed or update
-service.
+service. The Changelog destination is a checked-in release-record viewer, not a
+runtime release feed.

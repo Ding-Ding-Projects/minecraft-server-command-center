@@ -37,6 +37,7 @@ import {
   type NotificationSelectScope,
   type NotificationView,
 } from "./notification-center";
+import { CHANGELOG_RELEASES, type ChangelogRelease } from "./changelog-data";
 
 // The planner has no server data; emit its root route as static HTML.
 export const dynamic = "force-static";
@@ -56,6 +57,7 @@ type PageId =
   | "safety"
   | "docs"
   | "release-status"
+  | "changelog"
   | "notifications"
   | "settings";
 
@@ -82,6 +84,14 @@ type SearchState = {
   flags: string;
   regexMode: boolean;
   builderOpen: boolean;
+};
+
+type ChangelogPreset = "all" | "latest" | "last-30-days" | "current-year" | "custom";
+
+type ChangelogDateValidation = {
+  state: "empty" | "partial" | "invalid" | "valid";
+  normalized?: string;
+  message: string;
 };
 
 type Notice = Pick<NotificationRecord, "tone" | "title" | "detail">;
@@ -199,6 +209,12 @@ const PAGE_DEFINITIONS: Array<{
     label: "Release status",
     eyebrow: "Version-pinned installer handoff",
     description: "Review the embedded release record and open its exact Windows installer asset.",
+  },
+  {
+    id: "changelog",
+    label: "Changelog",
+    eyebrow: "Factual release history",
+    description: "Search, filter, copy, and export every released version recorded for this companion.",
   },
   {
     id: "notifications",
@@ -371,6 +387,80 @@ function testSearch(text: string, state: SearchState) {
   } catch {
     return false;
   }
+}
+
+function validateChangelogDate(value: string): ChangelogDateValidation {
+  const trimmed = value.trim();
+  if (!trimmed) return { state: "empty", message: "No date entered." };
+
+  let normalized = trimmed;
+  const localeMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
+  if (localeMatch) {
+    normalized = `${localeMatch[3]}-${localeMatch[1].padStart(2, "0")}-${localeMatch[2].padStart(2, "0")}`;
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const partial = /^(?:\d{0,4}(?:-\d{0,2}(?:-\d{0,2})?)?|\d{0,2}(?:\/\d{0,2}(?:\/\d{0,4})?)?)$/.test(trimmed);
+    return {
+      state: partial ? "partial" : "invalid",
+      message: partial
+        ? "Keep typing a date; filtering waits for a complete YYYY-MM-DD or MM/DD/YYYY value."
+        : "Enter a date as YYYY-MM-DD or MM/DD/YYYY.",
+    };
+  }
+
+  const [year, month, day] = normalized.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year
+    || parsed.getUTCMonth() !== month - 1
+    || parsed.getUTCDate() !== day
+  ) {
+    return { state: "invalid", message: "That date does not exist, so the filter was not applied." };
+  }
+
+  return { state: "valid", normalized, message: "Date accepted." };
+}
+
+function shiftChangelogDate(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day));
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return [
+    String(shifted.getUTCFullYear()).padStart(4, "0"),
+    String(shifted.getUTCMonth() + 1).padStart(2, "0"),
+    String(shifted.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function formatChangelogDate(value: string) {
+  return new Date(`${value}T00:00:00Z`).toLocaleDateString("en-CA", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  });
+}
+
+function renderChangelogMarkdown(entries: readonly ChangelogRelease[], filterSummary: string) {
+  const lines = [
+    "# Companion site changelog",
+    "",
+    `Filtered view: ${filterSummary}`,
+    `Entries: ${entries.length}`,
+    "",
+  ];
+
+  for (const release of entries) {
+    lines.push(`## ${release.tag} · ${release.version}`, "", `Release date: ${release.releaseDate}`, `Source record: ${release.sourceRecord}`, "");
+    for (const category of release.categories) {
+      lines.push(`### ${category.label}`, "", ...category.items.map((item) => `- ${item}`), "");
+    }
+    lines.push("### Commit links", "", ...release.commits.map((commit) => `- [${commit.label}](${commit.url}) — ${commit.sha}`), "");
+    lines.push("### Release records", "", ...release.links.map((link) => `- [${link.label}](${link.url})`), "");
+  }
+
+  return `${lines.join("\n")}\n`;
 }
 
 function matchesNotificationSearch(record: NotificationRecord, state: SearchState) {
@@ -689,6 +779,11 @@ export default function Home() {
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [paletteSearch, setPaletteSearch] = useState<SearchState>(SEARCH_DEFAULT);
+  const [changelogSearch, setChangelogSearch] = useState<SearchState>(SEARCH_DEFAULT);
+  const [changelogStartDate, setChangelogStartDate] = useState("");
+  const [changelogEndDate, setChangelogEndDate] = useState("");
+  const [changelogDatePreset, setChangelogDatePreset] = useState<ChangelogPreset>("all");
+  const [changelogStatusMessage, setChangelogStatusMessage] = useState("");
   const [notificationSearch, setNotificationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [notice, setNotice] = useState<NotificationRecord | null>(null);
@@ -916,6 +1011,44 @@ export default function Home() {
   }, [draft, versionDetail.java]);
 
   const requiredBlockers = validationNotices.filter((item) => item.tone === "error");
+  const changelogDateValidation = useMemo<ChangelogDateValidation | null>(() => {
+    const start = validateChangelogDate(changelogStartDate);
+    const end = validateChangelogDate(changelogEndDate);
+    if (start.state === "partial" || start.state === "invalid") return start;
+    if (end.state === "partial" || end.state === "invalid") return { ...end, message: `End date: ${end.message}` };
+    if (start.normalized && end.normalized && start.normalized > end.normalized) {
+      return { state: "invalid", message: "The start date must be on or before the end date." };
+    }
+    return null;
+  }, [changelogEndDate, changelogStartDate]);
+  const filteredChangelogReleases = useMemo(() => {
+    if (changelogDateValidation) return [];
+    const start = validateChangelogDate(changelogStartDate).normalized;
+    const end = validateChangelogDate(changelogEndDate).normalized;
+    return CHANGELOG_RELEASES.filter((release) => {
+      const searchableText = [
+        release.version,
+        release.tag,
+        release.releaseDate,
+        release.sourceRecord,
+        ...release.categories.flatMap((category) => [category.label, ...category.items]),
+        ...release.commits.flatMap((commit) => [commit.label, commit.sha]),
+      ].join(" ");
+      const matchesDate = (!start || release.releaseDate >= start) && (!end || release.releaseDate <= end);
+      return matchesDate && testSearch(searchableText, changelogSearch);
+    });
+  }, [changelogDateValidation, changelogEndDate, changelogSearch, changelogStartDate]);
+  const changelogFilterSummary = useMemo(() => {
+    const searchSummary = changelogSearch.regexMode
+      ? `regex pattern ${changelogSearch.pattern || "(empty)"}`
+      : changelogSearch.query.trim()
+        ? `text search ${changelogSearch.query.trim()}`
+        : "all release text";
+    const start = validateChangelogDate(changelogStartDate).normalized;
+    const end = validateChangelogDate(changelogEndDate).normalized;
+    const dateSummary = start || end ? `${start || "earliest"} to ${end || "latest"}` : "all released dates";
+    return `${searchSummary}; ${dateSummary}`;
+  }, [changelogEndDate, changelogSearch, changelogStartDate]);
   const filteredNotificationRecords = useMemo(
     () => notificationRecords.filter((record) => {
       const matchesView = notificationView === "all"
@@ -965,6 +1098,64 @@ export default function Home() {
     const record = createNotificationRecord(input);
     setNotificationRecords((current) => appendNotificationRecord(current, record));
     setNotice(record);
+  };
+  const applyChangelogPreset = (preset: Exclude<ChangelogPreset, "custom">) => {
+    const latestDate = CHANGELOG_RELEASES[0]?.releaseDate ?? "";
+    const year = latestDate.slice(0, 4);
+    if (preset === "latest") {
+      setChangelogStartDate(latestDate);
+      setChangelogEndDate(latestDate);
+    } else if (preset === "last-30-days") {
+      setChangelogStartDate(shiftChangelogDate(latestDate, -29));
+      setChangelogEndDate(latestDate);
+    } else if (preset === "current-year") {
+      setChangelogStartDate(`${year}-01-01`);
+      setChangelogEndDate(`${year}-12-31`);
+    } else {
+      setChangelogStartDate("");
+      setChangelogEndDate("");
+    }
+    setChangelogDatePreset(preset);
+    setChangelogStatusMessage(`${preset === "all" ? "All released dates" : preset === "latest" ? "Latest release" : preset === "last-30-days" ? "Last 30 days" : "Current year"} preset applied.`);
+  };
+  const updateChangelogDate = (which: "start" | "end", value: string) => {
+    setChangelogDatePreset("custom");
+    if (which === "start") setChangelogStartDate(value);
+    else setChangelogEndDate(value);
+  };
+  const copyChangelog = async () => {
+    if (filteredChangelogReleases.length === 0) {
+      setChangelogStatusMessage("There are no matching release records to copy.");
+      publishNotice({ tone: "warning", title: "Nothing to copy", detail: "Adjust the search or date range before copying the filtered changelog." });
+      return;
+    }
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard access is unavailable in this browser.");
+      await navigator.clipboard.writeText(renderChangelogMarkdown(filteredChangelogReleases, changelogFilterSummary));
+      setChangelogStatusMessage(`Copied ${filteredChangelogReleases.length} filtered release record(s) as Markdown.`);
+      publishNotice({ tone: "success", title: "Filtered changelog copied", detail: "The clipboard text includes the active search, date range, categories, exact commit links, and release record links." });
+    } catch (error) {
+      setChangelogStatusMessage(error instanceof Error ? error.message : "Clipboard access failed; the filtered changelog was not copied.");
+      publishNotice({ tone: "warning", title: "Changelog copy unavailable", detail: "The browser did not grant clipboard access. The export action remains available." });
+    }
+  };
+  const exportChangelog = () => {
+    if (filteredChangelogReleases.length === 0) {
+      setChangelogStatusMessage("There are no matching release records to export.");
+      publishNotice({ tone: "warning", title: "Nothing to export", detail: "Adjust the search or date range before exporting the filtered changelog." });
+      return;
+    }
+    const content = renderChangelogMarkdown(filteredChangelogReleases, changelogFilterSummary);
+    const objectUrl = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" }));
+    const download = document.createElement("a");
+    download.href = objectUrl;
+    download.download = "companion-changelog-filtered.md";
+    document.body.appendChild(download);
+    download.click();
+    download.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    setChangelogStatusMessage(`Prepared ${filteredChangelogReleases.length} filtered release record(s) as durable Markdown.`);
+    publishNotice({ tone: "success", title: "Filtered changelog exported", detail: "The Markdown file records the active filter and keeps every exact commit and release link." });
   };
   const dismissNotification = (id: string) => {
     setNotificationRecords((current) => dismissNotificationRecord(current, id));
@@ -1802,6 +1993,153 @@ export default function Home() {
     </div>
   );
 
+  const changelogPage = (
+    <div className="page-stack">
+      <PageHeading page={selectedPage} />
+      <section className="surface-card notice-panel" aria-labelledby="changelog-summary-title">
+        <div>
+          <p className="eyebrow">Source-backed release history</p>
+          <h2 id="changelog-summary-title">Every released version recorded for this companion</h2>
+          <p className="body-copy">
+            This browser-local viewer reads the checked-in release records and the verified published v0.1.39 record.
+            It never asks GitHub for new data, invents missing releases, or treats Unreleased notes as shipped versions.
+          </p>
+        </div>
+        <span className="status-chip status-chip--info">{filteredChangelogReleases.length} of {CHANGELOG_RELEASES.length} shown</span>
+      </section>
+
+      <section className="surface-card changelog-viewer" aria-labelledby="changelog-controls-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Search and date range</p>
+            <h2 id="changelog-controls-title">Find the release record you need</h2>
+          </div>
+          <span className="status-chip status-chip--neutral">Plain text first</span>
+        </div>
+        <SearchField
+          id="changelog-search"
+          label="Search changelog text"
+          placeholder="Search versions, changes, or commit SHAs"
+          state={changelogSearch}
+          onChange={setChangelogSearch}
+        />
+        <div className="changelog-filter-grid">
+          <div className="field-group">
+            <label className="field-label" htmlFor="changelog-start-date">Start date</label>
+            <input
+              id="changelog-start-date"
+              className="text-input"
+              type="text"
+              inputMode="numeric"
+              value={changelogStartDate}
+              onChange={(event) => updateChangelogDate("start", event.target.value)}
+              placeholder="YYYY-MM-DD"
+              maxLength={10}
+              aria-invalid={validateChangelogDate(changelogStartDate).state === "invalid" || validateChangelogDate(changelogStartDate).state === "partial"}
+              aria-describedby="changelog-date-help changelog-date-status"
+            />
+            <p className={validateChangelogDate(changelogStartDate).state === "invalid" || validateChangelogDate(changelogStartDate).state === "partial" ? "field-error" : "field-help"}>
+              Type ISO YYYY-MM-DD or the local MM/DD/YYYY form.
+            </p>
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="changelog-end-date">End date</label>
+            <input
+              id="changelog-end-date"
+              className="text-input"
+              type="text"
+              inputMode="numeric"
+              value={changelogEndDate}
+              onChange={(event) => updateChangelogDate("end", event.target.value)}
+              placeholder="YYYY-MM-DD"
+              maxLength={10}
+              aria-invalid={validateChangelogDate(changelogEndDate).state === "invalid" || validateChangelogDate(changelogEndDate).state === "partial"}
+              aria-describedby="changelog-date-help changelog-date-status"
+            />
+            <p className={validateChangelogDate(changelogEndDate).state === "invalid" || validateChangelogDate(changelogEndDate).state === "partial" ? "field-error" : "field-help"}>
+              Partial input stays visible and is not applied until complete.
+            </p>
+          </div>
+        </div>
+        <p className="field-help" id="changelog-date-help">Dates are compared in ISO order. A range includes both its start and end dates.</p>
+        <div className="changelog-filter-actions" role="group" aria-label="Changelog date presets">
+          {([
+            ["all", "All releases"],
+            ["latest", "Latest release"],
+            ["last-30-days", "Last 30 days"],
+            ["current-year", "Current year"],
+          ] as const).map(([preset, label]) => (
+            <button
+              key={preset}
+              type="button"
+              className={changelogDatePreset === preset ? "segment is-selected" : "segment"}
+              aria-pressed={changelogDatePreset === preset}
+              onClick={() => applyChangelogPreset(preset)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p
+          id="changelog-date-status"
+          className={changelogDateValidation ? "field-error" : "field-help"}
+          role="status"
+          aria-live="polite"
+        >
+          {changelogDateValidation?.message || changelogStatusMessage || `Showing ${filteredChangelogReleases.length} of ${CHANGELOG_RELEASES.length} released versions.`}
+        </p>
+        <div className="button-row" aria-label="Changelog export actions">
+          <button type="button" className="secondary-button" onClick={copyChangelog} disabled={filteredChangelogReleases.length === 0}>
+            Copy filtered Markdown
+          </button>
+          <button type="button" className="primary-button" onClick={exportChangelog} disabled={filteredChangelogReleases.length === 0}>
+            Export filtered Markdown
+          </button>
+        </div>
+        <div className="changelog-list" aria-live="polite">
+          {filteredChangelogReleases.length === 0 ? (
+            <p className="empty-state">No released version matches the current search and date range. Unreleased notes are not included.</p>
+          ) : filteredChangelogReleases.map((release) => (
+            <article key={release.tag} className="changelog-entry" aria-labelledby={`${release.tag}-title`}>
+              <div className="changelog-entry__header">
+                <div>
+                  <p className="eyebrow">{release.sourceRecord}</p>
+                  <h3 id={`${release.tag}-title`}>{release.tag} · {release.version}</h3>
+                </div>
+                <time dateTime={release.releaseDate}>{formatChangelogDate(release.releaseDate)}</time>
+              </div>
+              <div className="changelog-entry__categories">
+                {release.categories.map((category) => (
+                  <section key={category.label} className="changelog-category" aria-labelledby={`${release.tag}-${category.label}`}>
+                    <h4 id={`${release.tag}-${category.label}`}>{category.label}</h4>
+                    <ul>
+                      {category.items.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+              <section className="changelog-entry__links" aria-labelledby={`${release.tag}-commits`}>
+                <h4 id={`${release.tag}-commits`}>Exact commit links</h4>
+                <ul className="changelog-commit-list">
+                  {release.commits.map((commit) => (
+                    <li key={commit.sha}>
+                      <a href={commit.url} target="_blank" rel="noreferrer">
+                        {commit.label}: <code>{commit.sha}</code>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <div className="changelog-record-links">
+                  {release.links.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}
+                </div>
+              </section>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+
   const notificationPersistenceLabel = notificationPersistenceStatus === "saved"
     ? "Saved locally"
     : notificationPersistenceStatus === "unavailable"
@@ -2203,6 +2541,7 @@ export default function Home() {
     safety: safetyPage,
     docs: docsPage,
     "release-status": releaseStatusPage,
+    changelog: changelogPage,
     notifications: notificationPage,
     settings: settingsPage,
   };
