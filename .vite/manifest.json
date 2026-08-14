@@ -11,7 +11,7 @@
     "name": "rolldown-runtime"
   },
   "app/page.tsx": {
-    "file": "minecraft-server-command-center/_next/static/chunks/page-BguARxlo.js",
+    "file": "minecraft-server-command-center/_next/static/chunks/page-8cJMwj61.js",
     "name": "page",
     "src": "app/page.tsx",
     "isDynamicEntry": true,
@@ -21,7 +21,7 @@
     ]
   },
   "node_modules/vinext/dist/shims/layout-segment-context.js": {
-    "file": "minecraft-server-command-center/_next/static/chunks/layout-segment-context-DtXRQDpM.js",
+    "file": "minecraft-server-command-center/_next/static/chunks/layout-segment-context-BfYsueJv.js",
     "name": "layout-segment-context",
     "src": "node_modules/vinext/dist/shims/layout-segment-context.js",
     "isDynamicEntry": true,
@@ -32,7 +32,7 @@
     ]
   },
   "virtual:vinext-app-browser-entry": {
-    "file": "minecraft-server-command-center/_next/static/chunks/index-l_t5ikIq.js",
+    "file": "minecraft-server-command-center/_next/static/chunks/index-YmgY0h48.js",
     "name": "index",
     "src": "virtual:vinext-app-browser-entry",
     "isEntry": true,
