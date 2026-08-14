@@ -21,6 +21,7 @@
     "test:java-runtime-package-seam": "node scripts/test-java-runtime-package-seam.mjs",
     "test:desktop-presentation-settings": "node --experimental-strip-types scripts/test-desktop-presentation-settings.mjs",
     "test:planner-handoff": "node node_modules/jiti/lib/jiti-cli.mjs scripts/test-planner-handoff.mjs",
+    "test:site-tab-keyboard": "node scripts/test-site-tab-keyboard.mjs",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
     "test:universal-contract-inventory": "node scripts/test-universal-contract-inventory.mjs",
     "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",

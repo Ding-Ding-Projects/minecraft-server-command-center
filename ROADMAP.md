@@ -4,9 +4,11 @@
 
 Minecraft Server Command Center contains browser-local companion-site and
 desktop-foundation work, a published static companion surface, and a verified
-version-pinned release-asset record. Those publication records do not prove local
-installer operation, server integration, external-service connection, or live
-server action.
+version-pinned release-asset record. Release `v0.1.50` also has verified
+packaged and installed launch evidence, planner handoff captures, and a bounded
+Java-runtime review capture. Those records do not prove server integration,
+external-service connection, live server action, a complete screen-reader audit,
+a positive local Java probe, or a direct installer process exit code.
 
 ## Completed source foundations
 
@@ -87,21 +89,26 @@ server action.
   characters remain protected. Race, desktop, companion-boundary, universal,
   search, presentation, documentation, root-build, and site-build checks pass;
   packaged runtime interaction and captures remain unverified.
+- Verified the released `v0.1.50` package and installed `app-0.1.50` through the
+  approved headless route. The real planner file-picker, normalized preview,
+  local save/discard flow, bounded Java discovery, and review-only Paper
+  compatibility state were exercised. The companion vertical tab list now
+  exposes its vertical orientation and ArrowUp/ArrowDown/Home/End keyboard
+  navigation, with a focused negative registration regression.
 
 ## Next implementation slices
 
-1. **Focused verification** — run authorized checks and exercise both the
-   built companion and packaged desktop app through the approved headless path.
+1. **Accessibility and installer evidence** — complete the screen-reader audit,
+   direct installer process exit capture, and a positive local Java probe where a
+   user-scoped runtime is available.
 2. **Universal settings completion** — extend the shared settings foundation
    to every required surface, including full localization, narration, scheduled
    settings, credential-factor behavior, appearance editing, tab management,
    history, exports, accessibility, and capture evidence.
 3. **Spigot runtime requirements** — add an independently sourced Spigot
    resolver rather than reusing Paper mappings.
-4. **Planner handoff runtime evidence** — exercise the completed browser-local
-   and desktop selected-file flow through the approved headless route, including
-   normalized preview, explicit local save, keyboard/accessibility behavior,
-   narrow layouts, and real capture evidence without weakening the
+4. **Planner handoff follow-up** — extend the verified picker and save evidence
+   with screen-reader and narrow-layout coverage without weakening the
    no-path/no-secret/no-execution boundary.
 5. **Lifecycle integration** — connect a separately reviewed lifecycle service
    only after explicit confirmation, process ownership, logging, cancellation,

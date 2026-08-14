@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import {
   PLANNER_HANDOFF_FILENAME,
   PLANNER_HANDOFF_MAX_BYTES,
@@ -146,14 +146,14 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.44",
-  sourceCommit: "0888fa23289bbb58fd88c5455131a0eb1911da45",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.44",
+  releaseTag: "v0.1.50",
+  sourceCommit: "21fbb9b1377e4efdfc6a00798fa2749bf7aaa785",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.50",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.44/Setup.exe",
-  assetSizeBytes: 140399616,
-  releasePublishedAt: "2026-08-14T11:27:44Z",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe",
+  assetSizeBytes: 140467200,
+  releasePublishedAt: "2026-08-14T20:34:07Z",
   unsigned: true,
 };
 
@@ -1400,6 +1400,21 @@ export default function Home() {
     const localized = localizedPageDefinition(PAGE_DEFINITIONS.find((item) => item.id === page) ?? PAGE_DEFINITIONS[0], universalSettings);
     publishNotice({ tone: "info", title: `Opened ${localized.label}`, detail: companionText({ english: "The planner stayed in this browser; no server action was started.", cantonese: "規劃器留喺呢個瀏覽器入面，冇啟動伺服器動作。" }, universalSettings) });
   };
+  const handlePageTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, pageId: PageId) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    const currentIndex = matchingPages.findIndex((page) => page.id === pageId);
+    if (currentIndex < 0 || matchingPages.length === 0) return;
+    event.preventDefault();
+    const nextIndex = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? matchingPages.length - 1
+        : (currentIndex + (event.key === "ArrowDown" ? 1 : -1) + matchingPages.length) % matchingPages.length;
+    const destination = matchingPages[nextIndex];
+    if (!destination) return;
+    navigate(destination.id);
+    requestAnimationFrame(() => document.getElementById(`tab-${destination.id}`)?.focus());
+  };
   const resetDraft = () => {
     setDraft(DEFAULT_DRAFT);
     setPendingPlannerHandoff(null);
@@ -2228,7 +2243,7 @@ export default function Home() {
           <p className="eyebrow">Source-backed release history</p>
           <h2 id="changelog-summary-title">Every released version recorded for this companion</h2>
           <p className="body-copy">
-            This browser-local viewer reads all 29 checked-in records for every released version currently recorded, including the verified published v0.1.44, v0.1.42, and v0.1.40 records.
+            This browser-local viewer reads all 30 checked-in records for every released version currently recorded, including the verified published v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.
             It never asks GitHub for new data, invents missing releases, or treats Unreleased notes as shipped versions.
           </p>
         </div>
@@ -2809,7 +2824,7 @@ export default function Home() {
       <div className="workspace-layout">
         <aside className="navigation-rail" aria-label="Planner destinations">
           <p className="navigation-rail__label">Destinations</p>
-          <div className="tab-list" role="tablist" aria-label="Planner pages">
+          <div className="tab-list" role="tablist" aria-orientation="vertical" aria-label="Planner pages">
             {matchingPages.map((page) => (
               <button
                 key={page.id}
@@ -2821,6 +2836,7 @@ export default function Home() {
                 type="button"
                 className={activePage === page.id ? "nav-tab is-active" : "nav-tab"}
                 onClick={() => navigate(page.id)}
+                onKeyDown={(event) => handlePageTabKeyDown(event, page.id)}
               >
                 <span className="nav-tab__dot" aria-hidden="true" />
                 <span>{page.label}</span>

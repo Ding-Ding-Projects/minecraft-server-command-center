@@ -73,9 +73,11 @@ adjacent UI text. The focused evidence is:
 - `npm --prefix site run build` — passed for the static companion build; and
 - `git diff --check` plus the focused syntax checks — passed.
 
-Packaged runtime interaction, accessibility interaction, and real capture
-evidence remain unverified because the approved headless route is unavailable
-in this session.
+Packaged runtime interaction and real capture evidence were subsequently
+verified for the released `app-0.1.50` package through the approved headless
+route. Accessibility evidence is partial: tab focus movement was observed,
+but a complete screen-reader audit and full arrow/Home/End coverage across all
+surfaces remain open.
 
 Read `docs/reference/notification-centre.md` before extending either review
 surface. The desktop article is already registered in
@@ -85,38 +87,41 @@ interaction or capture evidence.
 
 ## Current release proof
 
-The release audit for commit `4dfc6b7837c38a37f411ea4c8d2041b025db09d1`
+The release audit for commit `21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`
 verified GitHub Actions run
-[`31822353967`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31822353967)
-as successful and published release `v0.1.48`.
+[`31838299717`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31838299717)
+and published release `v0.1.50`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.48-full.nupkg`. The published
-`Setup.exe` URL is
-<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.48/Setup.exe>
-and its exact published size is `140411392` bytes. The release timing is
-`00:02:42`, the dim-sum code name is `Steamed Chicken Feet in Black Bean Sauce · 豉汁蒸鳳爪`, and the
-assets are unsigned; no signing material is used.
+`minecraft-server-command-center-0.1.50-full.nupkg`. The published `Setup.exe`
+URL is
+<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe>
+and its exact published size is `140467200` bytes. The release timing is
+`00:02:33`, the dim-sum code name is
+`Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉`, and the assets are
+unsigned; no signing material is used. The verified catalog photo is attached
+to the release.
 
-The published line-count table reports 65 own-source files / 21766 total lines /
-20135 non-blank, 0 test files / 0 / 0, 48 styles-or-markup files / 7830 /
-6549, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
-project total is 115 files / 29650 lines / 26728 non-blank; its grand total is
-116 / 29655 / 26732; and its attribution total is 116 / 29655 / 26732. One
-package-manager lockfile is excluded. The public catalog photo is linked in the
-release notes rather than copied into the consumer release.
+The published line-count table reports 72 own-source files / 23862 total lines /
+22097 non-blank, 0 test files / 0 / 0, 49 styles-or-markup files / 8041 /
+6731, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
+project total is 123 files / 31957 lines / 28872 non-blank; its grand total is
+124 / 31962 / 28876; and its attribution total is 124 / 31962 / 28876. One
+package-manager lockfile is excluded.
 
-The release workflow does not run automated tests or lint. This Pages source
-lane ran the companion-site build, lint, type-check, focused changelog guard,
-and Pages staging commands. It did not exercise the packaged desktop UI,
-installer execution, accessibility interaction, or real captures.
+The release workflow does not run automated tests or lint. Local evidence also
+includes the companion-site build, type-check, changelog guard, vertical-tab
+keyboard guard, packaged launch, installed `app-0.1.50` launch, planner import /
+normalized-preview / save / discard flow, bounded Java discovery, and review-only
+Paper compatibility states. A complete screen-reader audit, a positive local
+Java probe, and a direct installer process exit-code capture remain unverified.
 
 ## Java runtime package-seam repair
 
-The isolated task branch `task/java-runtime-package-copy-20260814-puppy` carries
-the bounded repair at `4017a9d8fb814580bc466e709eb77f2c3f1913b3`, based on
-`b941447aab6a3ec41d143ad5c3c512c57162321c`. It is pushed to GitHub and is not
-merged into `main` by this lane. `build:main` now copies the checked-in
+The historical isolated task ref carried the bounded repair at
+`4017a9d8fb814580bc466e709eb77f2c3f1913b3`.
+The repair is now integrated into `main` at
+`21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`; `build:main` copies the checked-in
 `src/main/java-runtime-manager.cjs` beside the compiled
 `dist/main/java-runtime-controller.js`; the focused package-seam check proves
 the byte match and deliberately fails when the manager is absent from staged
@@ -127,10 +132,9 @@ The supported `build-installer.bat /s` path returned exit code 0. Its extracted
 source SHA-256, and `Setup.exe` is unsigned. Exact local artifact sizes and
 hashes are recorded in
 [`docs/verification/java-runtime-package-seam.md`](docs/verification/java-runtime-package-seam.md).
-No packaged launch, installer execution, accessibility interaction, real
-capture, release publication, or remote CI verdict is claimed. The parent lane
-must merge this branch and rerun its release/runtime evidence before calling the
-v0.1.49 artifact repair complete.
+The v0.1.50 packaged and installed launches verified that the manager is present
+in the released app. Direct installer process exit-code capture remains
+unverified; the release and remote workflow evidence are recorded above.
 
 ## Universal inventory guard repair
 
@@ -217,9 +221,8 @@ main-process parser, normalized preview, typed preload bridge, and explicit
 save-normalized-plan-locally action. `scripts/test-planner-handoff.mjs` checks
 the complete payload contract, selected-file bounds, local-only draft retention,
 prohibited-field rejection, and exact source registrations. The focused check
-passed locally; relevant build and type evidence is recorded separately below.
-This does not claim packaged runtime interaction, accessibility interaction,
-or real capture evidence. Read the [Planner Handoff v1 article](docs/site/planner-handoff-v1.md)
+passed locally; relevant build, type, packaged-runtime, and capture evidence is
+recorded below. Read the [Planner Handoff v1 article](docs/site/planner-handoff-v1.md)
 before extending this boundary.
 
 The issue #3 lane's local evidence on 2026-08-14 is:
@@ -231,10 +234,11 @@ The issue #3 lane's local evidence on 2026-08-14 is:
 - `npm --prefix site run build` — passed for the static companion build; and
 - `git diff --check` — passed with no whitespace errors.
 
-The approved headless route was unavailable, so this lane does not claim
-packaged desktop/browser interaction, keyboard or screen-reader interaction,
-accessibility review, or real captures. No CI link is claimed before the task
-the task branch is pushed and observed.
+The approved headless route then exercised the packaged planner file picker,
+normalized preview, explicit local save, discard, and a real keyboard Tab focus
+transition. The issue-specific planner capture is linked from the public handoff
+comment. The full screen-reader audit and a direct installer process exit-code
+capture remain unverified; the current release and CI links are recorded above.
 
 ## Desktop foundation record
 

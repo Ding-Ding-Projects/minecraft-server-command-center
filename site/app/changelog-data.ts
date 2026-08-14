@@ -302,6 +302,51 @@ function makePublishedRelease(input: {
 
 const PUBLISHED_RELEASE_RECORDS: readonly ChangelogRelease[] = [
   {
+    version: "0.1.50",
+    tag: "v0.1.50",
+    releaseDate: "2026-08-14",
+    releaseTargetSha: "21fbb9b1377e4efdfc6a00798fa2749bf7aaa785",
+    releaseUrl: `${RELEASE}v0.1.50`,
+    sourceRecord: "Published release record",
+    categories: [
+      {
+        label: "Release",
+        items: [
+          "Published the non-draft v0.1.50 release for the exact source commit 21fbb9b1377e4efdfc6a00798fa2749bf7aaa785 with unsigned Windows Squirrel.Windows artifacts.",
+          "Dim sum code name: Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉.",
+        ],
+      },
+      {
+        label: "Verification",
+        items: [
+          "GitHub Actions run 31838299717 completed its build and release-publication path for the exact target commit; the workflow does not run tests or lint.",
+          "Workflow started at 2026-08-14T20:31:34.0000000+00:00; release publication completed at 2026-08-14T20:34:07.9789646+00:00; workflow duration through publication was 00:02:33.",
+          "Setup.exe was published unsigned at https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe with an exact published size of 140467200 bytes.",
+          "The release line-count table reported 123 project-total files / 31957 lines / 28872 non-blank, 124 grand-total files / 31962 lines / 28876 non-blank, and matching attribution totals; one package-manager lockfile was excluded.",
+        ],
+      },
+    ],
+    commits: [
+      {
+        label: "Release target",
+        sha: "21fbb9b1377e4efdfc6a00798fa2749bf7aaa785",
+        url: `${COMMIT}21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`,
+      },
+    ],
+    links: [
+      { label: "GitHub Actions run 31838299717", url: `${ACTIONS}31838299717` },
+      { label: "Published release record", url: `${RELEASE}v0.1.50` },
+      {
+        label: "Setup.exe · 140467200 bytes",
+        url: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe",
+      },
+      {
+        label: "Dim sum photo · hk-dish-0029-ginger-scallion-beef-tripe.png",
+        url: "https://github.com/Ding-Ding-Projects/dim-sum-photos/releases/download/catalog-v1/hk-dish-0029-ginger-scallion-beef-tripe.png",
+      },
+    ],
+  },
+  {
     version: "0.1.44",
     tag: "v0.1.44",
     releaseDate: "2026-08-14",

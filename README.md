@@ -55,9 +55,10 @@ preview, and a separate **Save normalized plan locally** action. The focused
 size, prohibited-field, source-registration, and local-only draft-retention
 regressions. On 2026-08-14, `npm run build`,
 `npx tsc --noEmit -p site/tsconfig.json`, `npm --prefix site run build`, and
-`git diff --check` also passed. This is source, build, and focused-check
-evidence only; packaged runtime, accessibility interaction, and real capture
-evidence remain unverified.
+`git diff --check` also passed. The companion-site vertical-tab keyboard guard
+also passed with its negative registration regression. This remains partial
+accessibility evidence: the packaged desktop and companion surfaces have not
+received a complete screen-reader audit.
 
 The desktop foundation can collect a typed normalized draft, use narrow native
 folder/JAR/Java/configuration pickers, guide bounded Java runtime discovery
@@ -167,24 +168,26 @@ download, staging, restart, rollback, or unsaved-work recovery implementation.
 ## Evidence status
 
 The planner and desktop sources remain distinct from runtime evidence. This
-record does not claim automated desktop tests, browser or desktop interaction,
-accessibility review, local installer operation, automatic-update behavior, or
-server-process action. The 2026-08-14 release audit did verify the root build,
-unsigned Squirrel.Windows package, companion-site build, GitHub Actions run
-`31822353967`, and published release `v0.1.48` for commit
-`4dfc6b7837c38a37f411ea4c8d2041b025db09d1`. The release record names the
-unsigned `Setup.exe` asset at `140411392` bytes, workflow timing `00:02:42`,
-dim-sum code name `Steamed Chicken Feet in Black Bean Sauce · 豉汁蒸鳳爪`, and
-the exact line-count table. The public catalog photo is linked rather than
-copied into the consumer release. Read the relevant handoff and
-completeness inventory before calling a surface fully verified.
+record does not claim automated desktop tests, a complete accessibility audit,
+automatic-update behavior, or server-process action. The 2026-08-14 release
+audit verified the root build, unsigned Squirrel.Windows package, companion-site
+build, GitHub Actions run `31838299717`, and published release `v0.1.50` for
+commit `21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`. The release record names the
+unsigned `Setup.exe` asset at `140467200` bytes, workflow timing `00:02:33`,
+dim-sum code name `Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉`,
+and the exact line-count table. The verified catalog photo is attached to the
+release. Read the relevant handoff and completeness inventory before calling a
+surface fully verified.
 
 The Planner Handoff v1 source record now covers JSON export/import, native
 selected-file parsing, normalized preview, explicit local save, local-only
-draft retention, and prohibited-action rejection. The focused checks do not
-claim packaged runtime interaction, accessibility interaction, or real
-captures; the approved cheap headless route was unavailable for this lane.
-Java runtime guidance remains a separate source-design record.
+draft retention, and prohibited-action rejection. The released `app-0.1.50`
+package was launched through the approved headless route; the real planner
+file-picker, normalized-preview, save, and discard flow was exercised, and the
+Java runtime surface showed bounded discovery and review-only compatibility
+states. A complete screen-reader audit, a positive local Java probe, and a
+direct installer process exit-code capture remain unverified. Java runtime
+guidance remains a separate source-design record.
 
 ## Continue from here
 

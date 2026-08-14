@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Added vertical keyboard navigation to the companion site's planner tabs. The
+  tab list now exposes its vertical orientation and responds to ArrowUp,
+  ArrowDown, Home, and End while keeping focus on the activated destination.
+- Refreshed the companion site's embedded installer handoff and changelog
+  record to the verified published v0.1.50 release, including its exact source
+  commit, unsigned Setup.exe size, workflow record, and dim-sum code name.
 - Repaired the Windows desktop main-process packaging seam for the Java runtime
   manager. `build:main` now copies the checked-in
   `src/main/java-runtime-manager.cjs` beside the compiled

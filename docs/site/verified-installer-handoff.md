@@ -14,13 +14,13 @@ does not need to discover or request release information:
 
 | Field | Embedded value |
 | --- | --- |
-| Release tag | `v0.1.44` |
-| Source commit | `0888fa23289bbb58fd88c5455131a0eb1911da45` |
-| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.44> |
+| Release tag | `v0.1.50` |
+| Source commit | `21fbb9b1377e4efdfc6a00798fa2749bf7aaa785` |
+| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.50> |
 | Installer asset | `Setup.exe` |
-| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.44/Setup.exe> |
-| Published asset size | `140399616` bytes |
-| Release published at | `2026-08-14T11:27:44Z` |
+| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe> |
+| Published asset size | `140467200` bytes |
+| Release published at | `2026-08-14T20:34:07Z` |
 | Signing state | Unsigned |
 
 The source uses these fields only for visible copy and ordinary anchor targets.
@@ -43,26 +43,26 @@ person activates one of the explicit links.
 ## Published release evidence
 
 The embedded record is backed by GitHub Actions run
-[`31796111487`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31796111487),
-which completed successfully for the exact source commit
-[`0888fa23289bbb58fd88c5455131a0eb1911da45`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/0888fa23289bbb58fd88c5455131a0eb1911da45).
-Workflow timing was `00:02:50`, from `2026-08-14T11:24:55.0000000+00:00`
-through release publication at `2026-08-14T11:27:45.1661752+00:00`. The
-release was published at `2026-08-14T11:27:44Z`; its dim-sum code name is
-`Watercress Beef Balls · 西洋菜牛肉球`.
+[`31838299717`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31838299717),
+which completed its build and release-publication path for the exact source commit
+[`21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/21fbb9b1377e4efdfc6a00798fa2749bf7aaa785).
+Workflow timing was `00:02:33`, from `2026-08-14T20:31:34.0000000+00:00`
+through release publication at `2026-08-14T20:34:07.9789646+00:00`. The
+release was published at `2026-08-14T20:34:07Z`; its dim-sum code name is
+`Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉`.
 
 The published line-count evidence is:
 
 | Category | Files | Total lines | Non-blank lines |
 | --- | ---: | ---: | ---: |
-| Own source | 61 | 19896 | 18400 |
+| Own source | 72 | 23862 | 22097 |
 | Tests | 0 | 0 | 0 |
-| Styles / markup | 48 | 7477 | 6222 |
+| Styles / markup | 49 | 8041 | 6731 |
 | Generated | 1 | 5 | 4 |
 | Other project text | 2 | 54 | 44 |
-| **Project total (non-generated)** | **111** | **27427** | **24666** |
-| **Grand total counted** | **112** | **27432** | **24670** |
-| **Attribution total** | **112** | **27432** | **24670** |
+| **Project total (non-generated)** | **123** | **31957** | **28872** |
+| **Grand total counted** | **124** | **31962** | **28876** |
+| **Attribution total** | **124** | **31962** | **28876** |
 
 One package-manager lockfile was excluded from the line-count totals. The
 release workflow builds and packages only; it does not run tests or lint.
