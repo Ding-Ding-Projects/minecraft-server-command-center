@@ -52,7 +52,7 @@ const workspaceSubtitle = document.querySelector<HTMLElement>("#workspace-subtit
 const updateState = document.querySelector<HTMLElement>("#update-state");
 const copyArgvButton = document.querySelector<HTMLButtonElement>("#copy-argv");
 const choosePlannerHandoffButton = document.querySelector<HTMLButtonElement>("#choose-planner-handoff");
-const applyPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#apply-planner-handoff");
+const savePlannerHandoffButton = document.querySelector<HTMLButtonElement>("#save-planner-handoff");
 const discardPlannerHandoffButton = document.querySelector<HTMLButtonElement>("#discard-planner-handoff");
 const plannerHandoffState = document.querySelector<HTMLElement>("#planner-handoff-state");
 const plannerHandoffPreview = document.querySelector<HTMLDListElement>("#planner-handoff-preview");
@@ -101,7 +101,7 @@ const notificationViewAllCount = document.querySelector<HTMLElement>("#notificat
 const notificationRecordList = document.querySelector<HTMLElement>("#notification-record-list");
 const notificationStatusMessage = document.querySelector<HTMLElement>("#notification-status-message");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -676,7 +676,7 @@ function handoffValue(value: boolean): string {
 
 function renderPlannerHandoff(preview: PlannerHandoffPreview | undefined, message: string): void {
   pendingPlannerHandoff = preview;
-  applyPlannerHandoffButton.disabled = preview === undefined;
+  savePlannerHandoffButton.disabled = preview === undefined;
   discardPlannerHandoffButton.disabled = preview === undefined;
   plannerHandoffState.textContent = message;
   plannerHandoffPreview.hidden = preview === undefined;
@@ -684,6 +684,7 @@ function renderPlannerHandoff(preview: PlannerHandoffPreview | undefined, messag
   if (!preview) return;
 
   const details: ReadonlyArray<readonly [string, string]> = [
+    ["Contract", `Planner Handoff v${preview.version}`],
     ["Plan", preview.serverName],
     ["Server", preview.serverKind === "paper" ? "Paper" : "Spigot"],
     ["Minecraft", preview.minecraftVersion],
@@ -713,9 +714,9 @@ async function choosePlannerHandoff(): Promise<void> {
       writeSaveState("Local draft ready");
       return;
     }
-    renderPlannerHandoff(preview, "Imported plan is ready for review. Apply it to replace only its safe planning fields.");
-    writeSaveState("Imported plan ready to apply");
-    showSnackbar("Planner handoff parsed locally. Review the safe values before applying them.");
+    renderPlannerHandoff(preview, "Normalized v1 plan is ready for review. Save it locally to replace only its safe planning fields.");
+    writeSaveState("Normalized plan ready to save locally");
+    showSnackbar("Planner handoff parsed locally. Review the normalized safe values before saving them.");
   } catch {
     renderPlannerHandoff(undefined, "The selected JSON could not be used. Choose a complete non-secret planner handoff v1.");
     writeSaveState("Planner handoff rejected");
@@ -723,21 +724,21 @@ async function choosePlannerHandoff(): Promise<void> {
   }
 }
 
-async function applyPlannerHandoff(): Promise<void> {
+async function savePlannerHandoff(): Promise<void> {
   if (!pendingPlannerHandoff) return;
   invalidatePendingSave();
-  writeSaveState("Applying imported plan locally…");
+  writeSaveState("Saving normalized plan locally…");
   try {
     draft = await window.commandCenter.handoff.apply(draft);
     hydrateForm();
     void renderArgv();
     updateLaunchBoundary();
-    renderPlannerHandoff(undefined, "Imported plan applied and saved locally. Paths, executable locations, and other local-only values were retained.");
-    writeSaveState("Imported plan applied locally");
-    showSnackbar("Imported plan applied and saved locally. No server files or processes were changed.");
+    renderPlannerHandoff(undefined, "Normalized plan saved locally. Paths, executable locations, and other local-only values were retained.");
+    writeSaveState("Normalized plan saved locally");
+    showSnackbar("Normalized plan saved locally. No server files or processes were changed.");
   } catch {
-    writeSaveState("Imported plan could not be applied");
-    showSnackbar("The imported plan was not applied. Review or choose a new JSON plan.");
+    writeSaveState("Normalized plan could not be saved");
+    showSnackbar("The normalized plan was not saved. Review or choose a new JSON plan.");
   }
 }
 
@@ -1328,9 +1329,9 @@ function bindInteraction(): void {
       void choosePlannerHandoff();
       return;
     }
-    const applyHandoff = target.closest<HTMLButtonElement>("#apply-planner-handoff");
-    if (applyHandoff) {
-      void applyPlannerHandoff();
+    const saveHandoff = target.closest<HTMLButtonElement>("#save-planner-handoff");
+    if (saveHandoff) {
+      void savePlannerHandoff();
       return;
     }
     const discardHandoff = target.closest<HTMLButtonElement>("#discard-planner-handoff");

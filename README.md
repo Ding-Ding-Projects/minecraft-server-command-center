@@ -43,6 +43,18 @@ secrets, raw command or argument text, file contents, remote transfer, server
 operation, configuration-file writes, and arbitrary filesystem read or
 execution. See [Planner Handoff v1](docs/site/planner-handoff-v1.md).
 
+The v1 source flow now implements that boundary: the companion exports and
+imports only through user-activated local JSON actions, and the desktop uses a
+native selected-file picker, bounded main-process validation, a normalized
+preview, and a separate **Save normalized plan locally** action. The focused
+`npm run test:planner-handoff` check covers malformed, version, duplicate-key,
+size, prohibited-field, source-registration, and local-only draft-retention
+regressions. On 2026-08-14, `npm run build`,
+`npx tsc --noEmit -p site/tsconfig.json`, `npm --prefix site run build`, and
+`git diff --check` also passed. This is source, build, and focused-check
+evidence only; packaged runtime, accessibility interaction, and real capture
+evidence remain unverified.
+
 The desktop foundation can collect a typed normalized draft, use narrow native
 folder/JAR/Java/configuration pickers, guide bounded Java runtime discovery
 through opaque candidate IDs, probe one selected Java runtime with fixed direct
@@ -159,11 +171,12 @@ dim-sum code name `Steamed Beef Balls · 山竹牛肉`, and the exact line-count
 table. Read the relevant handoff and
 completeness inventory before calling a surface fully verified.
 
-The Planner Handoff v1 record and Java runtime guidance remain source-design
-implementation records only. They do not claim that JSON export/import, native
-selected-file parsing, Java discovery/probing, catalog validation,
-compatibility assessment, preview, apply, save, browser UI, desktop UI, or any
-excluded action boundary has been exercised.
+The Planner Handoff v1 source record now covers JSON export/import, native
+selected-file parsing, normalized preview, explicit local save, local-only
+draft retention, and prohibited-action rejection. The focused checks do not
+claim packaged runtime interaction, accessibility interaction, or real
+captures; the approved cheap headless route was unavailable for this lane.
+Java runtime guidance remains a separate source-design record.
 
 ## Continue from here
 

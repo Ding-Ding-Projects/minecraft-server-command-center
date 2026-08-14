@@ -16,6 +16,10 @@
   English and Cantonese funny levels from 1 through 5.
 - Wired the persisted dialog/message-box emoji toggle to non-blocking desktop
   message content while keeping controls and accessible names emoji-free.
+- Implemented the bounded Planner Handoff v1 source flow: guided browser-local
+  JSON export/import, native desktop selected-file parsing, strict schema,
+  version, size, duplicate-key, and unknown-field validation, normalized
+  preview, and an explicit local save action that retains desktop-local values.
 
 ### Verification
 
@@ -28,6 +32,13 @@
   because the repository has no root lockfile.
 - Added `npm run test:desktop-presentation-settings`, including payload-free
   mode, slider, emoji, persistence, and exact negative-registration checks.
+- Added `npm run test:planner-handoff`, with 185 focused assertions covering
+  malformed, unsupported-version, duplicate-key, oversized, prohibited-field,
+  source-registration, selected-file, normalized-preview, and local-retention
+  behavior. `npm run build`, `npx tsc --noEmit -p site/tsconfig.json`,
+  `npm --prefix site run build`, and `git diff --check` passed on 2026-08-14.
+  No packaged runtime interaction, accessibility interaction, or real capture
+  evidence is claimed for this source lane.
 - Source and build checks do not claim packaged runtime interaction, screen
   reader interaction, installer execution, or real capture evidence.
 

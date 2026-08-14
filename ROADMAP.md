@@ -29,6 +29,12 @@ server action.
   user-mediated local JSON boundary between the companion planner and desktop
   draft; it is not a server operation, remote transport, filesystem-control,
   configuration-write, or execution feature.
+- Implemented the bounded Planner Handoff v1 source flow: guided browser-local
+  export/import, native desktop selected-file parsing, strict schema/version/
+  size validation, normalized-value preview, explicit local draft save, and a
+  negative regression for malformed, version, duplicate-key, size, prohibited-
+  field, and source-registration failures. Packaged runtime and capture
+  evidence remain separate follow-up work.
 - Added a guided desktop Java-runtime review surface that owns candidate paths
   in the privileged process, exposes opaque candidate IDs and parsed probe
   facts to the renderer, and keeps Paper compatibility conditional on the
@@ -78,11 +84,11 @@ server action.
    history, exports, accessibility, and capture evidence.
 3. **Spigot runtime requirements** — add an independently sourced Spigot
    resolver rather than reusing Paper mappings.
-4. **Companion planner and handoff implementation** — finish browser-local
-   controls, validation, provenance, reset, non-secret export/import, bounded
-   desktop selected-file parsing, safe normalization preview, and explicit
-   apply/save behavior without weakening the no-path/no-secret/no-execution
-   boundary.
+4. **Planner handoff runtime evidence** — exercise the completed browser-local
+   and desktop selected-file flow through the approved headless route, including
+   normalized preview, explicit local save, keyboard/accessibility behavior,
+   narrow layouts, and real capture evidence without weakening the
+   no-path/no-secret/no-execution boundary.
 5. **Lifecycle integration** — connect a separately reviewed lifecycle service
    only after explicit confirmation, process ownership, logging, cancellation,
    recovery, and real runtime evidence are in place.
@@ -103,9 +109,9 @@ server action.
 - Treating a published unsigned Squirrel asset as proof of local installation,
   automatic-update behavior, or a running application.
 
-- Treating the Planner Handoff v1 documentation as proof of browser-to-desktop
-  communication, selected-file access, configuration-file writes, filesystem
-  access, server control, or any execution path.
+- Treating Planner Handoff v1 source or focused checks as proof of packaged
+  browser/desktop interaction, configuration-file writes, filesystem access,
+  server control, or any execution path.
 - Treating Java discovery or a parsed `java -version` result as proof of a
   compatible Paper target, Java installation, server configuration, server
   launch, package-manager action, or Spigot compatibility.

@@ -802,7 +802,7 @@ export default function Home() {
   const [pendingPlannerHandoff, setPendingPlannerHandoff] = useState<PlannerHandoffV1 | null>(null);
   const [handoffStatus, setHandoffStatus] = useState<HandoffStatus>({
     tone: "neutral",
-    message: "No planner handoff is selected. JSON files stay local to this browser session until you apply one.",
+    message: "No planner handoff is selected. JSON files stay local to this browser session until you save one locally.",
   });
   const plannerHandoffInput = useRef<HTMLInputElement>(null);
   const personalVocabularyInput = useRef<HTMLInputElement>(null);
@@ -1347,21 +1347,21 @@ export default function Home() {
       const handoff = parsePlannerHandoffJson(await selected.text());
       const preview = previewPlannerHandoff(handoff);
       setPendingPlannerHandoff(handoff);
-      setHandoffStatus({ tone: "info", message: `${preview.serverName} is ready for review. Apply it to replace only the safe planner fields shown below.` });
-      publishNotice({ tone: "info", title: "Planner handoff ready to review", detail: "No browser draft value changed until you explicitly apply the imported plan." });
+      setHandoffStatus({ tone: "info", message: `${preview.serverName} is ready for review. Save it locally to replace only the normalized safe planner fields shown below.` });
+      publishNotice({ tone: "info", title: "Planner handoff ready to review", detail: "No browser draft value changed until you explicitly save the imported plan locally." });
     } catch {
       setPendingPlannerHandoff(null);
       setHandoffStatus({ tone: "warning", message: "The selected JSON was rejected. A complete, bounded non-secret planner-handoff v1 is required." });
       publishNotice({ tone: "warning", title: "Planner handoff rejected", detail: "The browser draft was left unchanged." });
     }
   };
-  const applyImportedPlannerHandoff = () => {
+  const saveImportedPlannerHandoff = () => {
     if (!pendingPlannerHandoff) return;
     const preview = previewPlannerHandoff(pendingPlannerHandoff);
     setDraft((current) => applyPlannerHandoffToBrowserDraft(current, pendingPlannerHandoff));
     setPendingPlannerHandoff(null);
-    setHandoffStatus({ tone: "success", message: `${preview.serverName} was applied to this browser-local draft. Appearance-only settings remained local.` });
-    publishNotice({ tone: "success", title: "Imported planner handoff applied", detail: "Only the non-secret planning fields were replaced. No server action was started." });
+    setHandoffStatus({ tone: "success", message: `${preview.serverName} was saved to this browser-local draft. Appearance-only settings remained local.` });
+    publishNotice({ tone: "success", title: "Imported planner handoff saved locally", detail: "Only the normalized non-secret planning fields were replaced. No server action was started." });
   };
   const discardImportedPlannerHandoff = () => {
     setPendingPlannerHandoff(null);
@@ -1725,9 +1725,9 @@ export default function Home() {
             <p className="eyebrow">Desktop handoff</p>
             <h2 id="browser-handoff-title">Move a non-secret plan through a structured JSON file</h2>
           </div>
-          <span className={`status-chip status-chip--${handoffStatus.tone}`}>{pendingPlannerHandoff ? "Ready to apply" : "Local only"}</span>
+          <span className={`status-chip status-chip--${handoffStatus.tone}`}>{pendingPlannerHandoff ? "Ready to save locally" : "Local only"}</span>
         </div>
-        <p className="body-copy">Export only the guided planning fields, or choose a local JSON file to preview before applying it. This companion never uploads, fetches, sends, or stores file paths, URLs, credentials, raw argv, or server addresses.</p>
+        <p className="body-copy">Export only the guided planning fields, or choose a local JSON file to preview in normalized v1 form before saving it to this browser. This companion never uploads, fetches, sends, or stores file paths, URLs, credentials, raw argv, or server addresses.</p>
         <input
           ref={plannerHandoffInput}
           className="sr-only"
@@ -1743,8 +1743,8 @@ export default function Home() {
           <button type="button" className="secondary-button" onClick={() => plannerHandoffInput.current?.click()}>
             Choose planner JSON
           </button>
-          <button type="button" className="secondary-button" onClick={applyImportedPlannerHandoff} disabled={!pendingPlannerHandoff}>
-            Apply imported plan
+          <button type="button" className="secondary-button" onClick={saveImportedPlannerHandoff} disabled={!pendingPlannerHandoff}>
+            Save imported plan locally
           </button>
           <button type="button" className="secondary-button" onClick={discardImportedPlannerHandoff} disabled={!pendingPlannerHandoff}>
             Discard imported plan
@@ -1754,7 +1754,8 @@ export default function Home() {
           {handoffStatus.message}
         </p>
         {pendingPlannerHandoffPreview ? (
-          <dl className="handoff-preview" aria-label="Imported planner handoff preview">
+          <dl className="handoff-preview" aria-label="Normalized v1 planner handoff preview">
+            <div><dt>Contract</dt><dd>Planner Handoff v{pendingPlannerHandoffPreview.version}</dd></div>
             <div><dt>Plan</dt><dd>{pendingPlannerHandoffPreview.serverName}</dd></div>
             <div><dt>Server</dt><dd>{pendingPlannerHandoffPreview.serverKind === "paper" ? "Paper" : "Spigot"}</dd></div>
             <div><dt>Minecraft</dt><dd>{pendingPlannerHandoffPreview.minecraftVersion}</dd></div>

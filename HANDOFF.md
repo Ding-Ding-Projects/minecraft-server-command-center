@@ -85,7 +85,7 @@ planning envelope between the browser-local companion and the Windows desktop
 draft boundary. The user mediates it with local JSON export/import: the browser
 uses only browser storage and user-selected local JSON files, while the
 desktop uses a native .json picker, main-process bounded parse, safe preview,
-and a separate explicit apply or save action.
+and a separate explicit save-normalized-plan-locally action.
 
 The record permits only selected structured planning fields: a server name and
 kind, selected Minecraft and Java presets, a memory target, a world preset,
@@ -96,11 +96,30 @@ remote transfer, server operation, configuration-file writes, arbitrary
 filesystem reads, and arbitrary execution. It must not be described as a
 browser-to-desktop service channel or as proof that a server was configured.
 
-This is source-design documentation only. No test, lint, review, accessibility
-assessment, browser UI interaction, screen capture, build, package, release,
-website publication, source-control publication, selected-file flow, preview,
-apply/save action, or server action is represented as verified. Read the
-Planner Handoff v1 article before implementing this boundary.
+The implementation source now provides the browser's guided local JSON
+export/import controls and the desktop's native selected-file picker, bounded
+main-process parser, normalized preview, typed preload bridge, and explicit
+save-normalized-plan-locally action. `scripts/test-planner-handoff.mjs` checks
+the complete payload contract, selected-file bounds, local-only draft retention,
+prohibited-field rejection, and exact source registrations. The focused check
+passed locally; relevant build and type evidence is recorded separately below.
+This does not claim packaged runtime interaction, accessibility interaction,
+or real capture evidence. Read the [Planner Handoff v1 article](docs/site/planner-handoff-v1.md)
+before extending this boundary.
+
+The issue #3 lane's local evidence on 2026-08-14 is:
+
+- `npm run test:planner-handoff` — passed, 185 focused assertions;
+- `npm run build` — passed for the main process, renderer, generated icon, and
+  typed catalog copy;
+- `npx tsc --noEmit -p site/tsconfig.json` — passed for the companion source;
+- `npm --prefix site run build` — passed for the static companion build; and
+- `git diff --check` — passed with no whitespace errors.
+
+The approved headless route was unavailable, so this lane does not claim
+packaged desktop/browser interaction, keyboard or screen-reader interaction,
+accessibility review, or real captures. No CI link is claimed before the task
+the task branch is pushed and observed.
 
 ## Desktop foundation record
 
@@ -147,6 +166,7 @@ scripts/verify-unsigned.mjs
 assets/app-mark.svg
 src/shared/server-draft.ts
 src/shared/planner-handoff.ts
+scripts/test-planner-handoff.mjs
 src/shared/desktop-api.ts
 src/main/index.ts
 src/main/planner-handoff-file.ts
@@ -242,5 +262,5 @@ real capture evidence is claimed for this lane.
 6. Obtain explicit scope before adding secrets, live server control, updater
    transport, deployment, or external integration.
 7. Preserve the Planner Handoff v1 boundary: selected local JSON only,
-   privileged bounded parse, safe preview, explicit apply/save, and no
+   privileged bounded parse, normalized preview, explicit local save, and no
    path/secret/command/filesystem/execution escape.
