@@ -1,6 +1,11 @@
 const INVENTORY_DOCUMENTATION = "docs/verification/completeness-inventory.md";
 const INVENTORY_GUARD = "scripts/test-universal-contract-inventory.mjs";
 
+export const UNIVERSAL_CONTRACT_SURFACE_KEYS = Object.freeze([
+  "desktop",
+  "companionSite",
+]);
+
 export const UNIVERSAL_CONTRACT_EVIDENCE_KEYS = Object.freeze([
   "implementation",
   "documentation",
@@ -19,6 +24,21 @@ function persistentEvidence(status, paths, assertion) {
   return { applicable: true, ...evidence(status, paths, assertion) };
 }
 
+function surfaceEvidence(surfaceKey, status, paths) {
+  return Object.freeze({
+    status,
+    paths: Object.freeze([...paths]),
+    assertion: `${surfaceKey} evidence is recorded independently for this row; ${surfaceKey} status is ${status}.`,
+  });
+}
+
+function surfacePair(desktopStatus, desktopPaths, companionSiteStatus, companionSitePaths) {
+  return Object.freeze({
+    desktop: surfaceEvidence("desktop", desktopStatus, desktopPaths),
+    companionSite: surfaceEvidence("companion-site", companionSiteStatus, companionSitePaths),
+  });
+}
+
 function notApplicableEvidence(reason) {
   return {
     applicable: false,
@@ -29,7 +49,37 @@ function notApplicableEvidence(reason) {
   };
 }
 
-export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
+const UNIVERSAL_CONTRACT_SURFACE_EVIDENCE = Object.freeze({
+  "language-modes-and-school-mode": surfacePair("partial", ["src/shared/desktop-presentation.ts"], "partial", ["site/app/page.tsx"]),
+  "spoken-narrator": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "scheduled-settings-and-external-sources": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "personal-vocabulary-json": surfacePair("not-implemented", ["src/renderer/index.html"], "partial", ["site/app/personal-vocabulary-boundary.tsx"]),
+  "startup-dim-sum-surprise": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "anchored-regex-builder": surfacePair("partial", ["src/renderer/regex-builder.ts"], "partial", ["site/app/page.tsx"]),
+  "notifications-and-bulk-notification-actions": surfacePair("partial", ["src/renderer/notification-center.ts"], "partial", ["site/app/notification-center.ts"]),
+  "appearance-editor-and-logo-customization": surfacePair("partial", ["src/renderer/styles.css"], "partial", ["site/app/page.tsx"]),
+  "app-display-name": surfacePair("partial", ["src/shared/desktop-presentation.ts", "src/renderer/index.html"], "partial", ["site/app/page.tsx"]),
+  "browser-style-tabs": surfacePair("partial", ["src/renderer/index.html"], "partial", ["site/app/page.tsx"]),
+  "toy-locks-and-recovery": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "built-in-authenticator-and-secret-history": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "support-tickets": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "command-palette": surfacePair("partial", ["src/renderer/main.ts"], "partial", ["site/app/page.tsx"]),
+  "destructive-action-super-confirmation": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "local-git-backed-version-history": surfacePair("partial", ["src/main/universal-settings-store.ts"], "partial", ["site/app/page.tsx"]),
+  "changelog-viewer": surfacePair("not-implemented", ["src/renderer/index.html"], "partial", ["site/app/changelog-data.ts"]),
+  "external-editor-handoff": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "complete-exports-and-reimports": surfacePair("partial", ["src/shared/planner-handoff.ts"], "partial", ["site/app/page.tsx"]),
+  "bulk-actions-everywhere": surfacePair("partial", ["src/renderer/notification-center.ts"], "partial", ["site/app/notification-center.ts"]),
+  "local-file-converter": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "local-ollama-suite-manager": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "browser-extension-download-surfaces": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "offline-documentation-and-landing-site": surfacePair("partial", ["src/renderer/offline-documentation.ts"], "partial", ["site/app/page.tsx"]),
+  "accessibility-responsive-sizing-and-captures": surfacePair("partial", ["src/renderer/styles.css"], "partial", ["site/app/page.tsx"]),
+  "shared-live-status-hub": surfacePair("not-implemented", ["src/renderer/index.html"], "not-implemented", ["site/app/page.tsx"]),
+  "complete-inventory-negative-regression": surfacePair("verified", ["scripts/universal-contract-inventory.mjs"], "verified", [INVENTORY_GUARD]),
+});
+
+const UNIVERSAL_CONTRACT_ROWS = [
   {
     id: "language-modes-and-school-mode",
     title: "English, playful Cantonese, bilingual modes; independent funny levels; emoji toggle; renameable School mode",
@@ -47,7 +97,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "spoken-narrator",
     title: "Spoken narrator, language choice, voice pickers, rate, pitch, queue, and accessibility coexistence",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit not-implemented state for both user-facing surfaces."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit not-implemented state for both user-facing surfaces."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a narrator article or persisted contract visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of narrator-localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of persisted narrator and voice selections visible."),
@@ -60,7 +110,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "scheduled-settings-and-external-sources",
     title: "Scheduled settings and validated external/Home Assistant sources",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit not-implemented state for schedule and external-source behavior."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit not-implemented state for schedule and external-source behavior."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a schedule schema article visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of schedule-localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of versioned schedule persistence visible."),
@@ -86,7 +136,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "startup-dim-sum-surprise",
     title: "Startup dim-sum surprise with bundled/public-catalog asset boundary",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit not-implemented state and the public-catalog boundary visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit not-implemented state and the public-catalog boundary visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a runtime surprise article visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of bilingual dish and surrounding copy visible."),
       persistence: notApplicableEvidence("The startup draw is not a user preference and has no persisted opt-out state."),
@@ -135,6 +185,19 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     },
   },
   {
+    id: "app-display-name",
+    title: "User-renamable application display name with stable application identity",
+    evidence: {
+      implementation: evidence("partial", ["src/shared/universal-contracts.ts", "src/shared/desktop-presentation.ts", "src/renderer/index.html", "src/renderer/main.ts", "site/app/page.tsx"], "Keep the current bounded display-name setting and visible desktop/site labels distinct from the complete app-wide identity contract."),
+      documentation: evidence("partial", ["docs/reference/universal-settings.md", INVENTORY_DOCUMENTATION], "Keep the display-name behavior, stable package identity boundary, and incomplete full-surface coverage documented."),
+      localization: evidence("partial", ["src/shared/desktop-presentation.ts", "site/app/page.tsx"], "Keep the current localized display-name settings copy and incomplete app-wide localization boundary explicit."),
+      persistence: persistentEvidence("partial", ["src/main/universal-settings-store.ts", "site/app/page.tsx"], "Keep the bounded local display-name persistence and the incomplete cross-surface propagation state explicit."),
+      focusedCheck: evidence("verified", ["scripts/test-desktop-presentation-settings.mjs", "scripts/test-universal-contracts.mjs"], "Keep the focused display-name schema, presentation, and negative-registration checks named without claiming complete app identity proof."),
+      builtArtifactInteraction: evidence("unverified", [INVENTORY_DOCUMENTATION], "Keep the absence of packaged display-name interaction evidence explicit."),
+      captureEvidence: evidence("unverified", [INVENTORY_DOCUMENTATION], "Keep the absence of real display-name capture evidence explicit."),
+    },
+  },
+  {
     id: "browser-style-tabs",
     title: "Complete browser-style tabs: docking, overflow, reorder, pin, groups, four searches, bulk close, and per-element appearance",
     evidence: {
@@ -151,7 +214,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "toy-locks-and-recovery",
     title: "Toy locks on every element, tab/group locks, independent credentials, QR pairing, and recovery",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of element, tab, group, and property lock implementations visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of element, tab, group, and property lock implementations visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of lock, credential, and recovery documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of lock and recovery localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of per-lock persisted state visible."),
@@ -164,7 +227,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "built-in-authenticator-and-secret-history",
     title: "Built-in authenticator, TOTP/HOTP standards, secret-safe history, and protected history manager",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of authenticator and protected history implementations visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of authenticator and protected history implementations visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of authenticator and secret-history documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of authenticator-localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of vault-backed authenticator and append-only history persistence visible."),
@@ -177,7 +240,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "support-tickets",
     title: "Support Tickets local recovery desk",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of the local fictional recovery desk visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of the local fictional recovery desk visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a Support Tickets feature article visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of Support Tickets localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a local ticket list and ticket-state persistence visible."),
@@ -203,7 +266,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "destructive-action-super-confirmation",
     title: "Destructive-action super confirmation and emergency exit",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of the native two-key and slider confirmation surface visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of the native two-key and slider confirmation surface visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of destructive-action documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of destructive-action localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of destructive-action history and preference persistence visible."),
@@ -242,7 +305,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "external-editor-handoff",
     title: "External-editor handoff, especially Visual Studio Code workspace opening",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of editor detection, selection, and workspace-opening implementations visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of editor detection, selection, and workspace-opening implementations visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of an external-editor feature article visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of editor-handoff localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of a persisted editor selection visible."),
@@ -281,7 +344,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "local-file-converter",
     title: "Local categorized file converter with bundled adapters, PDF operations, queue, cancellation, and output validation",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of converter and bundled-adapter implementations visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of converter and bundled-adapter implementations visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of converter catalog and adapter documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of converter-localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of queue, history, and resumable conversion persistence visible."),
@@ -294,7 +357,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "local-ollama-suite-manager",
     title: "Complete local Ollama suite manager, exhaustive model catalog, hardware fit, chat, and allowlisted harness",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of the local Ollama suite manager visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of the local Ollama suite manager visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of Ollama catalog, hardware, chat, and harness documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of Ollama-localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of local model, chat, cart, and harness state persistence visible."),
@@ -307,7 +370,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "browser-extension-download-surfaces",
     title: "Browser-extension Start download, Downloading, and Download complete surfaces",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of browser-extension capture and download surfaces visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of browser-extension capture and download surfaces visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of extension integration and capture inventory documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of download-dialog localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of durable download queue and result persistence visible."),
@@ -346,7 +409,7 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     id: "shared-live-status-hub",
     title: "Shared live Status Hub registration and app-owned status surface",
     evidence: {
-      implementation: evidence("not-implemented", ["src", "site"], "Keep the explicit absence of shared Status Hub registration and app-owned status surfaces visible."),
+      implementation: evidence("not-implemented", ["src/renderer/index.html", "site/app/page.tsx"], "Keep the explicit absence of shared Status Hub registration and app-owned status surfaces visible."),
       documentation: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of Status Hub documentation visible."),
       localization: evidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of Status Hub localized copy visible."),
       persistence: persistentEvidence("not-implemented", [INVENTORY_DOCUMENTATION], "Keep the explicit absence of registered status records and app-owned status persistence visible."),
@@ -361,11 +424,53 @@ export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze([
     evidence: {
       implementation: evidence("verified", ["scripts/universal-contract-inventory.mjs", INVENTORY_GUARD], "Keep the explicit metadata registry and fail-closed guard implementation references visible."),
       documentation: evidence("verified", [INVENTORY_DOCUMENTATION], "Keep the guard command, exact row count, evidence-slot contract, and mutation proof documented."),
-      localization: notApplicableEvidence("This repository verification record is not user-facing copy."),
+      localization: evidence("unverified", [INVENTORY_DOCUMENTATION], "This verification-only row has no product localization surface; keep that absence explicit."),
       persistence: notApplicableEvidence("The source inventory is repository metadata, not user-managed state."),
       focusedCheck: evidence("verified", [INVENTORY_GUARD], "Keep the focused command and its intentional remove/restore mutation proof visible."),
-      builtArtifactInteraction: notApplicableEvidence("This check verifies repository evidence metadata; it does not render a product surface."),
-      captureEvidence: notApplicableEvidence("This check has no product surface to capture."),
+      builtArtifactInteraction: evidence("unverified", [INVENTORY_DOCUMENTATION], "This verification-only row has no product artifact interaction; keep that absence explicit."),
+      captureEvidence: evidence("unverified", [INVENTORY_DOCUMENTATION], "No product surface exists for this verification-only row; keep the absence of capture evidence explicit."),
     },
   },
-]);
+];
+
+export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze(
+  UNIVERSAL_CONTRACT_ROWS.map((row) => {
+    const surfaces = UNIVERSAL_CONTRACT_SURFACE_EVIDENCE[row.id];
+    if (!surfaces) {
+      throw new Error(`missing desktop/companion-site surface evidence for ${row.id}`);
+    }
+    return Object.freeze({ ...row, surfaces });
+  }),
+);
+
+function formatPaths(paths) {
+  return paths.map((path) => `\`${path}\``).join(", ");
+}
+
+function formatEvidenceSlot(slot) {
+  const applicability = Object.hasOwn(slot, "applicable") ? `; applicable=${slot.applicable}` : "";
+  const reason = slot.reason ? `; reason=${slot.reason}` : "";
+  return `status=${slot.status}; paths=${formatPaths(slot.paths)}; assertion=${slot.assertion}${applicability}${reason}`;
+}
+
+function formatSurfaceEvidence(surface) {
+  return `status=${surface.status}; paths=${formatPaths(surface.paths)}; assertion=${surface.assertion}`;
+}
+
+export function projectUniversalContractMarkdownRow(row) {
+  return Object.freeze([
+    row.title,
+    formatSurfaceEvidence(row.surfaces.desktop),
+    formatSurfaceEvidence(row.surfaces.companionSite),
+    ["implementation", "documentation", "localization", "persistence"]
+      .map((key) => `${key}=${formatEvidenceSlot(row.evidence[key])}`)
+      .join("; "),
+    ["focusedCheck", "builtArtifactInteraction", "captureEvidence"]
+      .map((key) => `${key}=${formatEvidenceSlot(row.evidence[key])}`)
+      .join("; "),
+  ]);
+}
+
+export const UNIVERSAL_CONTRACT_MARKDOWN_ROWS = Object.freeze(
+  UNIVERSAL_CONTRACT_INVENTORY.map(projectUniversalContractMarkdownRow),
+);

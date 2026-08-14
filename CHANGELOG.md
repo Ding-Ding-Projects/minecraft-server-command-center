@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Hardened the universal-contract inventory guard with an independent literal
+  27-row oracle, including the application display-name row, a literal
+  seven-slot contract, independent desktop and companion-site evidence,
+  checker-rooted tracked-file validation, an exact metadata-owned Markdown
+  projection, and boundary mutations. Existing partial, not-implemented, and
+  unverified states remain explicit.
 - Changed the release line-count command to consume large `git blame
   --line-porcelain --root` output incrementally, avoiding Node's
   `spawnSync git ENOBUFS` failure without changing line buckets or surviving-line
@@ -29,6 +35,12 @@
 
 ### Verification
 
+- `npm run test:universal-contract-inventory` passed with 27 canonical rows,
+  7 evidence slots, 2 independent surface keys per row, and 887 negative
+  mutations. `npm run test:universal-contracts`,
+  `npm run test:offline-documentation`, both syntax checks, and `git diff --check`
+  also passed; the supported `npm run build` completed the asset, main, catalog,
+  and renderer build steps.
 - Added `npm run test:release-line-count`; it requires the current
   `site/app/page.tsx` blame output to exceed 1 MiB and verifies the full counter
   completes with matching grand-total and attribution-total rows.
