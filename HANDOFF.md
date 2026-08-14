@@ -87,34 +87,35 @@ interaction or capture evidence.
 
 ## Current release proof
 
-The release audit for commit `21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`
+The release audit for commit `0e599ccb0fc7a1d0cf256db3d775e86c200ec913`
 verified GitHub Actions run
-[`31838299717`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31838299717)
-and published release `v0.1.50`.
+[`31844310617`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31844310617)
+and published release `v0.1.51`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.50-full.nupkg`. The published `Setup.exe`
+`minecraft-server-command-center-0.1.51-full.nupkg`. The published `Setup.exe`
 URL is
-<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe>
+<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.51/Setup.exe>
 and its exact published size is `140467200` bytes. The release timing is
-`00:02:33`, the dim-sum code name is
-`Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉`, and the assets are
+`00:02:35`, the dim-sum code name is
+`Steamed Beef Tripe with Chu Hou Sauce · 柱侯金錢肚`, and the assets are
 unsigned; no signing material is used. The verified catalog photo is attached
 to the release.
 
-The published line-count table reports 72 own-source files / 23862 total lines /
-22097 non-blank, 0 test files / 0 / 0, 49 styles-or-markup files / 8041 /
-6731, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
-project total is 123 files / 31957 lines / 28872 non-blank; its grand total is
-124 / 31962 / 28876; and its attribution total is 124 / 31962 / 28876. One
+The published line-count table reports 73 own-source files / 23979 total lines /
+22208 non-blank, 0 test files / 0 / 0, 49 styles-or-markup files / 8071 /
+6760, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
+project total is 124 files / 32104 lines / 29012 non-blank; its grand total is
+125 / 32109 / 29016; and its attribution total is 125 / 32109 / 29016. One
 package-manager lockfile is excluded.
 
 The release workflow does not run automated tests or lint. Local evidence also
 includes the companion-site build, type-check, changelog guard, vertical-tab
-keyboard guard, packaged launch, installed `app-0.1.50` launch, planner import /
+keyboard guard, packaged launch, installed `app-0.1.51` launch, direct
+`Setup.exe /silent` exit code `0`, planner import /
 normalized-preview / save / discard flow, bounded Java discovery, and review-only
-Paper compatibility states. A complete screen-reader audit, a positive local
-Java probe, and a direct installer process exit-code capture remain unverified.
+Paper compatibility states. A complete screen-reader audit and a positive local
+Java probe remain unverified.
 
 ## Java runtime package-seam repair
 

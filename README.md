@@ -171,23 +171,24 @@ The planner and desktop sources remain distinct from runtime evidence. This
 record does not claim automated desktop tests, a complete accessibility audit,
 automatic-update behavior, or server-process action. The 2026-08-14 release
 audit verified the root build, unsigned Squirrel.Windows package, companion-site
-build, GitHub Actions run `31838299717`, and published release `v0.1.50` for
-commit `21fbb9b1377e4efdfc6a00798fa2749bf7aaa785`. The release record names the
-unsigned `Setup.exe` asset at `140467200` bytes, workflow timing `00:02:33`,
-dim-sum code name `Steamed Beef Tripe with Ginger and Scallion · 薑蔥牛柏葉`,
+build, GitHub Actions run `31844310617`, and published release `v0.1.51` for
+commit `0e599ccb0fc7a1d0cf256db3d775e86c200ec913`. The release record names the
+unsigned `Setup.exe` asset at `140467200` bytes, workflow timing `00:02:35`,
+dim-sum code name `Steamed Beef Tripe with Chu Hou Sauce · 柱侯金錢肚`,
 and the exact line-count table. The verified catalog photo is attached to the
-release. Read the relevant handoff and completeness inventory before calling a
-surface fully verified.
+release. The direct `/silent` installer run returned `EXIT_CODE=0`, and the
+installed `app-0.1.51` surface launched through the approved headless route.
+Read the relevant handoff and completeness inventory before calling a surface
+fully verified.
 
 The Planner Handoff v1 source record now covers JSON export/import, native
 selected-file parsing, normalized preview, explicit local save, local-only
-draft retention, and prohibited-action rejection. The released `app-0.1.50`
+draft retention, and prohibited-action rejection. The released `app-0.1.51`
 package was launched through the approved headless route; the real planner
 file-picker, normalized-preview, save, and discard flow was exercised, and the
 Java runtime surface showed bounded discovery and review-only compatibility
-states. A complete screen-reader audit, a positive local Java probe, and a
-direct installer process exit-code capture remain unverified. Java runtime
-guidance remains a separate source-design record.
+states. A complete screen-reader audit and a positive local Java probe remain
+unverified. Java runtime guidance remains a separate source-design record.
 
 ## Continue from here
 

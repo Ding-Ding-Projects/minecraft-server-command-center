@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Refreshed the verified installer handoff and release-history records to the
+  published `v0.1.51` release, including its exact source commit, workflow
+  timing, unsigned asset evidence, and dim-sum code name.
+- Moved companion-site tab focus restoration into the post-navigation effect,
+  so the real built surface keeps focus on the selected destination after
+  ArrowUp, ArrowDown, Home, and End.
 - Added vertical keyboard navigation to the companion site's planner tabs. The
   tab list now exposes its vertical orientation and responds to ArrowUp,
   ArrowDown, Home, and End while keeping focus on the activated destination.

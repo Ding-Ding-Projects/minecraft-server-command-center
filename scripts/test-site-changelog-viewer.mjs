@@ -12,7 +12,7 @@ const styleSource = await readText("site/app/globals.css");
 const changelogSource = await readText("CHANGELOG.md");
 
 const expectedVersions = [
-  "0.1.50", "0.1.44", "0.1.42", "0.1.40", "0.1.39", "0.1.38", "0.1.37", "0.1.36", "0.1.35", "0.1.34", "0.1.33", "0.1.32", "0.1.31", "0.1.30",
+  "0.1.51", "0.1.50", "0.1.44", "0.1.42", "0.1.40", "0.1.39", "0.1.38", "0.1.37", "0.1.36", "0.1.35", "0.1.34", "0.1.33", "0.1.32", "0.1.31", "0.1.30",
   "0.1.29", "0.1.28", "0.1.27", "0.1.26", "0.1.25", "0.1.24", "0.1.23", "0.1.22", "0.1.21", "0.1.20",
   "0.1.19", "0.1.16", "0.1.15", "0.1.14", "0.1.13", "0.1.12",
 ];
@@ -51,7 +51,7 @@ const requiredPageMarkers = [
   "onClick={exportChangelog}",
   "renderChangelogMarkdown(filteredChangelogReleases, changelogFilterSummary)",
   "Exact commit links",
-  "including the verified published v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.",
+  "including the verified published v0.1.51, v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.",
 ];
 
 function assertSourceContract(source, markers, label) {
@@ -71,12 +71,12 @@ for (const marker of requiredPageMarkers) {
 }
 
 const requiredInstallerMarkers = [
-  'releaseTag: "v0.1.50"',
-  'sourceCommit: "21fbb9b1377e4efdfc6a00798fa2749bf7aaa785"',
-  'releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.50"',
-  'https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe',
+  'releaseTag: "v0.1.51"',
+  'sourceCommit: "0e599ccb0fc7a1d0cf256db3d775e86c200ec913"',
+  'releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.51"',
+  'https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.51/Setup.exe',
   "assetSizeBytes: 140467200",
-  'releasePublishedAt: "2026-08-14T20:34:07Z"',
+  'releasePublishedAt: "2026-08-14T21:55:16Z"',
 ];
 assertSourceContract(pageSource, requiredInstallerMarkers, "verified installer handoff");
 for (const marker of requiredInstallerMarkers) {
@@ -109,6 +109,24 @@ const requiredRelease50Markers = [
   "123 project-total files / 31957 lines / 28872 non-blank",
   "124 grand-total files / 31962 lines / 28876 non-blank",
 ];
+const requiredRelease51Markers = [
+  'version: "0.1.51"',
+  'releaseTargetSha: "0e599ccb0fc7a1d0cf256db3d775e86c200ec913"',
+  'releaseUrl: `${RELEASE}v0.1.51`',
+  "31844310617",
+  "Steamed Beef Tripe with Chu Hou Sauce · 柱侯金錢肚",
+  "140467200 bytes",
+  "project-total files / 32104 lines / 29012 non-blank",
+  "grand-total files / 32109 lines / 29016 non-blank",
+];
+assertSourceContract(dataSource, requiredRelease51Markers, "v0.1.51 changelog record");
+for (const marker of requiredRelease51Markers) {
+  const removed = dataSource.replaceAll(marker, "");
+  assert.throws(
+    () => assertSourceContract(removed, requiredRelease51Markers, "v0.1.51 changelog record"),
+    `negative regression stayed green after removing v0.1.51 release marker: ${marker}`,
+  );
+}
 assertSourceContract(dataSource, requiredRelease50Markers, "v0.1.50 changelog record");
 for (const marker of requiredRelease50Markers) {
   const removed = dataSource.replaceAll(marker, "");

@@ -146,14 +146,14 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.50",
-  sourceCommit: "21fbb9b1377e4efdfc6a00798fa2749bf7aaa785",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.50",
+  releaseTag: "v0.1.51",
+  sourceCommit: "0e599ccb0fc7a1d0cf256db3d775e86c200ec913",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.51",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.50/Setup.exe",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.51/Setup.exe",
   assetSizeBytes: 140467200,
-  releasePublishedAt: "2026-08-14T20:34:07Z",
+  releasePublishedAt: "2026-08-14T21:55:16Z",
   unsigned: true,
 };
 
@@ -899,6 +899,13 @@ export default function Home() {
   const personalVocabularyInput = useRef<HTMLInputElement>(null);
   const customLogoInput = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      document.getElementById(`tab-${activePage}`)?.focus();
+    }, 0);
+    return () => window.clearTimeout(timerId);
+  }, [activePage]);
+
   const publishNotice = (input: Notice) => {
     const record = createNotificationRecord(input);
     setNotificationRecords((current) => appendNotificationRecord(current, record));
@@ -1413,7 +1420,6 @@ export default function Home() {
     const destination = matchingPages[nextIndex];
     if (!destination) return;
     navigate(destination.id);
-    requestAnimationFrame(() => document.getElementById(`tab-${destination.id}`)?.focus());
   };
   const resetDraft = () => {
     setDraft(DEFAULT_DRAFT);
@@ -2243,7 +2249,7 @@ export default function Home() {
           <p className="eyebrow">Source-backed release history</p>
           <h2 id="changelog-summary-title">Every released version recorded for this companion</h2>
           <p className="body-copy">
-            This browser-local viewer reads all 30 checked-in records for every released version currently recorded, including the verified published v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.
+            This browser-local viewer reads all 31 checked-in records for every released version currently recorded, including the verified published v0.1.51, v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.
             It never asks GitHub for new data, invents missing releases, or treats Unreleased notes as shipped versions.
           </p>
         </div>

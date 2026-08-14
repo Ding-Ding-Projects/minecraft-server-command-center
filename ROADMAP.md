@@ -4,11 +4,11 @@
 
 Minecraft Server Command Center contains browser-local companion-site and
 desktop-foundation work, a published static companion surface, and a verified
-version-pinned release-asset record. Release `v0.1.50` also has verified
-packaged and installed launch evidence, planner handoff captures, and a bounded
-Java-runtime review capture. Those records do not prove server integration,
-external-service connection, live server action, a complete screen-reader audit,
-a positive local Java probe, or a direct installer process exit code.
+version-pinned release-asset record. Release `v0.1.51` also has verified
+packaged and installed launch evidence, planner handoff captures, a direct
+installer exit-code capture, and a bounded Java-runtime review capture. Those
+records do not prove server integration, external-service connection, live
+server action, a complete screen-reader audit, or a positive local Java probe.
 
 ## Completed source foundations
 
@@ -89,12 +89,14 @@ a positive local Java probe, or a direct installer process exit code.
   characters remain protected. Race, desktop, companion-boundary, universal,
   search, presentation, documentation, root-build, and site-build checks pass;
   packaged runtime interaction and captures remain unverified.
-- Verified the released `v0.1.50` package and installed `app-0.1.50` through the
+- Verified the released `v0.1.51` package and installed `app-0.1.51` through the
   approved headless route. The real planner file-picker, normalized preview,
-  local save/discard flow, bounded Java discovery, and review-only Paper
-  compatibility state were exercised. The companion vertical tab list now
-  exposes its vertical orientation and ArrowUp/ArrowDown/Home/End keyboard
-  navigation, with a focused negative registration regression.
+  local save/discard flow, bounded Java discovery, review-only Paper
+  compatibility state, and direct `Setup.exe /silent` exit code `0` were
+  exercised. The companion vertical tab list now exposes its vertical
+  orientation and ArrowUp/ArrowDown/Home/End keyboard navigation; the real
+  built surface keeps focus on the selected destination, with focused negative
+  regressions for both handler registration and focus restoration.
 
 ## Next implementation slices
 

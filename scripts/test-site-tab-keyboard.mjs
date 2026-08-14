@@ -13,7 +13,10 @@ function assertSiteTabKeyboardContract(candidate) {
     'const handlePageTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, pageId: PageId) => {',
     '["ArrowDown", "ArrowUp", "Home", "End"]',
     'const currentIndex = matchingPages.findIndex((page) => page.id === pageId);',
-    'requestAnimationFrame(() => document.getElementById(`tab-${destination.id}`)?.focus());',
+    'const timerId = window.setTimeout(() => {',
+    'document.getElementById(`tab-${activePage}`)?.focus();',
+    'return () => window.clearTimeout(timerId);',
+    '}, [activePage]);',
     'onKeyDown={(event) => handlePageTabKeyDown(event, page.id)}',
   ];
   for (const marker of markers) {
@@ -32,6 +35,17 @@ assert.throws(
   () => assertSiteTabKeyboardContract(removedHandler),
   /Missing site tab keyboard marker: onKeyDown=/,
   "Removing the site tab handler must turn this check red.",
+);
+
+const removedFocusEffect = source.replace(
+  '      document.getElementById(`tab-${activePage}`)?.focus();\n',
+  '',
+);
+assert.notEqual(removedFocusEffect, source, "The negative mutation must remove active-tab focus restoration.");
+assert.throws(
+  () => assertSiteTabKeyboardContract(removedFocusEffect),
+  /Missing site tab keyboard marker: document\.getElementById/,
+  "Removing active-tab focus restoration must turn this check red.",
 );
 
 console.log("PASS: companion-site vertical tab keyboard contract and negative registration regression");
