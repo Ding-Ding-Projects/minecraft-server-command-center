@@ -11,6 +11,7 @@
     "build:renderer": "vite build --config vite.renderer.config.ts",
     "build": "npm run prepare:assets && npm run build:main && npm run build:renderer",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
+    "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",
     "start": "npm run build && electron .",
     "dist": "npm run build && electron-builder --win squirrel --publish never",
     "verify:unsigned": "node scripts/verify-unsigned.mjs"

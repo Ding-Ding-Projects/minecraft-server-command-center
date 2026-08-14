@@ -12,6 +12,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | [Server Configuration Writer Foundation](server-configuration-writer.md) | Defines the controlled, review-token-confirmed local writer for allowlisted scalar configuration patches, bounded atomic writes, redacted outcomes, rollback records, and leaf-only Paper world overrides. |
 | [Release dim sum metadata](release-dim-sum-metadata.md) | Defines bounded public-catalog resolution, per-project code-name reservation, release-note linking, and an honest no-asset fallback without copying a photo. |
 | [Universal settings foundation](universal-settings.md) | Defines the shared schema, local persistence, bounded personal-vocabulary loader, School mode boundary, logo selection, privacy behavior, and current verification limits. |
+| [Offline documentation browser foundation](offline-documentation-browser.md) | Defines the desktop-only typed Markdown bundle, isolated renderer subset, local search and regex hook, article-link resolution, and offline/privacy limits. |
 
 ## Source policy
 

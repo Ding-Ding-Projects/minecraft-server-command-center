@@ -18,11 +18,15 @@ Minecraft Server Command Center is being established as a guided Material Design
 | Update boundary | `src/main/update-boundary.ts` | Exposes an explicit unavailable automatic-update state. | Does not query a feed, download, stage, or install an update. |
 | Preload bridge | `src/preload/index.ts` | Exposes the smallest typed renderer-facing API. | Does not expose unrestricted filesystem or process APIs. |
 | Renderer document | `src/renderer/index.html` | Defines the custom title bar, vertical tab shell, guided form controls, Java runtime candidate/assessment card, preview panel, catalog panel, and explicit no-launch notice. | Does not contain privileged operations or a Java-path text field. |
-| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires bounded runtime discovery, opaque candidate selection, direct-probe assessment rendering, direct argv tokens, and the catalog while keeping launch unavailable. | Does not execute a process, shell command, installer, package manager, or configuration writer. |
+| Offline documentation registry | `src/renderer/offline-documentation-registry.ts`, `src/shared/offline-documentation.ts` | Bundles the hand-written non-site Markdown set, validates typed article bounds, searches local title/body text, resolves local article links, and renders one escaped Markdown subset. | Does not fetch URLs, read arbitrary paths, execute provider-authored markup, or include `docs/site/`. |
+| Offline documentation renderer | `src/renderer/offline-documentation.ts` | Owns the Docs tab's local article list, plain-text search, bounded regex hook, article selection, and hash-only navigation through the shared renderer. | Does not add preload/main IPC, network access, analytics, secrets, or user-data persistence. |
+| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires bounded runtime discovery, opaque candidate selection, direct-probe assessment rendering, direct argv tokens, the catalog, and the offline Docs tab while keeping launch unavailable. | Does not execute a process, shell command, installer, package manager, or configuration writer. |
 | Renderer presentation | `src/renderer/styles.css` | Supplies Material Design 3 color roles, shape, elevation, focus styling, reduced-motion handling, and responsive tab/form layouts. | Source styling only; it has not been rendered in a built application. |
 | Planner Handoff v1 envelope | src/shared/planner-handoff.ts | Defines the versioned, bounded, non-secret planning exchange shape and normalization boundary. | Does not carry paths, URLs, secrets, raw command text, file contents, or execution instructions. |
 
-All mappings above have source-only inspection evidence. This does not claim that any mapped file has compiled, packaged, or been interacted with in a built application.
+All mappings above have source-design inspection evidence. The offline
+documentation mapping also has focused contract and root-build evidence from
+this lane; no mapping claims a packaged launch, visual interaction, or capture.
 
 ## Data flow
 
@@ -46,15 +50,18 @@ The renderer should present a readable argv sequence and preserve token boundari
 
 ## Renderer surface boundary
 
-The inspected renderer has seven vertically oriented setup tabs: Overview,
-Runtime, World, Access, Paths, Start preview, and CLI catalog. The Runtime tab
+The inspected renderer has nine vertically oriented setup tabs: Overview,
+Runtime, World, Access, Paths, Start preview, CLI catalog, Docs, and Universal
+settings. The Runtime tab
 adds rich bounded-discovery and native-selection controls, opaque candidate
 rows, a direct-version-probe action, a bounded Paper-target-catalog
 status/count/provenance projection, explicit Spigot non-mapping, and review-only
 plan state. It renders
 bounded controls, direct argv tokens, mapped/unavailable catalog rows, local
 draft status, and non-blocking save feedback. A disabled visible action states
-that server launch is intentionally unavailable.
+that server launch is intentionally unavailable. The Docs tab presents the
+typed offline article registry, local title/body search with plain text as the
+default, an opt-in bounded regex hook, and local article-link navigation.
 
 Input changes are normalized before they are scheduled for local draft
 persistence. The renderer requests only the narrow preload API for draft
@@ -62,6 +69,16 @@ load/save, picker selection, bounded Java runtime discovery/selection/assessment
 catalog retrieval, and desktop-window controls.
 This is source-only evidence; the tab behavior, feedback timing, and
 accessibility semantics have not been exercised in a built application.
+
+The Docs tab has no privileged bridge dependency. Vite imports the selected
+desktop Markdown files as raw local assets at build time. The shared
+`offline-documentation.ts` contract validates the typed registry, filters
+searches locally, turns only registry-relative `.md` links into in-app
+navigation, and escapes all rendered text. External links and media remain
+visible as unavailable offline. The renderer subset is intentionally not a
+full CommonMark implementation; see [Offline documentation browser
+foundation](../reference/offline-documentation-browser.md) for the exact
+limits and focused verification commands.
 
 The inspected styles define Material Design 3 color-role, shape, and elevation
 tokens; visible keyboard focus; a reduced-motion preference; responsive

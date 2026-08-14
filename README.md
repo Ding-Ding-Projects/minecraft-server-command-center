@@ -74,10 +74,12 @@ contract.
 
 ## Desktop foundation
 
-The desktop renderer has seven vertical guided tabs: Overview, Runtime, World,
-Access, Paths, Start preview, and CLI catalog. Its preview is an array of
-argument tokens sourced from the versioned typed Paper/Spigot registry; it is
-not a shell command and remains non-launching.
+The desktop renderer has nine vertical guided tabs: Overview, Runtime, World,
+Access, Paths, Start preview, CLI catalog, Docs, and Universal settings. Its
+preview is an array of argument tokens sourced from the versioned typed
+Paper/Spigot registry; it is not a shell command and remains non-launching. The
+Docs tab bundles the desktop Markdown set, renders it through one escaped local
+path, searches title/body text, and resolves only local article links.
 
 - [Desktop documentation index](docs/README.md)
 - [Desktop foundation architecture](docs/architecture/desktop-foundation.md)
@@ -86,6 +88,7 @@ not a shell command and remains non-launching.
 - [Typed Paper and Spigot registry reference](docs/reference/paper-spigot-cli-catalog.md)
 - [Java runtime setup reference](docs/reference/java-runtime-setup.md)
 - [Universal settings foundation](docs/reference/universal-settings.md)
+- [Offline documentation browser foundation](docs/reference/offline-documentation-browser.md)
 - [Desktop completeness inventory](docs/verification/completeness-inventory.md)
 
 ## Source layout

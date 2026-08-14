@@ -47,6 +47,11 @@ server action.
   a fail-closed personal-vocabulary JSON parser with negative regressions.
   This is a partial source foundation; it is not full universal feature
   completion or built-artifact evidence.
+- Added the desktop-only offline documentation browser foundation: a typed
+  non-site Markdown bundle, one escaped local renderer subset, title/body
+  search with a bounded opt-in regex hook, local article-link resolution, and a
+  hand-written completeness check. The focused source/build checks do not prove
+  packaged runtime interaction or full CommonMark coverage.
 
 ## Next implementation slices
 
