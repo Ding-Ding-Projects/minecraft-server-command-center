@@ -18,6 +18,13 @@ const requiredMarkers = [
   ["src/renderer/main.ts", "bindAnchoredRegexBuilder({\n    id: \"command-palette\","] ,
   ["src/renderer/main.ts", "if (event.ctrlKey && event.shiftKey && event.key.toLocaleUpperCase() === \"F\") {"] ,
   ["src/renderer/main.ts", "function executeCommandPaletteCommand(command: CommandPaletteCommand): void {"] ,
+  ["src/renderer/main.ts", "function commandPaletteCommandAvailable(command: CommandPaletteCommand): boolean {"] ,
+  ["src/renderer/main.ts", "for (let current: HTMLElement | null = target; current; current = current.parentElement) {"] ,
+  ["src/renderer/main.ts", "current.getAttribute(\"aria-disabled\") === \"true\""],
+  ["src/renderer/main.ts", "current.hasAttribute(\"inert\") || current.hasAttribute(\"disabled\")"],
+  ["src/renderer/main.ts", "const style = window.getComputedStyle(target);"],
+  ["src/renderer/main.ts", "return style.display !== \"none\" && style.visibility !== \"hidden\" && style.visibility !== \"collapse\";"],
+  ["src/renderer/main.ts", "if (!commandPaletteCommandAvailable(command)) {\n      openCommandPalette();"],
   ["src/renderer/index.html", "data-regex-builder-surface=\"offline-docs\""] ,
   ["src/renderer/index.html", "data-regex-builder-surface=\"settings\""] ,
   ["src/renderer/index.html", "data-regex-builder-surface=\"command-palette\""] ,
@@ -31,17 +38,38 @@ for (const [path] of requiredMarkers) {
 
 function assertSourceContract(currentSources) {
   for (const [path, marker] of requiredMarkers) {
-    assert.ok(currentSources.get(path)?.includes(marker), `missing desktop search foundation marker: ${path} :: ${marker}`);
+    assert.equal(countExactMarker(currentSources.get(path) ?? "", marker), 1, `missing desktop search foundation marker at its exact boundary: ${path} :: ${marker}`);
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactMarkerPattern(marker, flags = "") {
+  const leading = /^[A-Za-z0-9_$]/.test(marker) ? "(?<![A-Za-z0-9_$])" : "";
+  const trailing = /[A-Za-z0-9_$]$/.test(marker) ? "(?![A-Za-z0-9_$])" : "";
+  return new RegExp(`${leading}${escapeRegExp(marker)}${trailing}`, flags);
+}
+
+function countExactMarker(source, marker) {
+  return source.match(exactMarkerPattern(marker, "g"))?.length ?? 0;
+}
+
+function removeExactMarker(source, marker) {
+  const pattern = exactMarkerPattern(marker);
+  const match = pattern.exec(source);
+  assert.ok(match && match.index !== undefined, `cannot remove missing exact marker: ${marker}`);
+  return source.slice(0, match.index) + source.slice(match.index + match[0].length);
 }
 
 assertSourceContract(sources);
 for (const [path, marker] of requiredMarkers) {
   const removed = new Map(sources);
-  removed.set(path, removed.get(path).replace(marker, ""));
+  removed.set(path, removeExactMarker(removed.get(path), marker));
   assert.throws(
     () => assertSourceContract(removed),
-    /missing desktop search foundation marker/,
+    /desktop search foundation marker/,
     `negative regression stayed green after removing ${path} :: ${marker}`,
   );
 }

@@ -13,6 +13,7 @@ import type { PlannerHandoffPreview } from "../shared/planner-handoff";
 import {
   decorateDialogMessage,
   presentDesktopCopy,
+  presentDesktopCopyParts,
   presentDialogCopy,
   type DesktopPresentationKey,
 } from "../shared/desktop-presentation";
@@ -526,11 +527,17 @@ function commandPaletteCommandAvailable(command: CommandPaletteCommand): boolean
   const targetId = commandPaletteTargetId(command);
   if (!targetId) return false;
   const target = document.getElementById(targetId);
-  if (!(target instanceof HTMLElement) || target.hidden || target.getAttribute("aria-hidden") === "true") return false;
-  if (target instanceof HTMLButtonElement && target.disabled) return false;
-  const settingsCard = target.closest<HTMLElement>("[data-settings-item]");
-  if (settingsCard?.hidden) return false;
-  return true;
+  if (!(target instanceof HTMLElement) || !target.isConnected) return false;
+  for (let current: HTMLElement | null = target; current; current = current.parentElement) {
+    if (current.hidden || current.getAttribute("aria-hidden") === "true" || current.getAttribute("aria-disabled") === "true") return false;
+    if (current.hasAttribute("inert") || current.hasAttribute("disabled")) return false;
+    if (current instanceof HTMLButtonElement && current.disabled) return false;
+    if (current instanceof HTMLInputElement && current.disabled) return false;
+    if (current instanceof HTMLSelectElement && current.disabled) return false;
+    if (current instanceof HTMLTextAreaElement && current.disabled) return false;
+  }
+  const style = window.getComputedStyle(target);
+  return style.display !== "none" && style.visibility !== "hidden" && style.visibility !== "collapse";
 }
 
 function renderCommandPalette(): void {
@@ -619,10 +626,17 @@ function executeCommandPaletteCommand(command: CommandPaletteCommand): void {
   closeCommandPalette(false);
   activateTab(command.tab);
   window.requestAnimationFrame(() => {
+    if (!commandPaletteCommandAvailable(command)) {
+      openCommandPalette();
+      commandPaletteStatus.textContent = presentUserCopy("palette.status.unavailable");
+      renderCommandPalette();
+      return;
+    }
     if (command.personalVocabularyAction) {
       const targetId = commandPaletteTargetId(command);
       if (!targetId) return;
-      document.getElementById(targetId)?.focus();
+      const target = document.getElementById(targetId);
+      if (target instanceof HTMLElement) target.focus();
       return;
     }
     if (!command.searchId) return;
@@ -660,6 +674,19 @@ function userCopy(text: string): string {
   return applyPersonalVocabularyReplacements(text, activePersonalVocabularyEntries(), { boundary: "ui" });
 }
 
+function presentUserCopyParts(key: DesktopPresentationKey): {
+  readonly languageMode: UniversalSettingsV1["languageMode"];
+  readonly english: string;
+  readonly cantonese: string;
+} {
+  const parts = presentDesktopCopyParts(key, effectivePresentationSettings());
+  return {
+    languageMode: parts.languageMode,
+    english: userCopy(parts.english),
+    cantonese: userCopy(parts.cantonese),
+  };
+}
+
 function presentUserCopy(key: DesktopPresentationKey, values: Readonly<Record<string, string | number>> = {}): string {
   let copy = presentDesktopCopy(key, effectivePresentationSettings());
   for (const [name, value] of Object.entries(values)) copy = copy.replaceAll(`{${name}}`, String(value));
@@ -689,19 +716,33 @@ function renderPersonalVocabularyControl(): void {
 
 function applyDesktopPresentation(): void {
   const settings = effectivePresentationSettings();
-  document.documentElement.lang = settings.languageMode === "cantonese" ? "zh-Hant-HK" : "en";
+  document.documentElement.lang = settings.languageMode === "cantonese"
+    ? "zh-Hant-HK"
+    : settings.languageMode === "bilingual"
+      ? "mul"
+      : "en";
   document.documentElement.dataset.languageMode = settings.languageMode;
   for (const element of document.querySelectorAll<HTMLElement>("[data-presentation-key]")) {
     const key = element.dataset.presentationKey as DesktopPresentationKey | undefined;
     if (!key) continue;
-    const copy = presentUserCopy(key);
     const attribute = element.dataset.presentationAttribute;
+    const parts = presentUserCopyParts(key);
+    const copy = parts.languageMode === "cantonese" ? parts.cantonese : parts.english;
+    const bilingualCopy = `${userCopy("English")}: ${parts.english} · ${userCopy("Cantonese")}: ${parts.cantonese}`;
     if (attribute === "placeholder") {
-      (element as HTMLInputElement).placeholder = copy;
+      (element as HTMLInputElement).placeholder = parts.languageMode === "bilingual" ? bilingualCopy : copy;
     } else if (attribute === "aria-label") {
-      element.setAttribute("aria-label", copy);
+      element.setAttribute("aria-label", parts.languageMode === "bilingual" ? bilingualCopy : copy);
     } else if (attribute === "title") {
-      element.setAttribute("title", copy);
+      element.setAttribute("title", parts.languageMode === "bilingual" ? bilingualCopy : copy);
+    } else if (parts.languageMode === "bilingual" && !["OPTION", "SELECT", "INPUT", "TEXTAREA"].includes(element.tagName)) {
+      const english = document.createElement("span");
+      english.lang = "en";
+      english.textContent = `${userCopy("English")}: ${parts.english}`;
+      const cantonese = document.createElement("span");
+      cantonese.lang = "zh-Hant-HK";
+      cantonese.textContent = `${userCopy("Cantonese")}: ${parts.cantonese}`;
+      element.replaceChildren(english, document.createTextNode(" · "), cantonese);
     } else {
       element.textContent = copy;
     }
@@ -733,7 +774,7 @@ function renderSettingsSearch(): void {
   for (const card of document.querySelectorAll<HTMLElement>("[data-settings-item]")) {
     const label = card.dataset.settingsLabel ?? "";
     const matches = matcher.ok && matcher.value(`${label} ${card.textContent ?? ""}`);
-    const hiddenByFocusMode = universalSettings.schoolModeEnabled && ["Language mode", "English funny level", "Cantonese funny level", "Emoji dialogs", "Personal vocabulary"].includes(label);
+    const hiddenByFocusMode = universalSettings.schoolModeEnabled && card.dataset.schoolSuppressible === "true";
     card.hidden = hiddenByFocusMode || !matches;
   }
   if (matcher.ok) {
@@ -1437,7 +1478,7 @@ function renderCatalog(catalog: CliCatalogProjection): void {
 }
 
 function bindInteraction(): void {
-  bindOfflineDocumentation();
+  bindOfflineDocumentation(userCopy);
   const settingsBinding = bindAnchoredRegexBuilder({
     id: "settings",
     searchInput: settingsSearch,

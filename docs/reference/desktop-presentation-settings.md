@@ -35,17 +35,21 @@ slider accessible names, or other control text. Turning the toggle off removes
 the decoration while preserving the factual copy.
 
 The native personal-vocabulary picker receives the selected language through
-the typed preload and IPC boundary. Its title and JSON filter use presentation
-resources, with English as the fallback for invalid input. Bilingual labels
-expose separate `English: ...` and `Cantonese: ...` segments and preserve the
-exact language-specific names.
+the typed preload and IPC boundary. Before opening it, the main process reads
+the normalized local presentation record so the title and JSON filter use both
+persisted funny-level values as well as the selected language; invalid or
+unavailable settings fall back to the bounded defaults. Bilingual visible copy
+uses separate `lang="en"` and `lang="zh-Hant-HK"` spans, while placeholders,
+accessible names, and titles retain both factual language segments.
 
 The command palette and each desktop regex builder use presentation resources
 for shell copy, labels, status messages, and accessible names. Palette results
-are derived from actual target visibility, filtering, and enabled state;
+are derived from actual target visibility, filtering, enabled state,
+`aria-disabled`, `inert`, and computed display/visibility of every ancestor;
 School mode removes personal-vocabulary routes, and execution repeats the
-availability check before focus moves. A stale or disabled result therefore
-does not advertise or focus a control that cannot be used.
+availability check before focus moves. A stale, hidden, disabled, or
+aria-disabled result therefore does not advertise or focus a control that
+cannot be used.
 
 ## Configuration and persistence
 
@@ -75,11 +79,13 @@ process, or server-control route. Emoji are decoration, not semantic state.
 ## Accessibility and responsive behavior
 
 Language and funny-level changes update visible labels and the document language
-tag. Sliders retain native range semantics, expose their current `aria-valuenow`
-and localized `aria-valuetext`, and remain keyboard-operable. The emoji toggle
-does not alter control names. The settings grid collapses to one column and
-stacks search/actions at narrow widths; the anchored regex builder remains
-bounded and scrollable.
+tag. English uses `en`, Cantonese uses `zh-Hant-HK`, and bilingual mode uses
+`mul` at the document root with explicit language-tagged child spans. Sliders
+retain native range semantics, expose their current `aria-valuenow` and
+localized `aria-valuetext`, and remain keyboard-operable. The emoji toggle does
+not alter control names. The settings grid collapses to one column and stacks
+search/actions at narrow widths; the anchored regex builder remains bounded
+and scrollable.
 
 ## Related local vocabulary control
 
@@ -101,9 +107,9 @@ prior choices remain stored for restoration after unlock.
 
 The personal-vocabulary replacement is applied once at the final user-facing
 boundary, including notification detail and accessible-name paths. Protected
-URLs, paths, identifiers, commands, code, shell transcripts, versions,
-timestamps, and factual external records remain unchanged even when a source
-term appears inside them.
+URLs, quoted and unquoted paths (including paths with spaces), identifiers,
+commands, code, shell transcripts, versions, timestamps, and factual external
+records remain unchanged even when a source term appears inside them.
 
 This related control is a local-only source slice. It does not claim packaged
 runtime interaction, screen-reader interaction, or real capture evidence.
@@ -138,8 +144,9 @@ npm run build:main
 These checks do not claim packaged-runtime interaction, live screen-reader
 interaction, installer execution, or real capture evidence. Those remain
 unverified because the approved headless route was unavailable in this session.
-The repair is based on [target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571)
-and implemented in [commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61).
+This bounded repair starts from target commit
+`59c18dce6f23ba37ac07e7893300632084023373`. It does not claim packaged
+runtime interaction, screen-reader interaction, or real capture evidence.
 
 ## Suggested articles
 

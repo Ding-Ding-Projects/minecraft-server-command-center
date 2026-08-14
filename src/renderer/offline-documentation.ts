@@ -4,6 +4,7 @@ import {
   searchOfflineDocumentation,
   type OfflineDocumentationArticle,
 } from "../shared/offline-documentation";
+import type { PersonalVocabularyTextBoundary } from "../shared/personal-vocabulary";
 import { OFFLINE_DOCUMENTATION_REGISTRY } from "./offline-documentation-registry";
 import { bindAnchoredRegexBuilder, type RegexBuilderState } from "./regex-builder.ts";
 
@@ -26,19 +27,42 @@ if (!searchInput || !regexToggle || !regexBuilder || !regexPattern || !regexIgno
 
 let selectedArticleId = OFFLINE_DOCUMENTATION_REGISTRY.articles[0]?.id ?? "";
 let regexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
+type CopyText = (text: string, boundary?: PersonalVocabularyTextBoundary) => string;
+const identityCopy: CopyText = (text) => text;
+const PROTECTED_TAGS = new Set(["code", "pre", "kbd", "samp", "output", "script", "style"]);
+let activeCopy: CopyText = identityCopy;
 
 function selectedArticle(): OfflineDocumentationArticle | undefined {
   return OFFLINE_DOCUMENTATION_REGISTRY.articles.find((article) => article.id === selectedArticleId);
 }
 
-function renderArticle(article: OfflineDocumentationArticle, fragment: string | null = null): void {
+function applyRenderedCopy(root: HTMLElement, copy: CopyText): void {
+  const visit = (node: Node, inheritedPreserve = false): void => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!inheritedPreserve && node.nodeValue) node.nodeValue = copy(node.nodeValue);
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+    const preserve = inheritedPreserve
+      || PROTECTED_TAGS.has(node.tagName.toLowerCase())
+      || node.dataset.personalVocabulary === "preserve";
+    for (const child of Array.from(node.childNodes)) visit(child, preserve);
+  };
+  for (const child of Array.from(root.childNodes)) visit(child);
+}
+
+function renderArticle(article: OfflineDocumentationArticle, fragment: string | null = null, copy: CopyText = identityCopy): void {
   selectedArticleId = article.id;
-  articleTitle.textContent = article.title;
-  articleSource.textContent = `${article.sourcePath} · bundled locally · no network fetch`;
+  articleTitle.textContent = copy(article.title);
+  articleSource.replaceChildren();
+  const sourcePath = document.createElement("code");
+  sourcePath.textContent = article.sourcePath;
+  articleSource.append(sourcePath, document.createTextNode(` · ${copy("bundled locally · no network fetch")}`));
   articleBody.innerHTML = renderOfflineMarkdown(article.markdown, {
     resolveLink: (href) => resolveOfflineArticleLink(href, article.sourcePath, OFFLINE_DOCUMENTATION_REGISTRY),
   });
-  articleState.textContent = `Showing ${article.title}. Local article links stay inside this browser.`;
+  applyRenderedCopy(articleBody, copy);
+  articleState.textContent = copy(`Showing ${article.title}. Local article links stay inside this browser.`);
   for (const item of resultList.querySelectorAll<HTMLButtonElement>("[data-offline-article-id]")) {
     const selected = item.dataset.offlineArticleId === article.id;
     item.classList.toggle("is-selected", selected);
@@ -63,25 +87,25 @@ function renderResults(): void {
   resultList.replaceChildren();
   if (!search.ok) {
     resultCount.textContent = "No results";
-    regexStatus.textContent = search.reason;
+    regexStatus.textContent = activeCopy(search.reason);
     const empty = document.createElement("p");
     empty.className = "offline-docs-empty";
-    empty.textContent = search.reason;
+    empty.textContent = activeCopy(search.reason);
     resultList.append(empty);
     return;
   }
   if (regexState.mode === "regex") {
     regexStatus.textContent = regexState.pattern.length === 0
-      ? "Regex mode is ready. Add a bounded pattern or choose a token."
-      : "Pattern runs locally against article titles and Markdown bodies.";
+      ? activeCopy("Regex mode is ready. Add a bounded pattern or choose a token.")
+      : activeCopy("Pattern runs locally against article titles and Markdown bodies.");
   } else {
-    regexStatus.textContent = "Plain text search is active. Regex is an explicit local opt-in.";
+    regexStatus.textContent = activeCopy("Plain text search is active. Regex is an explicit local opt-in.");
   }
   resultCount.textContent = `${search.value.length} article${search.value.length === 1 ? "" : "s"}`;
   if (search.value.length === 0) {
     const empty = document.createElement("p");
     empty.className = "offline-docs-empty";
-    empty.textContent = "No local articles match this search.";
+    empty.textContent = activeCopy("No local articles match this search.");
     resultList.append(empty);
     return;
   }
@@ -90,7 +114,7 @@ function renderResults(): void {
     item.type = "button";
     item.className = "offline-docs-result";
     item.dataset.offlineArticleId = article.id;
-    item.setAttribute("aria-label", `Open documentation article ${article.title}`);
+    item.setAttribute("aria-label", activeCopy(`Open documentation article ${article.title}`));
     if (article.id === selectedArticleId) item.setAttribute("aria-current", "page");
     if (article.id === selectedArticleId) item.classList.add("is-selected");
     const title = document.createElement("strong");
@@ -102,16 +126,17 @@ function renderResults(): void {
   }
 }
 
-function openArticle(articleId: string, fragment: string | null = null): void {
+function openArticle(articleId: string, fragment: string | null = null, copy: CopyText = identityCopy): void {
   const article = OFFLINE_DOCUMENTATION_REGISTRY.articles.find((candidate) => candidate.id === articleId);
   if (!article) {
-    articleState.textContent = "That local article is unavailable in this bundle.";
+    articleState.textContent = copy("That local article is unavailable in this bundle.");
     return;
   }
-  renderArticle(article, fragment);
+  renderArticle(article, fragment, copy);
 }
 
-export function bindOfflineDocumentation(): void {
+export function bindOfflineDocumentation(copy: CopyText = identityCopy): void {
+  activeCopy = copy;
   const binding = bindAnchoredRegexBuilder({
     id: "offline-docs",
     searchInput,
@@ -129,7 +154,7 @@ export function bindOfflineDocumentation(): void {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const item = target.closest<HTMLButtonElement>("[data-offline-article-id]");
-    if (item?.dataset.offlineArticleId) openArticle(item.dataset.offlineArticleId);
+    if (item?.dataset.offlineArticleId) openArticle(item.dataset.offlineArticleId, null, copy);
   });
   articleBody.addEventListener("click", (event) => {
     const target = event.target;
@@ -137,10 +162,10 @@ export function bindOfflineDocumentation(): void {
     const link = target.closest<HTMLElement>("[data-offline-article-link]");
     if (!link?.dataset.offlineArticleLink) return;
     event.preventDefault();
-    openArticle(link.dataset.offlineArticleLink, link.dataset.offlineFragment ?? null);
+    openArticle(link.dataset.offlineArticleLink, link.dataset.offlineFragment ?? null, copy);
   });
   const article = selectedArticle();
-  if (article) renderArticle(article);
+  if (article) renderArticle(article, null, copy);
   regexState = binding.getState();
   renderResults();
 }

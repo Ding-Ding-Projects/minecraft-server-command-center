@@ -137,10 +137,11 @@ two exact language records are not blended into one unlabeled string.
 The settings search and `Ctrl+Shift+F` command palette index the upload,
 replace, status, and clear controls only when their actual target is present,
 visible, and enabled. Palette execution repeats that availability check before
-focusing, so a filtered, hidden, disabled, or stale result cannot focus or
-advertise an unavailable control. School mode omits the personal-vocabulary
-card and its palette commands together with the other language and
-personalization controls.
+focusing, so a filtered, hidden, disabled, aria-disabled, inert, or stale
+result cannot focus or advertise an unavailable control. The companion
+palette uses localized page labels and semantic bilingual spans. School mode
+omits the personal-vocabulary card and its palette commands together with the
+other language and personalization controls.
 
 The desktop presentation boundary applies presentation resources first and
 the personal-vocabulary replacement exactly once at the final user-facing
@@ -150,7 +151,10 @@ paths, identifiers, quoted or fenced code, shell transcript lines, versions,
 timestamps, and factual external records remain protected beyond simple
 whitespace token matching.
 
-This repair is based on [target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571) and implemented in [commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61). It remains a bounded source slice, not a claim of complete app-wide localization or packaged desktop behavior.
+This bounded repair starts from target commit
+`59c18dce6f23ba37ac07e7893300632084023373`. It remains a bounded source
+slice, not a claim of complete app-wide localization or packaged desktop
+behavior.
 
 ## School mode and recovery
 
@@ -170,6 +174,13 @@ entries remain available for restoration after unlock. The complete
 cross-application propagation and credential-factor contract are not yet
 verified.
 
+On the companion site, the active School-mode page names only the user's
+chosen mode name and its local recovery route. It does not repeat the hidden
+language, tone, emoji, or vocabulary feature names in the active message or
+palette. The site root uses `en` while the mode is active; outside that mode it
+uses `zh-Hant-HK` for Cantonese and `mul` with explicit language-tagged spans
+for bilingual copy.
+
 ## Logo and appearance boundary
 
 The companion site provides three shipped logo presets and a local PNG/JPEG
@@ -186,8 +197,10 @@ unverified.
   entering the renderer.
 - Settings writes use a temporary file followed by an atomic replacement in
   the desktop application-data directory.
-- Browser storage failures leave the shipped defaults active and do not create
-  a network fallback.
+- Browser storage read/write/removal failures leave the current in-memory
+  settings, vocabulary, or logo active where it is safe to do so, show a
+  local warning, and do not create a network fallback. A reset reports failure
+  without claiming that records were removed.
 - Unlock values are hashed locally; the entered value is not rendered back,
   exported, logged, or included in the vocabulary cache.
 - The display name never changes installed identity or the location holding
@@ -237,9 +250,9 @@ companion artifacts. `npm --prefix site run lint` completed with two
 `@next/next/no-img-element` warnings. Packaged runtime interaction,
 accessibility interaction, and real captures remain unverified because the
 required approved headless route is not available in this session. This
-implementation and verification record are carried by
-[target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571)
-and [repair commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61).
+implementation and verification record start at target commit
+`59c18dce6f23ba37ac07e7893300632084023373` and continue in the bounded repair
+commit that carries this article's update.
 
 ## Related articles
 

@@ -7,6 +7,27 @@ import { applyPersonalVocabularyReplacements } from "../src/shared/personal-voca
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactMarkerPattern(marker, flags = "") {
+  const leading = /^[A-Za-z0-9_$]/.test(marker) ? "(?<![A-Za-z0-9_$])" : "";
+  const trailing = /[A-Za-z0-9_$]$/.test(marker) ? "(?![A-Za-z0-9_$])" : "";
+  return new RegExp(`${leading}${escapeRegExp(marker)}${trailing}`, flags);
+}
+
+function countExactMarker(source, marker) {
+  return source.match(exactMarkerPattern(marker, "g"))?.length ?? 0;
+}
+
+function removeExactMarker(source, marker) {
+  const pattern = exactMarkerPattern(marker);
+  const match = pattern.exec(source);
+  assert.ok(match && match.index !== undefined, `cannot remove missing exact marker: ${marker}`);
+  return source.slice(0, match.index) + source.slice(match.index + match[0].length);
+}
+
 const parsed = parsePersonalVocabularyJson(JSON.stringify({
   schemaVersion: 1,
   entries: [
@@ -33,6 +54,12 @@ assert.equal(
   applyPersonalVocabularyReplacements("A B", parsed.value.entries),
   "B C",
   "replacement output must not cascade through another source entry",
+);
+
+assert.equal(
+  applyPersonalVocabularyReplacements("Open C:\\Program Files\\Example Folder\\Overview; Overview", parsed.value.entries),
+  "Open C:\\Program Files\\Example Folder\\Overview; Personal landing",
+  "unquoted paths with spaces must remain intact while adjacent UI copy remains replaceable",
 );
 
 for (const boundary of ["code", "command", "url", "identifier", "path", "external"]) {
@@ -64,19 +91,52 @@ assert.equal(
   "entries with inherited fields must fail closed instead of using prototype data",
 );
 
-const pageSource = fs.readFileSync(path.join(repoRoot, "site", "app", "page.tsx"), "utf8");
-const boundarySource = fs.readFileSync(path.join(repoRoot, "site", "app", "personal-vocabulary-boundary.tsx"), "utf8");
-assert.match(pageSource, /PersonalVocabularyBoundary entries=\{universalSettings\.schoolModeEnabled \? \[\] : personalVocabularyEntries\}/, "Home must deactivate private vocabulary while School mode is enabled");
-assert.match(pageSource, /setPersonalVocabularyEntries\(\[\]\)/, "clear/reset must remove active replacements in memory");
-assert.match(pageSource, /parsePersonalVocabularyJson\(cachedVocabulary\)/, "cache restore must revalidate before application");
-assert.match(pageSource, /vocabularyCacheAvailable/, "cache restore must distinguish localStorage read failure from a missing cache");
-assert.match(pageSource, /The persisted vocabulary status and previous active wording remain unchanged\./, "companion cache read failures must preserve prior status and wording");
-assert.match(pageSource, /const serialized = JSON\.stringify\(result\.value\);\s+window\.localStorage\.setItem\(PERSONAL_VOCABULARY_CACHE_KEY, serialized\);\s+setPersonalVocabularyEntries\(result\.value\.entries\);/, "cache must be written before the new entry set becomes active");
-assert.match(pageSource, /The previous vocabulary remains active\./, "a read or cache failure must preserve the previous valid entry set");
+const pageSource = fs.readFileSync(path.join(repoRoot, "site", "app", "page.tsx"), "utf8").replace(/\r\n/g, "\n");
+const boundarySource = fs.readFileSync(path.join(repoRoot, "site", "app", "personal-vocabulary-boundary.tsx"), "utf8").replace(/\r\n/g, "\n");
+const companionMarkers = [
+  "PersonalVocabularyBoundary entries={universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries}",
+  "setPersonalVocabularyEntries([]);\n    setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);",
+  "setPersonalVocabularyEntries([]);\n      updateUniversalSettings(\"personalVocabulary\", { status: \"empty\", entryCount: 0 });",
+  "parsePersonalVocabularyJson(cachedVocabulary)",
+  "function readLocalStorageValue(key: string):",
+  "function writeLocalStorageValue(key: string, value: string): boolean {",
+  "function removeLocalStorageValue(key: string): boolean {",
+  "The persisted vocabulary status and previous active wording remain unchanged.",
+  "if (!writeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY, serialized)) {",
+  "throw new Error(\"The local vocabulary cache could not be written. The previous vocabulary remains active.\");",
+  "function companionLanguageMode(settings: UniversalSettingsV1): UniversalLanguageMode {",
+  "function CompanionBilingualText(",
+  "schoolSuppressed: true,",
+  "data-personal-vocabulary-boundary=\"ui\"",
+  "const declaredBoundary = props[\"data-personal-vocabulary-boundary\"] ?? \"ui\";",
+  "English presentation is active. Unlock this setting to restore your saved preferences.",
+];
+const companionSources = new Map([["site/app/page.tsx", pageSource], ["site/app/personal-vocabulary-boundary.tsx", boundarySource]]);
+for (const marker of companionMarkers) {
+  const source = marker.includes("declaredBoundary") ? boundarySource : pageSource;
+  assert.equal(countExactMarker(source, marker), 1, `companion vocabulary marker must have one exact boundary: ${marker}`);
+}
+for (const marker of companionMarkers) {
+  const sourcePath = marker.includes("declaredBoundary") ? "site/app/personal-vocabulary-boundary.tsx" : "site/app/page.tsx";
+  const removed = new Map(companionSources);
+  removed.set(sourcePath, removeExactMarker(removed.get(sourcePath), marker));
+  assert.throws(
+    () => {
+      for (const required of companionMarkers) {
+        const requiredPath = required.includes("declaredBoundary") ? "site/app/personal-vocabulary-boundary.tsx" : "site/app/page.tsx";
+        const requiredSource = removed.get(requiredPath);
+        assert.equal(countExactMarker(requiredSource, required), 1, `companion vocabulary marker must have one exact boundary: ${required}`);
+      }
+    },
+    /companion vocabulary marker/,
+    `negative regression stayed green after removing ${sourcePath} :: ${marker}`,
+  );
+}
 assert.doesNotMatch(pageSource, /if \(!vocabularyCacheAvailable\) \{\s*setPersonalVocabularyEntries\(\[\]\);/, "a transient browser-storage read failure must not clear in-memory vocabulary");
-assert.match(boundarySource, /PROTECTED_TAGS = new Set\(\["code", "pre", "kbd"/, "code-like elements must be protected");
-assert.match(boundarySource, /aria-label.*aria-description.*alt.*placeholder.*title/, "accessible user-facing attributes must share the boundary");
-assert.match(boundarySource, /data-personal-vocabulary.*preserve/, "explicit factual text boundaries must be preservable by the companion renderer");
+assert.equal(countExactMarker(boundarySource, "const PROTECTED_TAGS = new Set([\"code\", \"pre\", \"kbd\", \"samp\", \"output\", \"script\", \"style\"]);"), 1, "code-like elements must be protected");
+assert.equal(countExactMarker(boundarySource, "const TRANSLATABLE_ATTRIBUTES = [\"aria-label\", \"aria-description\", \"alt\", \"placeholder\", \"title\"] as const;"), 1, "accessible user-facing attributes must share the boundary");
+assert.equal(countExactMarker(boundarySource, "props[\"data-personal-vocabulary\"] === \"preserve\""), 1, "explicit factual text boundaries must be preservable by the companion renderer");
+assert.doesNotMatch(pageSource, /English is forced and Cantonese, bilingual, funny-level, emoji, and private-vocabulary controls are omitted/, "School mode must not expose suppressed feature names in its active message");
 assert.doesNotMatch(pageSource, /fetch\s*\(/, "the companion boundary must not add network access");
 assert.doesNotMatch(boundarySource, /fetch\s*\(/, "the companion boundary must not add network access");
 

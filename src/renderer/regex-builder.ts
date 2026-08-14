@@ -55,7 +55,20 @@ export function bindAnchoredRegexBuilder(
     flags: options.ignoreCase.checked ? "i" : "",
   });
 
-  const notify = (): void => options.onStateChange(getState());
+  const updateStatus = (state: RegexBuilderState): void => {
+    const currentCopy = copy();
+    options.status.textContent = state.mode === "plain"
+      ? currentCopy.plainStatus
+      : state.pattern.length === 0
+        ? currentCopy.ready
+        : currentCopy.running;
+  };
+
+  const notify = (): void => {
+    const state = getState();
+    updateStatus(state);
+    options.onStateChange(state);
+  };
 
   const setRegexMode = (enabled: boolean, focus = true): void => {
     const wasRegexMode = regexMode;
@@ -66,13 +79,8 @@ export function bindAnchoredRegexBuilder(
     options.toggle.setAttribute("aria-expanded", String(regexMode));
     options.builder.hidden = !regexMode;
     if (regexMode) {
-      const currentCopy = copy();
-      options.status.textContent = options.pattern.value.length === 0
-        ? currentCopy.ready
-        : currentCopy.running;
       if (focus) options.pattern.focus();
     } else {
-      options.status.textContent = copy().plainStatus;
       if (focus) options.searchInput.focus();
     }
     notify();

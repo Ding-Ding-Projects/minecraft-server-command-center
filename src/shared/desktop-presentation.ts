@@ -696,11 +696,41 @@ function levelIndex(level: number): number {
 }
 
 function selectedLanguageCopy(definition: DesktopCopyDefinition, languageMode: UniversalLanguageMode, englishLevel: number, cantoneseLevel: number): string {
-  const english = definition.english[levelIndex(englishLevel)] ?? definition.english[0] ?? "";
-  const cantonese = definition.cantonese[levelIndex(cantoneseLevel)] ?? definition.cantonese[0] ?? "";
-  if (languageMode === "cantonese") return cantonese;
-  if (languageMode === "bilingual") return `English: ${english} · Cantonese: ${cantonese}`;
-  return english;
+  const parts = selectedLanguageParts(definition, languageMode, englishLevel, cantoneseLevel);
+  if (parts.languageMode === "cantonese") return parts.cantonese;
+  if (parts.languageMode === "bilingual") return `English: ${parts.english} · Cantonese: ${parts.cantonese}`;
+  return parts.english;
+}
+
+export interface DesktopPresentationCopyParts {
+  readonly languageMode: UniversalLanguageMode;
+  readonly english: string;
+  readonly cantonese: string;
+}
+
+function selectedLanguageParts(
+  definition: DesktopCopyDefinition,
+  languageMode: UniversalLanguageMode,
+  englishLevel: number,
+  cantoneseLevel: number,
+): DesktopPresentationCopyParts {
+  return {
+    languageMode,
+    english: definition.english[levelIndex(englishLevel)] ?? definition.english[0] ?? "",
+    cantonese: definition.cantonese[levelIndex(cantoneseLevel)] ?? definition.cantonese[0] ?? "",
+  };
+}
+
+export function presentDesktopCopyParts(
+  key: DesktopPresentationKey,
+  settings: Pick<UniversalSettingsV1, "languageMode" | "funnyLevelEnglish" | "funnyLevelCantonese">,
+): DesktopPresentationCopyParts {
+  return selectedLanguageParts(
+    DESKTOP_COPY[key],
+    settings.languageMode,
+    settings.funnyLevelEnglish,
+    settings.funnyLevelCantonese,
+  );
 }
 
 export function presentDesktopCopy(key: DesktopPresentationKey, settings: Pick<UniversalSettingsV1, "languageMode" | "funnyLevelEnglish" | "funnyLevelCantonese">): string {
