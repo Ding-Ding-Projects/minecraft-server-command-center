@@ -19,6 +19,7 @@ import serverConfigurationPaperSpigot from "../../docs/server-configuration/pape
 import serverConfigurationReadme from "../../docs/server-configuration/README.md?raw";
 import verificationCompleteness from "../../docs/verification/completeness-inventory.md?raw";
 import verificationReadme from "../../docs/verification/README.md?raw";
+import verificationArtifactPath from "../../docs/verification/artifact-path-verification.md?raw";
 import verificationReleaseLineCount from "../../docs/verification/release-line-count.md?raw";
 import verificationReleaseTiming from "../../docs/verification/release-publication-timing.md?raw";
 import {
@@ -48,6 +49,7 @@ const articles: readonly OfflineDocumentationArticle[] = [
   { id: "server-configuration-readme", title: "Server configuration documentation", sourcePath: "docs/server-configuration/README.md", markdown: serverConfigurationReadme },
   { id: "verification-completeness-inventory", title: "Desktop foundation completeness inventory", sourcePath: "docs/verification/completeness-inventory.md", markdown: verificationCompleteness },
   { id: "verification-readme", title: "Verification documentation", sourcePath: "docs/verification/README.md", markdown: verificationReadme },
+  { id: "verification-artifact-path-verification", title: "Windows artifact-path verification", sourcePath: "docs/verification/artifact-path-verification.md", markdown: verificationArtifactPath },
   { id: "verification-release-line-count", title: "Release line-count report", sourcePath: "docs/verification/release-line-count.md", markdown: verificationReleaseLineCount },
   { id: "verification-release-publication-timing", title: "Release publication timing", sourcePath: "docs/verification/release-publication-timing.md", markdown: verificationReleaseTiming },
 ];
