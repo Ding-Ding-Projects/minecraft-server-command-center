@@ -10,7 +10,7 @@ not a remote synchronization service, and not a command channel.
 The user remains the transport boundary. In the browser, they explicitly export
 or import a local JSON file. In the desktop application, they explicitly choose
 a local .json file through the native picker, inspect the normalized result,
-and choose whether to apply or save it. No automatic browser-to-desktop
+and choose **Save normalized plan locally**. No automatic browser-to-desktop
 connection, file discovery, network transfer, or background import is part of
 v1.
 
@@ -83,10 +83,12 @@ draft in browser storage for the current origin. It provides user-activated
 local JSON export and import; it does not scan folders, retain file handles,
 read arbitrary local files, or contact the desktop application.
 
-On import, the browser must validate the complete selected JSON payload before
-it changes the local draft. Malformed, unknown-version, oversized, duplicate,
-or out-of-bound data fails closed to an honest unchanged draft or empty state.
-The browser must not partially apply an invalid file.
+On import, the browser validates the complete selected JSON payload before it
+changes the local draft, then presents the normalized v1 values for review.
+Malformed, unknown-version, oversized, duplicate, or out-of-bound data fails
+closed to an honest unchanged draft or empty state. The browser must not
+partially apply an invalid file; the user must separately choose **Save
+imported plan locally**.
 
 An export identifies its schema version and planning scope. It carries only the
 approved selected planning values, never browser history, local paths, private
@@ -99,13 +101,13 @@ The desktop application accepts a handoff only through an explicit native
 and complete parsing of that selected file. The renderer receives a safe, typed
 result rather than unrestricted filesystem access or raw file content.
 
-For a valid exact v1 payload, the desktop surface presents only a safe preview
-of the normalized supported values. An invalid, unknown, or rejected payload
-receives an honest generic rejection without raw file-content disclosure and
-does not receive a preview. Importing a file alone does not apply it. Applying
-or saving requires a separate explicit user action, and that action may persist
-only the already normalized local draft through the existing bounded
-persistence route.
+For a valid exact v1 payload, the desktop surface presents only a normalized
+safe preview of the supported values, including the contract version. An
+invalid, unknown, or rejected payload receives an honest generic rejection
+without raw file-content disclosure and does not receive a preview. Choosing a
+file alone does not change the draft. **Save normalized plan locally** requires
+a separate explicit user action, and that action may persist only the already
+normalized local draft through the existing bounded persistence route.
 Applying the v1 plan overlays only its approved planning values; local-only
 paths, executable locations, seed information, and other desktop-local draft
 state remain local.
@@ -125,8 +127,8 @@ The sequence is strictly local:
 3. The desktop main process performs a bounded complete parse and
    deterministic normalization.
 4. The renderer presents only safe typed preview data.
-5. The user separately chooses whether to apply or save the normalized local
-   draft.
+5. The user separately chooses **Save normalized plan locally** after reviewing
+   the normalized values.
 
 This is not a runtime bridge between the browser and desktop application. The
 desktop preload API must expose only the typed operations needed for
@@ -148,17 +150,18 @@ Minecraft server.
 
 ## Evidence status
 
-This article is source-design documentation only. It records the required safe
-v1 boundary and does not claim that source code, a browser UI, a desktop UI, or
-a local file flow has been exercised.
-
-No tests, linting, review, accessibility assessment, browser interaction,
-screen capture, build, package, release, website publication, or source-control
-publication was performed for this documentation record. A later
-implementation task must provide focused evidence for schema validation,
-prohibited-field rejection, user-selected export/import, normalizing preview,
-explicit apply/save, local-storage behavior, keyboard and screen-reader use,
-narrow layouts, and the absence of network and execution routes.
+The implementation source now covers user-selected browser export/import,
+native desktop selected-file parsing, strict schema/version/size validation,
+normalized preview, explicit local save, and local-only draft retention. The
+focused `npm run test:planner-handoff` check covers malformed, unsupported
+version, duplicate-key, size, prohibited-field, source-registration, and
+selected-file regressions. `npm run test:planner-handoff` passed with 185
+focused assertions, and `npm run build`,
+`npx tsc --noEmit -p site/tsconfig.json`,
+`npm --prefix site run build`, and `git diff --check` passed on 2026-08-14.
+Packaged runtime interaction, keyboard and screen-reader interaction, narrow
+layout review, website publication, and real captures remain unverified for
+this lane because the approved headless route was unavailable.
 
 ## Suggested next articles
 
