@@ -111,6 +111,27 @@ lane ran the companion-site build, lint, type-check, focused changelog guard,
 and Pages staging commands. It did not exercise the packaged desktop UI,
 installer execution, accessibility interaction, or real captures.
 
+## Java runtime package-seam repair
+
+The isolated task branch `task/java-runtime-package-copy-20260814-puppy` carries
+the bounded repair at `4017a9d8fb814580bc466e709eb77f2c3f1913b3`, based on
+`b941447aab6a3ec41d143ad5c3c512c57162321c`. It is pushed to GitHub and is not
+merged into `main` by this lane. `build:main` now copies the checked-in
+`src/main/java-runtime-manager.cjs` beside the compiled
+`dist/main/java-runtime-controller.js`; the focused package-seam check proves
+the byte match and deliberately fails when the manager is absent from staged
+main output.
+
+The supported `build-installer.bat /s` path returned exit code 0. Its extracted
+`app.asar` contains both required entries, the packaged manager matches the
+source SHA-256, and `Setup.exe` is unsigned. Exact local artifact sizes and
+hashes are recorded in
+[`docs/verification/java-runtime-package-seam.md`](docs/verification/java-runtime-package-seam.md).
+No packaged launch, installer execution, accessibility interaction, real
+capture, release publication, or remote CI verdict is claimed. The parent lane
+must merge this branch and rerun its release/runtime evidence before calling the
+v0.1.49 artifact repair complete.
+
 ## Universal inventory guard repair
 
 The second bounded repair lane is based on exact target commit

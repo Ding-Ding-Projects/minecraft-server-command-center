@@ -180,3 +180,14 @@ start because `tsc` was unavailable; no package manager was invoked to change
 that. No Java installation, server launch, configuration write, credential
 transfer, packaged desktop interaction, or real capture is claimed by this
 source lane.
+
+A follow-up package-seam check at commit
+`4017a9d8fb814580bc466e709eb77f2c3f1913b3` verifies that
+`npm run build:main` copies `src/main/java-runtime-manager.cjs` beside the
+compiled controller, that the focused absence regression turns red when the
+manager is removed from staged output, and that the supported
+`build-installer.bat /s` path places both entries in the packaged `app.asar`.
+The exact local artifact hashes and unsigned verification are recorded in the
+[Java runtime manager package seam](../verification/java-runtime-package-seam.md)
+record. This follow-up still makes no claim about packaged launch or real
+capture evidence.

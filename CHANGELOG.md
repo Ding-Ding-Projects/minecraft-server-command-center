@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Repaired the Windows desktop main-process packaging seam for the Java runtime
+  manager. `build:main` now copies the checked-in
+  `src/main/java-runtime-manager.cjs` beside the compiled
+  `dist/main/java-runtime-controller.js`, and the focused package-seam check
+  proves the built manager byte-matches the source and that an absent manager
+  turns the check red before packaging can be trusted.
 - Hardened the personal-vocabulary boundary against concurrent local changes.
   Desktop cache load, replace, and clear operations now serialize per
   application-data directory; malformed-cache cleanup compares the observed
@@ -68,6 +74,14 @@
 
 ### Verification
 
+- At repair tip `4017a9d8fb814580bc466e709eb77f2c3f1913b3`,
+  `npm run test:java-runtime-guidance`,
+  `npm run test:java-runtime-package-seam`, and `git diff --check` passed.
+  The supported `build-installer.bat /s` path also passed, and extracted
+  `app.asar` contained both `dist/main/java-runtime-manager.cjs` and
+  `dist/main/java-runtime-controller.js`; the manager bytes matched the
+  checked-in source. The local unsigned artifact hashes are recorded in the
+  [package-seam verification record](docs/verification/java-runtime-package-seam.md).
 - On the follow-up guard-repair lane, `npm run test:universal-contract-inventory`
   passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
   per row, and 895 negative mutations, including `ancestor-junction` and
