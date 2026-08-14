@@ -31,9 +31,15 @@ reader can distinguish a project total from uncounted repository material.
 The command operates only on tracked files at the release commit. It rejects
 unsupported arguments and fails rather than publishing an incomplete or
 unattributed table when the required Git history or line ownership cannot be
-read. It is a release-metadata command, not a test or lint gate; the workflow
-continues to state truthfully that it builds and packages without running tests
-or lint.
+read. Blame records are consumed incrementally from the Git child process, so a
+large file cannot exhaust a fixed Node output buffer. The parser still requires
+one porcelain header and one content line for every counted line and retains
+the same agent/people attribution arithmetic. The focused regression command
+`node scripts/test-release-line-count.mjs` keeps `site/app/page.tsx` as a
+large-output fixture and verifies that the full report's attribution total
+matches its grand total. It is a release-metadata command, not a test or lint
+gate; the workflow continues to state truthfully that it builds and packages
+without running tests or lint.
 
 ## Verification boundary
 
