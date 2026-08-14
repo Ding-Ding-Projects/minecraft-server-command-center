@@ -7,6 +7,7 @@
 - Repaired the bounded personal-vocabulary boundary from target commit
   [`61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571) in implementation commit
   [`d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61): corrupt cache data is distinguished from transient open/read/permission failures; persisted status and active validated wording are preserved on transient failures; and clear/cache-loss semantics remain truthful.
+- Follow-up repair in [`3c6b3cc`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/3c6b3cc2ea1778bcaf203f6ac04d3a9fb73e85e3): malformed-cache removal failure now fails closed by clearing active entries and persisted loaded-status metadata, while the desktop and companion negative checks mutate their real recovery branches at exact boundaries and turn red before restoration.
 - Routed native picker title/filter copy through the selected language at the
   typed preload/IPC boundary with English fallback. Bilingual presentation now
   labels distinct English and Cantonese segments, while the command palette

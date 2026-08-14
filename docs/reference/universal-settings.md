@@ -119,7 +119,10 @@ original wording. An open, permission, or read failure is transient
 unavailability: the main process rejects the load with a distinct error, and
 the renderer preserves the persisted status and any already-active validated
 entries instead of claiming that the cache is empty. If a corrupt cache cannot
-be removed, that removal failure takes the same preserve-and-report path.
+be removed, the load fails closed instead: active entries are cleared, the
+persisted status and count are reset to empty, and a warning names the failed
+cleanup. The malformed bytes are never retained as active wording or stale
+loaded metadata.
 
 Clear is a separate explicit action. Its `personal-vocabulary:clear` IPC route
 removes the local cache, drops active entries, persists the empty status, and

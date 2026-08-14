@@ -50,8 +50,10 @@ and is implemented in
 The companion personal-vocabulary loader and desktop native picker validate a
 complete local JSON file before applying it. Corrupt cache data is removed and
 returns to original wording; transient open/read/permission failures preserve
-the persisted status and any already-active validated entries. The desktop
-picker title/filter uses the selected language through the typed preload/IPC
+the persisted status and any already-active validated entries. If malformed
+cache cleanup itself fails, both surfaces fail closed by clearing active
+entries and persisting empty status/count metadata while surfacing a warning;
+they never retain stale loaded state. The desktop picker title/filter uses the selected language through the typed preload/IPC
 boundary with English fallback. Bilingual accessible names label distinct
 English and Cantonese segments. School mode forces serious English, no emoji,
 and an empty active vocabulary set on both surfaces while retaining prior
@@ -60,6 +62,8 @@ and enabled state before advertising or focusing a result. Replacement is
 applied once at the final user-facing boundary, and URLs, paths, identifiers,
 commands, code, shell transcripts, versions, timestamps, and factual external
 records remain protected.
+
+The follow-up repair is [`3c6b3cc`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/3c6b3cc2ea1778bcaf203f6ac04d3a9fb73e85e3). It adds an injected removal-failure regression for the desktop cache and exact source mutations that disable the real desktop and companion recovery branches; each mutation turns its contract check red and the unmutated source returns green.
 
 Focused source checks are `npm run test:universal-contracts`,
 `npm run test:personal-vocabulary`, `npm run test:desktop-personal-vocabulary`,
