@@ -15,6 +15,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | [Desktop presentation settings](desktop-presentation-settings.md) | Defines the desktop language modes, independent funny-level controls, dialog/message-box emoji behavior, local persistence, accessibility, responsive limits, and focused verification. |
 | [Offline documentation browser foundation](offline-documentation-browser.md) | Defines the desktop-only typed Markdown bundle, isolated renderer subset, local search and regex hook, article-link resolution, and offline/privacy limits. |
 | [Notification centre foundation](notification-centre.md) | Defines the companion site's and desktop renderer's bounded local notice records, non-blocking review and bulk-dismiss behavior, accessibility/security boundaries, and current verification limits. |
+| [npm security audit](npm-security-audit.md) | Records the root package's lockfile policy, Electron remediation, extractor advisory boundary, and reproducible temporary-lock audit check. |
 
 ## Source policy
 

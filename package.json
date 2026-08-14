@@ -10,6 +10,7 @@
     "build:main": "tsc -p tsconfig.main.json && node scripts/copy-cli-catalog.mjs",
     "build:renderer": "vite build --config vite.renderer.config.ts",
     "build": "npm run prepare:assets && npm run build:main && npm run build:renderer",
+    "test:security-audit": "node scripts/test-npm-security-audit.mjs",
     "test:personal-vocabulary": "node --experimental-strip-types scripts/test-personal-vocabulary-boundary.mjs",
     "test:site-notification-center": "node --experimental-strip-types scripts/test-site-notification-center.mjs",
     "test:site-changelog-viewer": "node --experimental-strip-types scripts/test-site-changelog-viewer.mjs",
@@ -25,7 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "electron": "^34.0.0",
+    "electron": "^42.4.0",
     "electron-builder": "^26.15.3",
     "electron-builder-squirrel-windows": "^26.15.3",
     "typescript": "^5.7.2",
