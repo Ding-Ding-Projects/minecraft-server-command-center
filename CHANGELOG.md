@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Changed the release line-count command to consume large `git blame
+  --line-porcelain --root` output incrementally, avoiding Node's
+  `spawnSync git ENOBUFS` failure without changing line buckets or surviving-line
+  attribution arithmetic.
 - Wired the desktop settings surface to the persisted English, playful
   Hong Kong-style Cantonese, and bilingual presentation modes, with independent
   English and Cantonese funny levels from 1 through 5.
@@ -12,6 +16,9 @@
 
 ### Verification
 
+- Added `npm run test:release-line-count`; it requires the current
+  `site/app/page.tsx` blame output to exceed 1 MiB and verifies the full counter
+  completes with matching grand-total and attribution-total rows.
 - Added `npm run test:desktop-presentation-settings`, including payload-free
   mode, slider, emoji, persistence, and exact negative-registration checks.
 - Source and build checks do not claim packaged runtime interaction, screen

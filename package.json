@@ -17,6 +17,7 @@
     "test:desktop-presentation-settings": "node --experimental-strip-types scripts/test-desktop-presentation-settings.mjs",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
     "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",
+    "test:release-line-count": "node scripts/test-release-line-count.mjs",
     "test:desktop-search": "node --experimental-strip-types scripts/test-desktop-search-foundation.mjs",
     "start": "npm run build && electron .",
     "dist": "npm run build && electron-builder --win squirrel --publish never",

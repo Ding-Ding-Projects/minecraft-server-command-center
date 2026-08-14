@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { TextDecoder } from 'node:util';
 
@@ -175,36 +176,101 @@ function automationCommitClassifier() {
 }
 
 function blameAttribution(path, expectedLines, isAutomationCommit) {
-  if (expectedLines === 0) return { agent: emptyTotals(), people: emptyTotals() };
+  if (expectedLines === 0) return Promise.resolve({ agent: emptyTotals(), people: emptyTotals() });
 
-  const blame = git(['blame', '--line-porcelain', '--root', '--', path], { encoding: 'utf8' });
-  const headers = blame.match(/^([0-9a-f]{40}) \d+ \d+(?: \d+)?$/gmi) ?? [];
-  if (headers.length !== expectedLines) {
-    throw new Error(`git blame did not attribute every counted line in ${path}.`);
-  }
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn('git', ['blame', '--line-porcelain', '--root', '--', path], {
+      cwd: repositoryRoot,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    const lineReader = createInterface({ input: child.stdout });
+    const recordsByCommit = new Map();
+    const headerPattern = /^([0-9a-f]{40}) \d+ \d+(?: \d+)?$/i;
+    let currentCommit = null;
+    let headerCount = 0;
+    let contentCount = 0;
+    let stderr = '';
+    let settled = false;
 
-  const records = blame.split(/\r?\n/);
-  const contentLines = records.filter((line) => line.startsWith('\t')).map((line) => line.slice(1));
-  if (contentLines.length !== expectedLines) {
-    throw new Error(`git blame content did not match the counted line total in ${path}.`);
-  }
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      if (stderr.length < 8192) stderr += String(chunk).slice(0, 8192 - stderr.length);
+    });
 
-  const attribution = { agent: emptyTotals(), people: emptyTotals() };
-  for (let index = 0; index < headers.length; index += 1) {
-    const commit = headers[index].split(' ')[0];
-    const bucket = isAutomationCommit(commit) ? attribution.agent : attribution.people;
-    bucket.files = Math.max(bucket.files, 1);
-    bucket.lines += 1;
-    if (contentLines[index].trim().length > 0) bucket.nonBlank += 1;
-  }
-  return attribution;
+    const resolveOnce = (value) => {
+      if (settled) return;
+      settled = true;
+      resolvePromise(value);
+    };
+    const rejectOnce = (error) => {
+      if (settled) return;
+      settled = true;
+      rejectPromise(error);
+    };
+
+    lineReader.on('line', (line) => {
+      const header = headerPattern.exec(line);
+      if (header) {
+        currentCommit = header[1];
+        headerCount += 1;
+        return;
+      }
+
+      if (!line.startsWith('\t')) return;
+
+      contentCount += 1;
+      if (currentCommit === null) return;
+
+      const record = recordsByCommit.get(currentCommit) ?? { lines: 0, nonBlank: 0 };
+      record.lines += 1;
+      if (line.slice(1).trim().length > 0) record.nonBlank += 1;
+      recordsByCommit.set(currentCommit, record);
+    });
+
+    child.on('error', (error) => {
+      lineReader.close();
+      rejectOnce(new Error(`git blame --line-porcelain --root -- ${path} failed: ${error.message}`));
+    });
+
+    child.on('close', (code, signal) => {
+      if (code !== 0) {
+        const detail = stderr.trim() || (signal ? `terminated by ${signal}` : `exit code ${code}`);
+        rejectOnce(new Error(`git blame --line-porcelain --root -- ${path} failed: ${detail}`));
+        return;
+      }
+
+      if (headerCount !== expectedLines) {
+        rejectOnce(new Error(`git blame did not attribute every counted line in ${path}.`));
+        return;
+      }
+      if (contentCount !== expectedLines) {
+        rejectOnce(new Error(`git blame content did not match the counted line total in ${path}.`));
+        return;
+      }
+
+      const attribution = { agent: emptyTotals(), people: emptyTotals() };
+      for (const [commit, record] of recordsByCommit) {
+        const bucket = isAutomationCommit(commit) ? attribution.agent : attribution.people;
+        bucket.files = Math.max(bucket.files, 1);
+        bucket.lines += record.lines;
+        bucket.nonBlank += record.nonBlank;
+      }
+      if (attribution.agent.lines + attribution.people.lines !== expectedLines) {
+        rejectOnce(new Error(`git blame attribution records did not match the counted line total in ${path}.`));
+        return;
+      }
+
+      resolveOnce(attribution);
+    });
+  });
 }
 
 function row(label, totals) {
   return `| ${label} | ${totals.files} | ${totals.lines} | ${totals.nonBlank} |`;
 }
 
-function createReport() {
+async function createReport() {
   ensureReleaseCheckout();
   const commit = git(['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const categoryTotals = Object.fromEntries(categoryOrder.map(([key]) => [key, emptyTotals()]));
@@ -232,7 +298,7 @@ function createReport() {
     const fileTotals = { files: 1, ...counts };
     addTotals(categoryTotals[category], fileTotals);
 
-    const attribution = blameAttribution(path, counts.lines, isAutomationCommit);
+    const attribution = await blameAttribution(path, counts.lines, isAutomationCommit);
     addTotals(attributionTotals.agent, attribution.agent);
     addTotals(attributionTotals.people, attribution.people);
   }
@@ -284,12 +350,14 @@ function createReport() {
   return output;
 }
 
-try {
+async function main() {
   const outputPath = parseOutputPath(process.argv.slice(2));
-  const report = createReport();
+  const report = await createReport();
   if (outputPath) writeFileSync(outputPath, report, 'utf8');
   process.stdout.write(report);
-} catch (error) {
+}
+
+main().catch((error) => {
   process.stderr.write(`release-line-count: ${error.message}\n`);
   process.exitCode = 1;
-}
+});
