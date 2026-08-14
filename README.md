@@ -65,6 +65,9 @@ The browser-local companion uses these planning destinations:
 - **Runtime** — version, Java requirement, and resource planning.
 - **Safety** — consequential-operation and desktop-boundary explanations.
 - **Docs** — local companion documentation.
+- **Notification centre** — browser-local review of non-blocking notices,
+  explicit selection scopes, inverse selection, and bulk dismissal for
+  dismissible records.
 - **Release status** — a source-embedded version-pinned release record with a
   direct Windows installer handoff, explicit unsigned warning, and no browser
   release lookup or download-completion claim.
