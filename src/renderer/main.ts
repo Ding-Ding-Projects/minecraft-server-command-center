@@ -8,6 +8,7 @@ import type {
   PickerKind
 } from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
+import { createBoundedSearchMatcher } from "../shared/regex-search";
 import { DEFAULT_UNIVERSAL_SETTINGS, normalizeUniversalSettings, type UniversalSettingsV1 } from "../shared/universal-contracts";
 import {
   DEFAULT_SERVER_DRAFT,
@@ -16,6 +17,7 @@ import {
   type ServerDraft
 } from "../shared/server-draft";
 import { bindOfflineDocumentation } from "./offline-documentation";
+import { bindAnchoredRegexBuilder, type AnchoredRegexBuilderBinding, type RegexBuilderState } from "./regex-builder";
 
 const form = document.querySelector<HTMLFormElement>("#server-form");
 const saveState = document.querySelector<HTMLElement>("#save-state");
@@ -51,8 +53,18 @@ const settingsRegexBuilder = document.querySelector<HTMLElement>("#settings-rege
 const settingsRegexPattern = document.querySelector<HTMLInputElement>("#settings-regex-pattern");
 const settingsRegexIgnoreCase = document.querySelector<HTMLInputElement>("#settings-regex-ignore-case");
 const settingsRegexStatus = document.querySelector<HTMLElement>("#settings-regex-status");
+const commandPalette = document.querySelector<HTMLElement>("#command-palette");
+const commandPaletteDialog = document.querySelector<HTMLElement>("#command-palette-dialog");
+const commandPaletteSearch = document.querySelector<HTMLInputElement>("#command-palette-search");
+const commandPaletteRegexToggle = document.querySelector<HTMLButtonElement>("#command-palette-regex-toggle");
+const commandPaletteRegexBuilder = document.querySelector<HTMLElement>("#command-palette-regex-builder");
+const commandPaletteRegexPattern = document.querySelector<HTMLInputElement>("#command-palette-regex-pattern");
+const commandPaletteRegexIgnoreCase = document.querySelector<HTMLInputElement>("#command-palette-regex-ignore-case");
+const commandPaletteRegexStatus = document.querySelector<HTMLElement>("#command-palette-regex-status");
+const commandPaletteStatus = document.querySelector<HTMLElement>("#command-palette-status");
+const commandPaletteResultList = document.querySelector<HTMLElement>("#command-palette-result-list");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -68,7 +80,11 @@ let selectedJavaCandidateId: string | null = null;
 let universalSettings: UniversalSettingsV1 = DEFAULT_UNIVERSAL_SETTINGS;
 let universalSaveTimer: number | undefined;
 let universalSaveVersion = 0;
-let settingsRegexMode = false;
+let settingsRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
+let commandPaletteRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
+let commandPaletteBinding: AnchoredRegexBuilderBinding | undefined;
+let commandPaletteOpen = false;
+let commandPaletteReturnFocus: HTMLElement | null = null;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
@@ -82,6 +98,55 @@ const tabCopy: Record<string, readonly [string, string]> = {
   settings: ["Adjust universal local settings", "Set language, funny levels, emoji, display name, appearance, and tab docking without server actions."]
 };
 
+interface CommandPaletteCommand {
+  readonly id: "docs-search" | "docs-regex" | "settings-search" | "settings-regex";
+  readonly label: string;
+  readonly description: string;
+  readonly tab: "docs" | "settings";
+  readonly searchId: "offline-docs-search" | "settings-search";
+  readonly regexToggleId: "offline-docs-regex-toggle" | "settings-regex-toggle";
+  readonly openRegex: boolean;
+}
+
+const commandPaletteCommands: readonly CommandPaletteCommand[] = [
+  {
+    id: "docs-search",
+    label: "Search offline documentation",
+    description: "Open Docs and focus the local article search.",
+    tab: "docs",
+    searchId: "offline-docs-search",
+    regexToggleId: "offline-docs-regex-toggle",
+    openRegex: false,
+  },
+  {
+    id: "docs-regex",
+    label: "Open documentation regex builder",
+    description: "Open Docs and focus its anchored Regex builder.",
+    tab: "docs",
+    searchId: "offline-docs-search",
+    regexToggleId: "offline-docs-regex-toggle",
+    openRegex: true,
+  },
+  {
+    id: "settings-search",
+    label: "Search universal settings",
+    description: "Open Universal settings and focus its local search.",
+    tab: "settings",
+    searchId: "settings-search",
+    regexToggleId: "settings-regex-toggle",
+    openRegex: false,
+  },
+  {
+    id: "settings-regex",
+    label: "Open settings regex builder",
+    description: "Open Universal settings and focus its anchored Regex builder.",
+    tab: "settings",
+    searchId: "settings-search",
+    regexToggleId: "settings-regex-toggle",
+    openRegex: true,
+  },
+];
+
 function showSnackbar(message: string): void {
   snackbar.textContent = message;
   snackbar.hidden = false;
@@ -89,6 +154,81 @@ function showSnackbar(message: string): void {
   snackTimer = window.setTimeout(() => {
     snackbar.hidden = true;
   }, 4200);
+}
+
+function renderCommandPalette(): void {
+  const matcher = createBoundedSearchMatcher(commandPaletteRegexState);
+  commandPaletteResultList.replaceChildren();
+  if (!matcher.ok) {
+    commandPaletteStatus.textContent = matcher.reason;
+    const empty = document.createElement("p");
+    empty.className = "command-palette__empty";
+    empty.textContent = matcher.reason;
+    commandPaletteResultList.append(empty);
+    return;
+  }
+
+  const matches = commandPaletteCommands.filter((command) => matcher.value(`${command.label} ${command.description}`));
+  commandPaletteStatus.textContent = `${matches.length} command${matches.length === 1 ? "" : "s"} available.`;
+  if (matches.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "command-palette__empty";
+    empty.textContent = "No existing desktop search surface matches this query.";
+    commandPaletteResultList.append(empty);
+    return;
+  }
+  for (const command of matches) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "command-palette__result";
+    item.setAttribute("role", "option");
+    item.dataset.commandPaletteId = command.id;
+    item.setAttribute("aria-label", `${command.label}. ${command.description}`);
+    const label = document.createElement("strong");
+    const description = document.createElement("span");
+    label.textContent = command.label;
+    description.textContent = command.description;
+    item.append(label, description);
+    commandPaletteResultList.append(item);
+  }
+}
+
+function closeCommandPalette(restoreFocus = true): void {
+  if (!commandPaletteOpen) return;
+  commandPaletteOpen = false;
+  commandPalette.hidden = true;
+  commandPaletteDialog.setAttribute("aria-hidden", "true");
+  if (restoreFocus && commandPaletteReturnFocus?.isConnected) commandPaletteReturnFocus.focus();
+  commandPaletteReturnFocus = null;
+}
+
+function openCommandPalette(): void {
+  if (commandPaletteOpen) return;
+  commandPaletteReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  commandPaletteOpen = true;
+  commandPalette.hidden = false;
+  commandPaletteDialog.setAttribute("aria-hidden", "false");
+  commandPaletteSearch.value = "";
+  commandPaletteRegexPattern.value = "";
+  commandPaletteBinding?.setRegexMode(false, false);
+  renderCommandPalette();
+  commandPaletteSearch.focus();
+}
+
+function toggleCommandPalette(): void {
+  if (commandPaletteOpen) closeCommandPalette();
+  else openCommandPalette();
+}
+
+function executeCommandPaletteCommand(command: CommandPaletteCommand): void {
+  closeCommandPalette(false);
+  activateTab(command.tab);
+  window.requestAnimationFrame(() => {
+    const search = document.getElementById(command.searchId);
+    if (!(search instanceof HTMLInputElement)) return;
+    search.focus();
+    if (command.openRegex) document.getElementById(command.regexToggleId)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
 }
 
 function writeSaveState(message: string): void {
@@ -99,27 +239,24 @@ function settingsControls(): Array<HTMLInputElement | HTMLSelectElement> {
   return Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-universal-setting]"));
 }
 
-function settingsMatches(text: string): boolean {
-  const query = settingsSearch.value.trim();
-  if (!settingsRegexMode) return text.toLocaleLowerCase().includes(query.toLocaleLowerCase());
-  if (!settingsRegexPattern.value) return true;
-  try {
-    settingsRegexStatus.textContent = "Pattern is valid and runs only in this settings surface.";
-    return new RegExp(settingsRegexPattern.value, settingsRegexIgnoreCase.checked ? "i" : "").test(text);
-  } catch (error) {
-    settingsRegexStatus.textContent = error instanceof Error ? error.message : "The local pattern is invalid.";
-    return false;
-  }
-}
-
 function renderSettingsSearch(): void {
+  const matcher = createBoundedSearchMatcher(settingsRegexState);
+  if (!matcher.ok) {
+    settingsRegexStatus.textContent = matcher.reason;
+  }
   for (const card of document.querySelectorAll<HTMLElement>("[data-settings-item]")) {
     const label = card.dataset.settingsLabel ?? "";
-    const matches = settingsMatches(`${label} ${card.textContent ?? ""}`);
+    const matches = matcher.ok && matcher.value(`${label} ${card.textContent ?? ""}`);
     const hiddenByFocusMode = universalSettings.schoolModeEnabled && ["Language mode", "English funny level", "Cantonese funny level", "Emoji dialogs"].includes(label);
     card.hidden = hiddenByFocusMode || !matches;
   }
-  if (!settingsRegexMode) settingsRegexStatus.textContent = "Plain text search is active. Regex is an explicit local opt-in.";
+  if (matcher.ok) {
+    settingsRegexStatus.textContent = settingsRegexState.mode === "regex"
+      ? settingsRegexState.pattern.length === 0
+        ? "Regex mode is ready. Add a bounded pattern or choose a token."
+        : "Pattern runs locally against this settings surface."
+      : "Plain text search is active. Regex is an explicit local opt-in.";
+  }
 }
 
 function renderUniversalSettings(): void {
@@ -703,16 +840,40 @@ function renderCatalog(catalog: CliCatalogProjection): void {
 
 function bindInteraction(): void {
   bindOfflineDocumentation();
+  const settingsBinding = bindAnchoredRegexBuilder({
+    id: "settings",
+    searchInput: settingsSearch,
+    toggle: settingsRegexToggle,
+    builder: settingsRegexBuilder,
+    pattern: settingsRegexPattern,
+    ignoreCase: settingsRegexIgnoreCase,
+    status: settingsRegexStatus,
+    onStateChange: (state) => {
+      settingsRegexState = state;
+      renderSettingsSearch();
+    },
+  });
+  settingsRegexState = settingsBinding.getState();
+  commandPaletteBinding = bindAnchoredRegexBuilder({
+    id: "command-palette",
+    searchInput: commandPaletteSearch,
+    toggle: commandPaletteRegexToggle,
+    builder: commandPaletteRegexBuilder,
+    pattern: commandPaletteRegexPattern,
+    ignoreCase: commandPaletteRegexIgnoreCase,
+    status: commandPaletteRegexStatus,
+    onStateChange: (state) => {
+      commandPaletteRegexState = state;
+      renderCommandPalette();
+    },
+  });
+  commandPaletteRegexState = commandPaletteBinding.getState();
+  renderSettingsSearch();
+  renderCommandPalette();
   for (const control of settingsControls()) {
     control.addEventListener("input", () => handleUniversalSetting(control));
     control.addEventListener("change", () => handleUniversalSetting(control));
   }
-  settingsSearch.addEventListener("input", renderSettingsSearch);
-  settingsRegexPattern.addEventListener("input", () => {
-    settingsRegexMode = true;
-    renderSettingsSearch();
-  });
-  settingsRegexIgnoreCase.addEventListener("change", renderSettingsSearch);
   form.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
@@ -742,26 +903,23 @@ function bindInteraction(): void {
   document.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    if (target === commandPalette) {
+      closeCommandPalette();
+      return;
+    }
+    if (target.closest<HTMLButtonElement>("[data-command-palette-close]")) {
+      closeCommandPalette();
+      return;
+    }
+    const paletteItem = target.closest<HTMLButtonElement>("[data-command-palette-id]");
+    if (paletteItem?.dataset.commandPaletteId) {
+      const command = commandPaletteCommands.find((candidate) => candidate.id === paletteItem.dataset.commandPaletteId);
+      if (command) executeCommandPaletteCommand(command);
+      return;
+    }
     const picker = target.closest<HTMLButtonElement>("[data-picker-kind]");
     if (picker) {
       void usePicker(picker);
-      return;
-    }
-    const settingsToken = target.closest<HTMLButtonElement>("[data-settings-token]");
-    if (settingsToken?.dataset.settingsToken) {
-      settingsRegexMode = true;
-      settingsRegexPattern.value = (settingsRegexPattern.value + settingsToken.dataset.settingsToken).slice(0, 160);
-      renderSettingsSearch();
-      settingsRegexPattern.focus();
-      return;
-    }
-    const settingsRegex = target.closest<HTMLButtonElement>("#settings-regex-toggle");
-    if (settingsRegex) {
-      settingsRegexMode = !settingsRegexMode;
-      settingsRegex.setAttribute("aria-expanded", String(settingsRegexMode));
-      settingsRegexBuilder.hidden = !settingsRegexMode;
-      renderSettingsSearch();
-      if (settingsRegexMode) settingsRegexPattern.focus();
       return;
     }
     const resetUniversal = target.closest<HTMLButtonElement>("#reset-universal-settings");
@@ -835,6 +993,33 @@ function bindInteraction(): void {
     if (action === "close") void window.commandCenter.window.close();
   });
   document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key.toLocaleUpperCase() === "F") {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCommandPalette();
+      return;
+    }
+    if (event.key === "Escape" && commandPaletteOpen) {
+      event.preventDefault();
+      closeCommandPalette();
+      return;
+    }
+    if (event.key === "Tab" && commandPaletteOpen) {
+      const focusable = Array.from(commandPaletteDialog.querySelectorAll<HTMLElement>("button, input, [tabindex]"))
+        .filter((element) => !element.hasAttribute("disabled") && !element.closest("[hidden]") && element.getAttribute("aria-hidden") !== "true");
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (first && last) {
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
     const target = event.target;
     if (!(target instanceof HTMLButtonElement) || !target.dataset.tab) return;
     const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-tab]"));

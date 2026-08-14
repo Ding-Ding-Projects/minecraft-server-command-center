@@ -22,6 +22,25 @@ context-isolated bridge in `src/preload/index.ts` and
 record in `site/app/page.tsx`, with the same schema normalization and a
 browser-storage boundary.
 
+## Desktop settings search boundary
+
+The desktop Universal settings surface uses the shared matcher in
+`src/shared/regex-search.ts` and the anchored DOM binding in
+`src/renderer/regex-builder.ts`. Plain-text filtering is the default; the
+adjacent Regex control is an explicit opt-in builder that synchronizes query,
+pattern, flags, validation, and mode for this settings field only. Search text
+and patterns are capped at 160 characters, candidate evaluation at 8,192
+characters, results at 64 items, and flags to local JavaScript `i` and `m`.
+Invalid patterns produce an accessible status message and hide no unrelated
+surface state beyond the current filter's no-match result.
+
+`Ctrl+Shift+F` opens the desktop command palette. Its current command set
+focuses Universal settings search or opens that field's anchored builder; it
+does not claim the complete app-wide command, settings, menu, dropdown, or
+appearance inventory required by the larger universal contract. Escape closes
+the builder first and restores the originating field; closing the palette
+restores the control that opened it.
+
 Both surfaces keep display-name changes separate from package identity, data
 locations, executable names, installer identity, and update-feed identity.
 Theme, density, and seed color apply to the companion site immediately. The
@@ -110,6 +129,18 @@ The focused source contract check is:
 ```text
 npm run test:universal-contracts
 ```
+
+The desktop search foundation additionally uses:
+
+```text
+npm run test:desktop-search
+npm run build:main
+npm run build:renderer
+```
+
+Those commands verify the exact search registrations, shortcut, negative
+removals, shared bounds, and desktop source builds. They do not prove packaged
+runtime interaction, screen-reader interaction, or a real capture.
 
 It validates default normalization, bounded vocabulary acceptance and
 rejection, duplicate-key and unsafe-key rejection, pattern bounds, and

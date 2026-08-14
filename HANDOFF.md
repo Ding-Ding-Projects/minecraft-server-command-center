@@ -97,6 +97,10 @@ The desktop source contains:
 - a schema-version-1 universal-settings record with local desktop persistence,
   language/funny-level/emoji/School-mode controls, appearance basics, tab
   docking, and companion-site logo and personal-vocabulary foundations.
+- a shared bounded desktop search matcher and anchored regex-builder binding for
+  the existing Docs, Universal settings, and command-palette search fields;
+  `Ctrl+Shift+F` focuses those existing surfaces or their builders without
+  claiming a complete app-wide command registry.
 
 The following desktop paths are source-only evidence:
 
@@ -125,11 +129,14 @@ src/main/update-boundary.ts
 src/preload/index.ts
 src/renderer/index.html
 src/renderer/main.ts
+src/renderer/regex-builder.ts
 src/renderer/offline-documentation-registry.ts
 src/renderer/offline-documentation.ts
 src/renderer/styles.css
+src/shared/regex-search.ts
 src/shared/offline-documentation.ts
 scripts/test-offline-documentation.mjs
+scripts/test-desktop-search-foundation.mjs
 ```
 
 The desktop renderer has no process-start IPC, shell command field, RCON
@@ -170,6 +177,15 @@ Those checks cover the hand-written article completeness boundary, the shared
 renderer/search/link contract, and the supported root build. They do not claim
 packaged desktop interaction, accessibility interaction, or real capture
 evidence.
+
+For the bounded desktop search lane, `npm run test:desktop-search`,
+`npm run test:offline-documentation`, `npm run test:universal-contracts`,
+`npm run build:main`, `npm run build:renderer`, and `npm run build` passed on
+2026-08-14. The negative regression covers exact shared-builder registrations
+and the `Ctrl+Shift+F` shortcut. These are source/build checks only; packaged
+runtime interaction, screen-reader interaction, and real captures remain
+unverified. The implementation and this verification record are carried by
+[`a6468a9`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/a6468a924620761622714ff1d545c8827eab14a6).
 
 ## Safe continuation
 

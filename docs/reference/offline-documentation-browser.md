@@ -24,6 +24,7 @@ bounds:
 | Complete bundle | 256 KiB of Markdown characters |
 | Article id | 96 characters |
 | Search query or regex | 160 characters |
+| Candidate text evaluated per match | 8,192 characters |
 | Search results | 64 articles |
 | Article link | 512 characters |
 
@@ -46,12 +47,31 @@ content until a separately scoped renderer upgrade defines and tests them.
 The renderer never executes provider-authored markup and never grants it
 filesystem, process, or network access.
 
+## Shared anchored search path
+
+The Docs search uses the shared matcher in
+`src/shared/regex-search.ts` and the shared DOM binding in
+`src/renderer/regex-builder.ts`. The same bounded, bidirectional search path
+is also used by Universal settings and the desktop command palette. Each
+surface owns its own query, pattern, flag, validation, and mode state; opening
+one builder never changes another search field.
+
+The builder is anchored directly below the originating field. `Ctrl+Shift+F`
+opens the desktop command palette, whose current command set can focus the Docs
+search or open that field's anchored builder. Escape closes the builder first
+and returns focus to the originating search field; closing the palette returns
+focus to the control that opened it.
+
 ## Local search and article links
 
 The article list searches the title and Markdown body with plain text as the
-default. The adjacent Regex control is an explicit opt-in hook. Its pattern is
-bounded to 160 characters, accepts only the local JavaScript `i` and `m` flags,
-and reports invalid patterns without changing the current article.
+default. The adjacent Regex control is an explicit opt-in builder. Its query
+and pattern are bounded to 160 characters, candidate evaluation is capped at
+8,192 characters per article, results are capped at 64 articles, and only the
+local JavaScript `i` and `m` flags are accepted. Query, pattern, flags,
+validation, and mode synchronize bidirectionally; invalid patterns stay local
+to the search surface and produce an accessible status message without
+changing the current article.
 
 Relative links ending in `.md` resolve against the registry's repository source
 paths. A resolved link navigates to the matching bundled article and optional
@@ -77,21 +97,28 @@ completeness assertion turns red. It also covers registry bounds, plain and
 regex search, relative-link resolution, network-link rejection, escaping, and
 the supported Markdown subset.
 
+`scripts/test-desktop-search-foundation.mjs` separately checks the shared
+matcher bounds, the Docs/settings/palette registrations, the `Ctrl+Shift+F`
+shortcut, and exact negative removals of each registration and shortcut.
+
 Run the focused check with:
 
 ```text
 npm run test:offline-documentation
+npm run test:desktop-search
 ```
 
 The renderer build is the proportional bundle proof:
 
 ```text
 npm run build:renderer
+npm run build:main
 ```
 
 These checks do not prove a packaged desktop launch, screen-reader behavior,
 or a rendered built-artifact capture. Those remain explicit limits for a later
-desktop verification lane.
+desktop verification lane; the source-level focus and accessible-label paths
+are recorded, but not runtime-exercised here.
 
 ## Suggested articles
 

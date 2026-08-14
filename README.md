@@ -79,7 +79,11 @@ Access, Paths, Start preview, CLI catalog, Docs, and Universal settings. Its
 preview is an array of argument tokens sourced from the versioned typed
 Paper/Spigot registry; it is not a shell command and remains non-launching. The
 Docs tab bundles the desktop Markdown set, renders it through one escaped local
-path, searches title/body text, and resolves only local article links.
+path, searches title/body text through the shared bounded search matcher and
+anchored regex builder, and resolves only local article links. Universal
+settings uses the same builder path, and `Ctrl+Shift+F` opens a bounded command
+palette for those existing desktop search surfaces. Complete menu, dropdown,
+app-wide command, and packaged runtime coverage remain partial.
 
 - [Desktop documentation index](docs/README.md)
 - [Desktop foundation architecture](docs/architecture/desktop-foundation.md)
