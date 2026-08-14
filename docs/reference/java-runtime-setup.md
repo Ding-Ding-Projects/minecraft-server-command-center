@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Minecraft Server Command Center uses `src/main/java-runtime-manager.cjs` and the narrow `src/main/java-runtime-controller.ts` bridge to make Java runtime selection a guided, reviewable desktop step. The Runtime tab discovers a deliberately bounded set of Java executable candidates, binds selection to opaque candidate IDs, validates one selected executable with a fixed direct process invocation, and renders structured compatibility and review-only-plan status.
+Minecraft Server Command Center uses `src/main/java-runtime-manager.cjs` and the narrow `src/main/java-runtime-controller.ts` bridge to make Java runtime selection a guided, reviewable desktop step. The Runtime tab discovers a deliberately bounded set of Java executable candidates, binds selection to opaque candidate IDs, shows safe file metadata, validates one selected executable with a fixed direct process invocation, and renders structured compatibility and review-only-plan status.
 
 The service and its current desktop integration do **not** install Java, alter package-manager state, launch a terminal, launch a server, write credentials, download a catalog, write server configuration, or assume a proposed runtime was installed. The renderer receives no Java executable path, raw version output, shell text, or generic filesystem/process capability. A later installation feature would need its own explicit user confirmation and separately reviewed privileged route.
 
@@ -10,11 +10,17 @@ The service and its current desktop integration do **not** install Java, alter p
 
 The UI should expose Java through a candidate picker, not a generic command or CLI text field.
 
-1. A person can choose a Java executable with the native file picker, or request bounded discovery from the Runtime tab.
+1. A person can choose a Java executable or Java home folder with the native picker, or request bounded discovery from the Runtime tab.
 2. `discoverJavaCandidates()` adds that explicit selection first, then checks only bounded conventional locations.
 3. The picker binds to candidate IDs returned by the discovery result and calls `selectDiscoveredJavaCandidate()`.
 4. `probeJavaExecutable()` validates the selected candidate with direct process arguments equivalent to `java -version` and returns a structured status.
 5. `getPaperRuntimeTargetCatalog()` validates the bundled official Paper Downloads Service project-version snapshot, and `assessSelectedJavaRuntime()` combines its bounded version keys with the selected Paper target, the Java probe, and a review-only plan.
+
+The compatibility action can also run with no selected candidate. In that
+state it skips the process probe, reports the missing runtime honestly, and
+shows the review-only setup routes for a verified Paper target. Selecting a
+candidate changes the same action into a direct probe plus compatibility
+assessment; there is no separate hidden install path.
 
 Discovery intentionally does **not** scan `PATH`, disks, the registry, arbitrary user folders, or locations recursively. The bounded locations are:
 
@@ -27,10 +33,14 @@ Discovery intentionally does **not** scan `PATH`, disks, the registry, arbitrary
 
 Only direct children of a known root are considered, and the service enforces root, child, and overall candidate limits. An unavailable directory is a normal absence, not an invitation to broaden the search.
 
-The current Runtime tab deliberately offers only an actual Java executable in
-its native picker. The underlying manager can normalize a Java home or `bin`
-directory when used by a future privileged caller, but no such raw-path input
-is exposed to the renderer.
+The Runtime tab offers separate native executable and Java-home-folder pickers.
+The selected path stays in the privileged process. Candidate rows expose only
+bounded metadata: executable name, Java-home folder name when it can be derived,
+file size when it is within the metadata bound, and an ISO modification time.
+They never expose an absolute path, file contents, raw version output, or an
+installer command. A selected `bin` folder is accepted by the same manager
+normalization, so a user does not need to know which picker shape a Java
+distribution uses.
 
 ## Probe safety and status
 
@@ -77,11 +87,12 @@ records, download URLs, installer metadata, or credentials.
 
 `normalizePaperRuntimeTargetCatalog()` accepts only the exact versioned
 envelope, source metadata, Paper project identity, numeric group keys, and
-numeric entries that belong to their group. It enforces bounded group, per-group
-entry, total-entry, and string-length limits. Pre-release suffixes, unknown
-fields, malformed values, duplicate versions, empty groups, misplaced entries,
-and unsupported schema versions invalidate the complete catalog; the adapter
-does not silently discard an entry and continue with a partial result.
+canonical numeric entries that belong to their group. Two- and three-component
+versions such as `1.20` and `1.20.6` remain distinct official keys; leading
+zeros, pre-release suffixes, unknown fields, malformed values, duplicate
+versions, empty groups, misplaced entries, and unsupported schema versions
+invalidate the complete catalog. The adapter does not silently discard an
+entry and continue with a partial result.
 
 `getPaperRuntimeTargetCatalog()` returns either the bounded validated version
 array or an empty invalid result with a diagnostic code. The controller passes
@@ -121,7 +132,8 @@ Newer Java is not automatically treated as compatible. Paper's [FAQ](https://doc
 - the Paper target and recommended Java major;
 - the reason a new runtime is being considered;
 - Paper's [Java installation guidance](https://docs.papermc.io/misc/java-install/);
-- on Windows, a **Windows Package Manager** route that must be availability-checked only after explicit confirmation, plus an official runtime-guide route; and
+- on Windows, a **Windows Package Manager** route that is only a review label whose availability must be checked after explicit confirmation, plus an official runtime-guide route;
+- route metadata stating the distribution, full-runtime preference, package-search label when applicable, guide URL, and explicit-confirmation requirement; and
 - an instruction that a later integration must present a rich route selector and an independent confirmation control before attempting an install.
 
 No plan contains a shell command string, a password, a token, a package-manager invocation, or an assertion that installation succeeded. The plan's `executionState` remains `not-executed`, its `mutationState` remains `no-system-state-changed`, and it cannot perform installation itself.
@@ -135,7 +147,7 @@ The Runtime tab calls only these narrow bridge operations:
 | Bridge operation | Privileged behavior | Renderer result |
 | --- | --- | --- |
 | `runtime.discover()` | Uses bounded conventional discovery only. | Opaque candidate IDs, source labels, bounded diagnostics, and search-boundary facts. |
-| `runtime.choose()` | Opens the native Java-executable picker, then feeds the selected path directly into bounded discovery. | The same safe candidate summaries; no selected path. |
+| `runtime.choose(kind)` | Opens either the native Java-executable picker or Java-home-folder picker, then feeds the selected path directly into bounded discovery. | The same safe candidate summaries and metadata; no selected path. |
 | `runtime.select(id)` | Resolves an ID only from the current main-process discovery result. | Selected safe candidate summary only. |
 | `runtime.assess(...)` | Validates the bundled Paper catalog, passes only its bounded version keys to the manager, and calls the fixed `java -version` probe for the selected candidate. | Parsed Java-major/status data, bounded catalog status/count/provenance, compatibility state, and review-only plan facts; raw catalog entries are not exposed. |
 | `runtime.clear()` | Drops the in-memory discovery and selection state. | No local server or configuration mutation. |
@@ -144,7 +156,8 @@ The main process owns candidate paths and probing. The renderer cannot supply a 
 
 ## Security and failure boundaries
 
-- The native picker is the only intended source of an explicit Java path; relative paths are rejected before a candidate can be listed.
+- The native executable or folder picker is the only intended source of an explicit Java path; relative paths are rejected before a candidate can be listed.
+- Candidate metadata is derived from bounded `stat` facts and path basenames only; it excludes absolute paths and file contents.
 - Candidate discovery is bounded and shallow to avoid unexpected filesystem traversal.
 - Java version probing uses direct argv, a timeout, and a maximum captured-output size. It uses no shell.
 - Raw output is not retained after version parsing, which reduces the risk of leaking unexpected program output through application logs or exports.
@@ -153,4 +166,17 @@ The main process owns candidate paths and probing. The renderer cannot supply a 
 
 ## Verification boundary
 
-This bounded source change intentionally did not run tests, lint, review, a runtime Java installation, a server launch, or a screen capture. The supported build and package route is reported with the exact candidate artifact when that lane completes. Focused automated coverage for the bridge's opaque-ID ownership, native-picker cancellation, bounded discovery, version parsing, malformed/unknown catalog rejection, officially sourced Paper catalog resolution, Spigot non-mapping, probe timeout/output-limit behavior, and review-only plan invariants remains future verification work.
+The focused `npm run test:java-runtime-guidance` check covers native executable/home
+selection normalization, bounded metadata, opaque-ID and renderer registration
+markers, direct `-version` arguments with `shell: false`, the corrected official
+Paper catalog validator, compatible and missing-runtime assessment states, the
+review-only setup plan, Spigot non-mapping, and negative regressions against
+shell, package-manager, download, file-write, server, and configuration side
+effects. The direct main-process type check and Vite renderer build passed with
+the already-installed toolchain supplied through a temporary process-local
+configuration that was removed afterward. The fresh linked checkout still has
+no local `node_modules`, so the `npm run build:main` wrapper itself could not
+start because `tsc` was unavailable; no package manager was invoked to change
+that. No Java installation, server launch, configuration write, credential
+transfer, packaged desktop interaction, or real capture is claimed by this
+source lane.

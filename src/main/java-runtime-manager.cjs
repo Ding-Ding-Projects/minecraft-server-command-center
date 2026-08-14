@@ -308,19 +308,70 @@ function knownJavaRoots({ platform = process.platform, env = process.env, homeDi
   return roots;
 }
 
-async function regularExecutable(executablePath, platform) {
+const MAX_RUNTIME_METADATA_NAME_LENGTH = 96;
+const MAX_RUNTIME_METADATA_SIZE = 4 * 1024 * 1024 * 1024;
+
+function boundedRuntimeMetadataName(value) {
+  if (typeof value !== 'string' || !value || value.length > MAX_RUNTIME_METADATA_NAME_LENGTH) {
+    return null;
+  }
+  if (/[/\\\u0000-\u001f\u007f]/.test(value)) {
+    return null;
+  }
+  return value;
+}
+
+function runtimeMetadataForExecutable(executablePath, stat, platform) {
+  const pathApi = pathApiForPlatform(platform);
+  const executableName = boundedRuntimeMetadataName(pathApi.basename(executablePath));
+  const executableParent = pathApi.dirname(executablePath);
+  const parentName = pathApi.basename(executableParent);
+  const runtimeHomeName = boundedRuntimeMetadataName(
+    parentName.toLowerCase() === 'bin'
+      ? pathApi.basename(pathApi.dirname(executableParent))
+      : parentName,
+  );
+  const fileSizeBytes = Number.isSafeInteger(stat.size)
+    && stat.size >= 0
+    && stat.size <= MAX_RUNTIME_METADATA_SIZE
+    ? stat.size
+    : null;
+  const modifiedAt = Number.isFinite(stat.mtimeMs)
+    ? new Date(stat.mtimeMs).toISOString()
+    : null;
+
+  return Object.freeze({
+    executableName,
+    runtimeHomeName,
+    fileSizeBytes,
+    modifiedAt,
+  });
+}
+
+async function inspectExecutable(executablePath, platform) {
   try {
     const stat = await fsp.stat(executablePath);
     if (!stat.isFile()) {
-      return false;
+      return null;
     }
 
     // Windows executable permission bits are not meaningful. On POSIX, avoid
     // presenting an ordinary data file as a selectable Java executable.
-    return platform === 'win32' || (stat.mode & 0o111) !== 0;
+    if (platform !== 'win32' && (stat.mode & 0o111) === 0) {
+      return null;
+    }
+
+    return {
+      stat,
+      metadata: runtimeMetadataForExecutable(executablePath, stat, platform),
+    };
   } catch {
-    return false;
+    return null;
   }
+}
+
+async function regularExecutable(executablePath, platform) {
+  return Boolean(await inspectExecutable(executablePath, platform));
 }
 
 async function immediateChildJavaPaths(root, platform, maxChildren) {
@@ -425,8 +476,12 @@ async function discoverJavaCandidates(options = {}) {
 
   const discovered = [];
   for (const candidate of pending.values()) {
-    if (await regularExecutable(candidate.executablePath, platform)) {
-      discovered.push(candidate);
+    const inspection = await inspectExecutable(candidate.executablePath, platform);
+    if (inspection) {
+      discovered.push({
+        ...candidate,
+        metadata: inspection.metadata,
+      });
     }
   }
 
@@ -442,6 +497,7 @@ async function discoverJavaCandidates(options = {}) {
     executablePath: candidate.executablePath,
     source: candidate.source,
     selectedByUser: candidate.source === 'user-selected',
+    metadata: candidate.metadata,
   }));
 
   if (typeof selectedPath === 'string' && selectedPath.trim() && !candidates.some((candidate) => candidate.selectedByUser)) {
@@ -510,6 +566,20 @@ function normalizeNumericVersion(input, { maxComponents = 3 } = {}) {
     components,
     normalized: components.join('.'),
   };
+}
+
+function isCanonicalNumericVersionText(value, maxComponents = 3) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const fragments = value.split('.');
+  if (fragments.length < 1 || fragments.length > maxComponents) {
+    return false;
+  }
+
+  return fragments.every((fragment) => /^\d+$/.test(fragment)
+    && (fragment === '0' || !fragment.startsWith('0')));
 }
 
 function isPlainRecord(value) {
@@ -638,7 +708,7 @@ function normalizePaperRuntimeTargetCatalog(source = PAPER_RUNTIME_TARGET_CATALO
         const prefix = normalized && normalized.components.slice(0, group.components.length);
         if (!normalized
           || normalized.raw !== entry
-          || normalized.normalized !== entry
+          || !isCanonicalNumericVersionText(entry, 3)
           || normalized.components[0] < 1
           || !prefix
           || compareVersionComponents(prefix, group.components) !== 0) {

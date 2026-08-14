@@ -641,6 +641,17 @@ h3 {
   color: var(--md-sys-color-on-primary-container);
 }
 
+.java-runtime-candidate__metadata {
+  overflow-wrap: anywhere;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.java-runtime-candidate.is-selected .java-runtime-candidate__metadata {
+  color: var(--md-sys-color-on-primary-container);
+}
+
 .java-runtime-assessment {
   display: grid;
   gap: 12px;
@@ -686,6 +697,46 @@ h3 {
 
 .java-runtime-assessment__plan {
   color: var(--md-sys-color-on-surface-variant);
+}
+
+.java-runtime-setup-plan {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.java-runtime-setup-plan h5 {
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 13px;
+}
+
+.java-runtime-setup-plan__routes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 9px;
+}
+
+.java-runtime-setup-route {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container);
+}
+
+.java-runtime-setup-route strong {
+  color: var(--md-sys-color-on-surface);
+  font-size: 12px;
+}
+
+.java-runtime-setup-route small {
+  overflow-wrap: anywhere;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .form-grid {

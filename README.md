@@ -45,17 +45,20 @@ execution. See [Planner Handoff v1](docs/site/planner-handoff-v1.md).
 
 The desktop foundation can collect a typed normalized draft, use narrow native
 folder/JAR/Java/configuration pickers, guide bounded Java runtime discovery
-through opaque candidate IDs, probe one selected Java runtime with fixed direct
-arguments, validate a bounded snapshot of the official Paper Downloads Service
-project-version catalog, persist a local draft, display a tokenized
+through opaque candidate IDs, show safe candidate metadata, choose either a Java
+executable or Java home folder, probe one selected Java runtime with fixed
+direct arguments, validate a bounded snapshot of the official Paper Downloads
+Service project-version catalog, persist a local draft, display a tokenized
 direct-argument preview, and show typed Paper/Spigot catalog categories. A
 Paper target present in the snapshot and covered by the documented requirements
 matrix can produce the existing requirement state; malformed, unknown, absent,
 or out-of-matrix targets remain unverified, and Spigot compatibility remains
-separately unverified. It deliberately does not expose a renderer process
+separately unverified. When no compatible Java runtime is available, the
+desktop shows a review-only setup plan with official Paper source metadata; it
+does not execute any route. It deliberately does not expose a renderer process
 launcher, Java-path text field, shell field, RCON route, arbitrary command
-route, installer, package-manager action, download, or automatic-update
-transport.
+route, installer, package-manager action, download, server configuration write,
+or automatic-update transport.
 
 Sensitive material is out of scope across both surfaces. Do not put RCON
 passwords, keystores, tokens, SSH material, private server addresses, player

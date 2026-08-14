@@ -30,10 +30,16 @@ server action.
   draft; it is not a server operation, remote transport, filesystem-control,
   configuration-write, or execution feature.
 - Added a guided desktop Java-runtime review surface that owns candidate paths
-  in the privileged process, exposes opaque candidate IDs and parsed probe
-  facts to the renderer, and keeps Paper compatibility conditional on the
-  bundled target catalog and documented matrix while Spigot remains explicitly
-  unverified.
+  in the privileged process, exposes opaque candidate IDs, safe candidate
+  metadata, native executable/home-folder choices, and parsed probe facts to
+  the renderer, and keeps Paper compatibility conditional on the bundled target
+  catalog and documented matrix while Spigot remains explicitly unverified.
+- Added the focused Java-runtime guidance regression for direct `-version`
+  probing, canonical Paper catalog resolution, compatible/missing-runtime
+  states, review-only setup routes, and prohibited shell/package-manager,
+  download, file-write, server, and configuration side effects. A fresh linked
+  checkout without local dependencies still needs the declared build toolchain
+  before main/renderer build checks can run.
 - Added a strict schema-version-1, bounded Paper Downloads Service project-
   version snapshot adapter. It rejects malformed or unknown catalog data,
   feeds only validated numeric version keys into the existing Paper Java

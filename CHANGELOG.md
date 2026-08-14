@@ -16,6 +16,12 @@
   English and Cantonese funny levels from 1 through 5.
 - Wired the persisted dialog/message-box emoji toggle to non-blocking desktop
   message content while keeping controls and accessible names emoji-free.
+- Added guided Java executable and Java-home-folder pickers, bounded candidate
+  metadata rows, direct selected-executable probing, and a review-only setup
+  plan for Paper's officially documented Java recommendation.
+- Corrected canonical numeric version validation so the checked-in Paper catalog
+  accepts both `1.20` and `1.20.6` without broadening the source or applying it
+  to Spigot.
 
 ### Verification
 
@@ -28,6 +34,9 @@
   because the repository has no root lockfile.
 - Added `npm run test:desktop-presentation-settings`, including payload-free
   mode, slider, emoji, persistence, and exact negative-registration checks.
+- Added `npm run test:java-runtime-guidance`, covering picker normalization,
+  bounded metadata, direct probe arguments, Paper/Spigot assessment states,
+  review-only setup routes, and exact negative side-effect checks.
 - Source and build checks do not claim packaged runtime interaction, screen
   reader interaction, installer execution, or real capture evidence.
 
