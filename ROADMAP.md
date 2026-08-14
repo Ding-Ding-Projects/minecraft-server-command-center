@@ -79,12 +79,19 @@ server action.
   The payload-free negative regression and renderer/main builds remain source
   and build evidence only; packaged runtime interaction and captures remain
   unverified.
-- Added the bounded desktop personal-vocabulary control slice: a native local
-  JSON picker, complete-file validation before atomic cache replacement, typed
-  main/preload wiring, renderer status/replace/clear controls, localized copy,
-  command-palette focus routes, and fail-closed cache recovery. The focused
-  payload-free check and source/build path do not prove packaged runtime
-  interaction or captures.
+- Added the accepted Wegener repair lane for the bounded personal-vocabulary
+  control: corrupt and transient cache reads now have separate recovery
+  semantics, native picker title/filter copy crosses the typed language-aware
+  IPC boundary, bilingual presentation labels the two exact language segments,
+  School mode suppresses the active vocabulary and palette routes while
+  retaining prior choices, and protected factual text boundaries extend past
+  whitespace-delimited tokens. The lane also adds exact payload-free negative
+  checks for malformed and invalid-UTF-8 input, multibyte and all schema bounds,
+  duplicate/unsafe nested keys, I/O, IPC load/clear, palette visibility,
+  keyboard/screen-reader contracts, and the no-network path. Target:
+  [61e7839](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571); implementation:
+  [d6461e8](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61). Source/build checks pass;
+  packaged runtime interaction and captures remain unverified.
 
 ## Next implementation slices
 

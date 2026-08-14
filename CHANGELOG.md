@@ -4,6 +4,20 @@
 
 ### Changed
 
+- Repaired the bounded personal-vocabulary boundary from target commit
+  [`61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571) in implementation commit
+  [`d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61): corrupt cache data is distinguished from transient open/read/permission failures; persisted status and active validated wording are preserved on transient failures; and clear/cache-loss semantics remain truthful.
+- Routed native picker title/filter copy through the selected language at the
+  typed preload/IPC boundary with English fallback. Bilingual presentation now
+  labels distinct English and Cantonese segments, while the command palette
+  and regex builders use presentation resources and actual visibility/state
+  before advertising or focusing controls.
+- Suppressed personal vocabulary on desktop and companion surfaces while
+  School mode is active, including startup, presentation, accessibility, and
+  palette state, while retaining prior choices for restoration. Extended
+  protected text boundaries to paths, URLs, identifiers, commands, code,
+  shell transcripts, versions, timestamps, and factual external records.
+
 - Changed the release line-count command to consume large `git blame
   --line-porcelain --root` output incrementally, avoiding Node's
   `spawnSync git ENOBUFS` failure without changing line buckets or surviving-line
@@ -32,6 +46,14 @@
   to Spigot.
 
 ### Verification
+
+- Added payload-free boundary coverage for invalid UTF-8, multibyte payloads,
+  entry/string/nesting limits, duplicate and unsafe nested keys, transient I/O,
+  IPC load/clear registration, hidden/filtered/disabled palette routes,
+  keyboard and screen-reader contracts, exact-boundary replacement, and the
+  complete no-network path. The focused checks and `npm run build` passed on
+  2026-08-14. Packaged runtime interaction, live screen-reader interaction,
+  installer execution, and real captures remain unverified.
 
 - Added `npm run test:release-line-count`; it requires the current
   `site/app/page.tsx` blame output to exceed 1 MiB and verifies the full counter

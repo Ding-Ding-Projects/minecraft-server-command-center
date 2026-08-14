@@ -86,10 +86,10 @@ limits are 64 KiB for the complete file, 128 entries, 160 characters per
 string, four nesting levels, unique source keys, known object fields only,
 safe object keys, and no duplicate JSON keys. Malformed JSON, unsupported
 schema versions, unexpected fields, duplicate keys, unsafe keys, over-limit
-payloads, and partial records are rejected without replacing the last valid
-cache. Clearing the control removes the local cache. The cache is not sent to
-a server and this source does not place real private vocabulary values in
-tests, documentation, logs, exports, or public records.
+payloads, and partial records are rejected before replacement. Clearing the
+control removes the local cache. The cache is not sent to a server and this
+source does not place real private vocabulary values in tests, documentation,
+logs, exports, or public records.
 
 The companion surface applies a validated entry set through its private
 user-facing text boundary. Replacement is one-pass over the original copy, so
@@ -110,42 +110,65 @@ entry set for the active private text boundary plus status and count; the
 persisted universal-settings record stores status and count only. A cancelled
 selection leaves the active state unchanged.
 
-An invalid, unreadable, over-limit, or unsupported file is rejected before any
-cache replacement, so the last valid cache and displayed wording remain active.
-Cache restoration revalidates the complete bytes on every load and removes a
-corrupt or unsupported cache before returning the empty state. Clear removes
-the cache and restores the original shipped wording immediately. Cache writes
-use a same-directory temporary file and atomic rename, with restrictive local
-file permissions. File contents, source paths, and raw bytes are not logged,
-exported, placed in settings JSON, or sent over a network.
+Cache restoration revalidates the complete bytes on every load and classifies
+the result before choosing a recovery path. A missing cache is the explicit
+empty state. Malformed JSON, invalid UTF-8, empty or oversized bytes, duplicate
+or unsafe keys, unsupported schema, unexpected fields, and other bound
+violations are corruption: the cache is removed and the renderer returns to
+original wording. An open, permission, or read failure is transient
+unavailability: the main process rejects the load with a distinct error, and
+the renderer preserves the persisted status and any already-active validated
+entries instead of claiming that the cache is empty. If a corrupt cache cannot
+be removed, that removal failure takes the same preserve-and-report path.
+
+Clear is a separate explicit action. Its `personal-vocabulary:clear` IPC route
+removes the local cache, drops active entries, persists the empty status, and
+restores original shipped wording only after the removal succeeds. The
+`personal-vocabulary:load` and `personal-vocabulary:clear` routes stay in the
+typed preload/main bridge; file contents, source paths, and raw bytes are not
+logged, exported, placed in settings JSON, or sent over a network.
+
+The native picker title and JSON filter are presentation resources selected by
+the current language mode and passed through the typed preload/IPC boundary;
+invalid or missing mode input falls back to English. Bilingual accessible
+names and copy use distinct `English: ... · Cantonese: ...` segments, so the
+two exact language records are not blended into one unlabeled string.
 
 The settings search and `Ctrl+Shift+F` command palette index the upload,
-replace, status, and clear controls. Palette results focus the exact control;
-clearing still requires the explicit settings action. School mode omits the
-personal-vocabulary card and its palette commands together with the other
-language and personalization controls.
+replace, status, and clear controls only when their actual target is present,
+visible, and enabled. Palette execution repeats that availability check before
+focusing, so a filtered, hidden, disabled, or stale result cannot focus or
+advertise an unavailable control. School mode omits the personal-vocabulary
+card and its palette commands together with the other language and
+personalization controls.
 
-Complete app-wide localization and desktop application remain explicit
-implementation items, not implied by this bounded desktop slice.
+The desktop presentation boundary applies presentation resources first and
+the personal-vocabulary replacement exactly once at the final user-facing
+boundary. Notification details, accessible names, palette status, and regex
+builder status use the same single-application rule. Code, commands, URLs,
+paths, identifiers, quoted or fenced code, shell transcript lines, versions,
+timestamps, and factual external records remain protected beyond simple
+whitespace token matching.
 
-Selecting a new file validates the complete payload before the cache or active
-entry set changes. A read, validation, or local-storage failure leaves the
-previous valid cache and displayed wording intact. Clearing the control removes
-the private cache, drops the active entry set, and restores the original
-shipped wording; an invalid cache is removed and fails closed to that same
-empty state during restoration.
+This repair is based on [target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571) and implemented in [commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61). It remains a bounded source slice, not a claim of complete app-wide localization or packaged desktop behavior.
 
 ## School mode and recovery
 
 School mode is stored in the same normalized record and has a user-selected
 display name. When enabled on the companion site, English is forced and the
 language, funny-level, emoji, and personal-vocabulary controls are omitted
-from the visible settings surface. Turning it off requires the locally stored
-unlock digest. This is a user-experience lock, not a security boundary; clearing
-the site's browser storage resets it. The desktop renderer currently provides
-the shared setting and hides the optional language controls while the mode is
-enabled, but its full cross-application propagation and credential-factor
-contract are not yet verified.
+from the visible settings surface; the root text boundary receives an empty
+entry set. Turning it off requires the locally stored unlock digest. This is a
+user-experience lock, not a security boundary; clearing the site's browser
+storage resets it.
+
+On desktop, the effective presentation settings force English, serious level-1
+copy, and no dialog emoji while School mode is active. The personal-vocabulary
+card and its palette commands are hidden, the active replacement set is empty,
+and the stored language, funny levels, emoji choice, vocabulary status, and
+entries remain available for restoration after unlock. The complete
+cross-application propagation and credential-factor contract are not yet
+verified.
 
 ## Logo and appearance boundary
 
@@ -200,8 +223,10 @@ npm run build:renderer
 ```
 
 Those commands verify the exact search registrations, shortcut, negative
-removals, shared bounds, and desktop source builds. They do not prove packaged
-runtime interaction, screen-reader interaction, or a real capture.
+removals, shared bounds, and desktop source builds. The companion boundary
+check also asserts the no-network path and transient-storage preservation.
+They do not prove packaged runtime interaction, screen-reader interaction, or
+a real capture.
 
 It validates default normalization, bounded vocabulary acceptance and
 rejection, duplicate-key and unsafe-key rejection, pattern bounds, and
@@ -213,7 +238,8 @@ companion artifacts. `npm --prefix site run lint` completed with two
 accessibility interaction, and real captures remain unverified because the
 required approved headless route is not available in this session. This
 implementation and verification record are carried by
-[`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
+[target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571)
+and [repair commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61).
 
 ## Related articles
 

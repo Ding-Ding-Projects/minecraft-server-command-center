@@ -6,11 +6,12 @@ The Windows desktop renderer now has one local presentation contract for the
 settings it actually exposes: English, playful Hong Kong-style Cantonese, and
 bilingual language modes; independent English and Cantonese funny-level
 sliders from 1 through 5; and a persisted dialog/message-box emoji toggle.
-This slice changes desktop copy and its controls only. It does not add School
-mode, narration, tabs, locks, file conversion, Ollama management, or companion
-site behavior. The related desktop personal-vocabulary control is documented
-in [Universal settings](universal-settings.md) and is limited to local JSON
-selection, validation, cache replacement, and clear behavior.
+This slice changes desktop copy and its controls only. It does not add
+narration, tabs, locks, file conversion, Ollama management, or companion-site
+runtime behavior. It does include the accepted repair boundary for School mode,
+the native personal-vocabulary picker, the command palette, and the anchored
+regex builders. The related local JSON control is documented in [Universal
+settings](universal-settings.md).
 
 ## Behavior
 
@@ -32,6 +33,19 @@ non-blocking message-box/snackbar content and selected live settings-status
 messages. Emoji are never inserted into buttons, action labels, form labels,
 slider accessible names, or other control text. Turning the toggle off removes
 the decoration while preserving the factual copy.
+
+The native personal-vocabulary picker receives the selected language through
+the typed preload and IPC boundary. Its title and JSON filter use presentation
+resources, with English as the fallback for invalid input. Bilingual labels
+expose separate `English: ...` and `Cantonese: ...` segments and preserve the
+exact language-specific names.
+
+The command palette and each desktop regex builder use presentation resources
+for shell copy, labels, status messages, and accessible names. Palette results
+are derived from actual target visibility, filtering, and enabled state;
+School mode removes personal-vocabulary routes, and execution repeats the
+availability check before focus moves. A stale or disabled result therefore
+does not advertise or focus a control that cannot be used.
 
 ## Configuration and persistence
 
@@ -73,10 +87,23 @@ The settings surface includes a keyboard- and screen-reader-operable native
 JSON picker for a local personal-vocabulary file. Its status, entry count,
 replace action, and clear action are localized through the same presentation
 contract. The complete file is validated before an atomic cache replacement;
-an invalid file leaves the prior valid cache and wording active, while clear
-purges the cache and restores the original shipped wording. The settings
-search and command palette focus these controls without exposing source paths
-or file contents. The persisted settings record carries status and count only.
+corruption is removed and fails closed to original wording, while transient
+open/read/permission failures preserve persisted status and already-active
+validated entries. Clear purges the cache and restores the original shipped
+wording only after removal succeeds. The settings search and command palette
+focus these controls without exposing source paths or file contents. The
+persisted settings record carries status and count only.
+
+School mode forces the desktop presentation to serious English with no emoji
+and an empty active personal-vocabulary set. The hidden card and palette routes
+do not become discoverable through accessibility or stale search results; the
+prior choices remain stored for restoration after unlock.
+
+The personal-vocabulary replacement is applied once at the final user-facing
+boundary, including notification detail and accessible-name paths. Protected
+URLs, paths, identifiers, commands, code, shell transcripts, versions,
+timestamps, and factual external records remain unchanged even when a source
+term appears inside them.
 
 This related control is a local-only source slice. It does not claim packaged
 runtime interaction, screen-reader interaction, or real capture evidence.
@@ -88,21 +115,31 @@ The focused payload-free check is:
 ```text
 npm run test:desktop-presentation-settings
 npm run test:desktop-personal-vocabulary
+npm run test:personal-vocabulary
+npm run test:universal-contracts
+npm run test:desktop-search
+npm run build
 ```
 
 It exercises all three language modes, independent funny-level changes,
 emoji-on/emoji-off rendering, the local persistence registrations, and an
 exact negative regression for every required presentation or control
-registration. The renderer and privileged TypeScript builds remain:
+registration. The personal-vocabulary checks cover malformed and invalid
+UTF-8 input, multibyte and bounded payloads, duplicate and unsafe nested keys,
+transient cache I/O, IPC load/clear registration, protected text boundaries,
+School-mode suppression, palette visibility, keyboard/screen-reader contracts,
+and the no-network path. The renderer and privileged TypeScript builds remain:
 
 ```text
 npm run build:renderer
 npm run build:main
 ```
 
-These checks do not claim packaged-runtime interaction, screen-reader
-interaction, installer execution, or real capture evidence. Those remain a
-separate verification boundary for the parent release task.
+These checks do not claim packaged-runtime interaction, live screen-reader
+interaction, installer execution, or real capture evidence. Those remain
+unverified because the approved headless route was unavailable in this session.
+The repair is based on [target commit `61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571)
+and implemented in [commit `d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61).
 
 ## Suggested articles
 

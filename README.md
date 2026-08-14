@@ -35,10 +35,15 @@ build evidence, not packaged-runtime or capture evidence.
 The desktop settings surface also provides a local personal-vocabulary JSON
 control. The native picker validates the complete bounded payload before an
 atomic cache replacement, keeps source paths and file contents out of the
-settings record, and restores the original shipped wording when the cache is
-cleared or fails validation. Its focused payload-free check is
-`npm run test:desktop-personal-vocabulary`; packaged-runtime interaction and
-captures remain unverified.
+settings record, and routes its localized title/filter through the typed
+preload and IPC boundary. Corrupt cache data is removed and fails closed;
+transient open/read/permission failures preserve persisted status and any
+already-active validated entries. School mode forces serious English, hides
+the vocabulary card and palette routes, and keeps prior choices for
+restoration. The focused payload-free checks are
+`npm run test:desktop-personal-vocabulary`, `npm run test:personal-vocabulary`,
+and `npm run test:desktop-presentation-settings`; packaged-runtime
+interaction, live screen-reader interaction, and captures remain unverified.
 
 ## Current boundaries
 

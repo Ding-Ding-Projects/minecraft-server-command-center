@@ -41,11 +41,34 @@ Read `docs/site/README.md` and
 The companion and desktop also contain a partial universal-settings
 foundation. Read `docs/reference/universal-settings.md` before extending it.
 The foundation is bounded and local-only: it does not imply cloud sync,
-credential storage, server access, or complete localization. The companion
-personal-vocabulary loader and the desktop native picker validate a complete
-local JSON file before applying it; the desktop cache, typed bridge, replace,
-clear, and original-wording recovery path are covered by the focused source
-check. Packaged runtime interaction and capture evidence remain unverified.
+credential storage, server access, or complete localization. The accepted
+Wegener repair lane is based on target commit
+[`61e7839`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/61e783918a1f44c672cb05a62386f0db8da61571)
+and is implemented in
+[`d6461e8`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d6461e802192561f25ef42e4800434c0eba29e61).
+
+The companion personal-vocabulary loader and desktop native picker validate a
+complete local JSON file before applying it. Corrupt cache data is removed and
+returns to original wording; transient open/read/permission failures preserve
+the persisted status and any already-active validated entries. The desktop
+picker title/filter uses the selected language through the typed preload/IPC
+boundary with English fallback. Bilingual accessible names label distinct
+English and Cantonese segments. School mode forces serious English, no emoji,
+and an empty active vocabulary set on both surfaces while retaining prior
+choices for restoration. Palette routes check actual visibility, filtering,
+and enabled state before advertising or focusing a result. Replacement is
+applied once at the final user-facing boundary, and URLs, paths, identifiers,
+commands, code, shell transcripts, versions, timestamps, and factual external
+records remain protected.
+
+Focused source checks are `npm run test:universal-contracts`,
+`npm run test:personal-vocabulary`, `npm run test:desktop-personal-vocabulary`,
+`npm run test:desktop-presentation-settings`, and
+`npm run test:desktop-search`; `npm run test:desktop-notification-center`,
+`npm run test:offline-documentation`, `npm run test:site-notification-center`,
+and `npm run build` also passed on 2026-08-14. Packaged runtime interaction,
+live screen-reader interaction, and real captures remain unverified because
+the approved headless route was unavailable.
 
 Read `docs/reference/notification-centre.md` before extending either review
 surface. The desktop article is already registered in
