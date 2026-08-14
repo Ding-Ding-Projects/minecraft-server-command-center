@@ -71,4 +71,3 @@ try {
 }
 
 console.log("PASS: Java runtime manager build seam, byte-match, and absent-output negative regression");
-

@@ -15,4 +15,3 @@ try {
   console.error("Required Java runtime manager copy failed.", error);
   process.exitCode = 1;
 }
-
