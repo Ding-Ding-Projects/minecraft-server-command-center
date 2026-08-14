@@ -851,7 +851,14 @@ export default function Home() {
 
   useEffect(() => {
     const restore = () => {
-      const saved = window.localStorage.getItem(UNIVERSAL_STORAGE_KEY);
+      let saved: string | null = null;
+      let settingsStorageAvailable = true;
+      try {
+        saved = window.localStorage.getItem(UNIVERSAL_STORAGE_KEY);
+      } catch {
+        settingsStorageAvailable = false;
+        publishNotice({ tone: "warning", title: "Universal settings unavailable", detail: "The browser could not read the local settings record. Existing in-memory choices remain active." });
+      }
       let parsed: unknown;
       try {
         parsed = saved ? JSON.parse(saved) as unknown : undefined;
@@ -859,12 +866,34 @@ export default function Home() {
         parsed = undefined;
       }
       const universalResult = parseUniversalSettings(parsed);
-      setUniversalSettings(universalResult.ok ? universalResult.value : DEFAULT_UNIVERSAL_SETTINGS);
-      if (!universalResult.ok) window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
-      const unlockHash = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+      const restoredSettings = universalResult.ok ? universalResult.value : DEFAULT_UNIVERSAL_SETTINGS;
+      setUniversalSettings(restoredSettings);
+      if (!universalResult.ok && settingsStorageAvailable) {
+        try {
+          window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
+        } catch {
+          publishNotice({ tone: "warning", title: "Universal settings could not be reset", detail: "The invalid local settings record could not be removed; the in-memory bounded defaults remain active." });
+        }
+      }
+      let unlockHash: string | null = null;
+      try {
+        unlockHash = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+      } catch {
+        publishNotice({ tone: "warning", title: "School mode unlock unavailable", detail: "The browser could not read the local unlock record; the current mode remains unchanged." });
+      }
       setSchoolUnlockConfigured(Boolean(unlockHash));
-      const cachedVocabulary = window.localStorage.getItem(PERSONAL_VOCABULARY_CACHE_KEY);
-      if (cachedVocabulary) {
+      let cachedVocabulary: string | null = null;
+      let vocabularyCacheAvailable = true;
+      try {
+        cachedVocabulary = window.localStorage.getItem(PERSONAL_VOCABULARY_CACHE_KEY);
+      } catch {
+        vocabularyCacheAvailable = false;
+        publishNotice({ tone: "warning", title: "Personal vocabulary cache unavailable", detail: "The browser could not read the local vocabulary cache. The persisted vocabulary status and previous active wording remain unchanged." });
+      }
+      if (!vocabularyCacheAvailable) {
+        // Keep any already-active validated entries when storage is transiently unavailable.
+        // The persisted status is intentionally not rewritten to an empty state.
+      } else if (cachedVocabulary !== null) {
         const result = parsePersonalVocabularyJson(cachedVocabulary);
         if (result.ok) {
           setPersonalVocabularyEntries(result.value.entries);
@@ -873,19 +902,25 @@ export default function Home() {
             personalVocabulary: { status: "loaded", entryCount: result.value.entries.length },
           }));
         } else {
-          window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
-          setPersonalVocabularyEntries([]);
+          try {
+            window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+            setPersonalVocabularyEntries([]);
+            setUniversalSettings((current) => ({
+              ...current,
+              personalVocabulary: { status: "empty", entryCount: 0 },
+            }));
+          } catch {
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. The persisted status remains unchanged." });
+          }
+        }
+      } else {
+        setPersonalVocabularyEntries([]);
+        if (restoredSettings.personalVocabulary.status === "loaded") {
           setUniversalSettings((current) => ({
             ...current,
             personalVocabulary: { status: "empty", entryCount: 0 },
           }));
         }
-      } else {
-        setPersonalVocabularyEntries([]);
-        setUniversalSettings((current) => ({
-          ...current,
-          personalVocabulary: { status: "empty", entryCount: 0 },
-        }));
       }
       const cachedLogo = window.localStorage.getItem(CUSTOM_LOGO_CACHE_KEY);
       if (cachedLogo?.startsWith("data:image/")) {
@@ -2548,7 +2583,7 @@ export default function Home() {
   };
 
   return (
-    <PersonalVocabularyBoundary entries={personalVocabularyEntries}>
+    <PersonalVocabularyBoundary entries={universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries}>
       <main className="planner-shell" style={appStyle}>
       <a className="skip-link" href="#planner-content">Skip to planner content</a>
       <header className="top-app-bar">

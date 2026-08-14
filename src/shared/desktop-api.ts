@@ -1,6 +1,6 @@
 import type { ServerDraft } from "./server-draft";
 import type { PlannerHandoffPreview } from "./planner-handoff";
-import type { PersonalVocabularyEntryV1, UniversalSettingsV1 } from "./universal-contracts";
+import type { PersonalVocabularyEntryV1, UniversalLanguageMode, UniversalSettingsV1 } from "./universal-contracts";
 
 export type PickerKind = "folder" | "jar" | "config";
 export type JavaRuntimePickerKind = "executable" | "folder";
@@ -156,7 +156,7 @@ export interface DesktopApi {
   };
   readonly personalVocabulary: {
     load(): Promise<PersonalVocabularyState>;
-    choose(): Promise<PersonalVocabularyState | null>;
+    choose(languageMode?: UniversalLanguageMode): Promise<PersonalVocabularyState | null>;
     clear(): Promise<PersonalVocabularyState>;
   };
   readonly runtime: {

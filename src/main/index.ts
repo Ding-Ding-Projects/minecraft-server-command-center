@@ -1,6 +1,8 @@
 import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
 import { join } from "node:path";
 import type { JavaRuntimePickerKind, PickerKind } from "../shared/desktop-api";
+import { presentDesktopCopy } from "../shared/desktop-presentation";
+import type { UniversalLanguageMode } from "../shared/universal-contracts";
 import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
@@ -74,11 +76,20 @@ async function choosePlannerHandoff() {
   }
 }
 
-async function choosePersonalVocabulary() {
+function normalizedLanguageMode(value: unknown): UniversalLanguageMode {
+  return value === "cantonese" || value === "bilingual" ? value : "english";
+}
+
+async function choosePersonalVocabulary(languageMode: UniversalLanguageMode = "english") {
+  const pickerSettings = {
+    languageMode,
+    funnyLevelEnglish: 1,
+    funnyLevelCantonese: 1,
+  } as const;
   const result = await dialog.showOpenDialog(requireWindow(), {
-    title: "Choose local personal vocabulary JSON",
+    title: presentDesktopCopy("settings.personalVocabulary.picker.title", pickerSettings),
     properties: ["openFile"],
-    filters: [{ name: "Personal vocabulary JSON", extensions: ["json"] }]
+    filters: [{ name: presentDesktopCopy("settings.personalVocabulary.picker.filter", pickerSettings), extensions: ["json"] }]
   });
   if (result.canceled) return null;
 
@@ -154,7 +165,7 @@ function registerIpc(): void {
   });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
   ipcMain.handle("personal-vocabulary:load", () => loadPersonalVocabulary(app.getPath("userData")));
-  ipcMain.handle("personal-vocabulary:choose", () => choosePersonalVocabulary());
+  ipcMain.handle("personal-vocabulary:choose", (_event, languageMode: unknown) => choosePersonalVocabulary(normalizedLanguageMode(languageMode)));
   ipcMain.handle("personal-vocabulary:clear", () => clearPersonalVocabulary(app.getPath("userData")));
   ipcMain.handle("runtime:discover", () => javaRuntimeController.discover());
   ipcMain.handle("runtime:choose", (_event, kind: unknown) => chooseJavaRuntime(normalizedJavaRuntimePickerKind(kind)));

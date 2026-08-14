@@ -73,6 +73,44 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.personalVocabulary.command.statusDescription",
   "settings.personalVocabulary.command.clear",
   "settings.personalVocabulary.command.clearDescription",
+  "settings.personalVocabulary.picker.title",
+  "settings.personalVocabulary.picker.filter",
+  "palette.eyebrow",
+  "palette.title",
+  "palette.help",
+  "palette.close",
+  "palette.search.label",
+  "palette.search.placeholder",
+  "palette.regex.dialogLabel",
+  "palette.regex.tokensLabel",
+  "palette.regex.patternLabel",
+  "palette.regex.placeholder",
+  "palette.regex.ignoreCase",
+  "palette.regex.plainStatus",
+  "palette.regex.ready",
+  "palette.regex.running",
+  "palette.regex.invalid",
+  "palette.status.loading",
+  "palette.status.available",
+  "palette.status.empty",
+  "palette.status.unavailable",
+  "palette.results.label",
+  "palette.command.docsSearch",
+  "palette.command.docsSearchDescription",
+  "palette.command.docsRegex",
+  "palette.command.docsRegexDescription",
+  "palette.command.settingsSearch",
+  "palette.command.settingsSearchDescription",
+  "palette.command.settingsRegex",
+  "palette.command.settingsRegexDescription",
+  "notifications.search.title",
+  "notifications.search.label",
+  "notifications.search.placeholder",
+  "notifications.regex.dialogLabel",
+  "notifications.regex.tokensLabel",
+  "notifications.regex.patternLabel",
+  "notifications.regex.placeholder",
+  "notifications.regex.ignoreCase",
   "settings.appearance.title",
   "settings.appearance.description",
   "settings.appearance.theme",
@@ -369,6 +407,158 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     english: ["Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control for an explicit local action.", "Open Settings and focus clear; a deliberate click is still required.", "Open Settings and focus clear; the palette points, the user decides."],
     cantonese: ["開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣，明確進行本機動作。", "開啟設定並聚焦清除掣；仍然要用戶刻意撳掣。", "開啟設定並聚焦清除掣；命令面板只指路，用戶先決定。"],
   },
+  "settings.personalVocabulary.picker.title": {
+    english: ["Choose local personal vocabulary JSON", "Choose local personal vocabulary JSON", "Choose a local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file; the bytes stay backstage"],
+    cantonese: ["選擇本機個人詞彙 JSON", "選擇本機個人詞彙 JSON", "選擇本機個人詞彙 JSON 檔案", "選擇有界本機個人詞彙 JSON 檔案", "選擇有界本機個人詞彙 JSON 檔案；bytes 留喺後台"],
+  },
+  "settings.personalVocabulary.picker.filter": {
+    english: ["Personal vocabulary JSON", "Personal vocabulary JSON", "Local personal vocabulary JSON", "Bounded local personal vocabulary JSON", "Bounded local personal vocabulary JSON; no mystery formats"],
+    cantonese: ["個人詞彙 JSON", "個人詞彙 JSON", "本機個人詞彙 JSON", "有界本機個人詞彙 JSON", "有界本機個人詞彙 JSON；唔玩神秘格式"],
+  },
+  "palette.eyebrow": {
+    english: ["Desktop navigation", "Desktop navigation", "Desktop navigation, locally", "Desktop navigation without hidden controls", "Desktop navigation; every result must earn its spotlight"],
+    cantonese: ["桌面導覽", "桌面導覽", "本機桌面導覽", "桌面導覽，唔會推隱藏掣出場", "桌面導覽；每個結果都要真係有得撳"],
+  },
+  "palette.title": {
+    english: ["Command palette", "Command palette", "Command palette", "Command palette for available desktop actions", "Command palette; no phantom buttons allowed"],
+    cantonese: ["命令面板", "命令面板", "命令面板", "可用桌面動作命令面板", "命令面板；唔准幽靈掣冒牌"],
+  },
+  "palette.help": {
+    english: ["Press Ctrl+Shift+F anywhere to reopen this palette. Results include only available desktop search surfaces and controls.", "Press Ctrl+Shift+F anywhere to reopen this palette. Results include only available desktop search surfaces and controls.", "Press Ctrl+Shift+F anywhere to reopen this palette. Hidden, filtered, and disabled controls stay out.", "Press Ctrl+Shift+F anywhere to reopen this palette. School mode and actual control state decide what appears.", "Press Ctrl+Shift+F anywhere to reopen this palette. If a control is hiding or disabled, the palette politely leaves it backstage."],
+    cantonese: ["喺任何地方按 Ctrl+Shift+F 再開呢個面板；結果只包括可用嘅桌面搜尋頁面同控制項。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；結果只包括可用嘅桌面搜尋頁面同控制項。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；隱藏、篩走同停用嘅掣唔會出場。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；School mode 同實際控制狀態決定顯示乜。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；掣匿埋或者停用，面板就有禮貌咁留佢喺後台。"],
+  },
+  "palette.close": {
+    english: ["Close", "Close", "Close palette", "Close command palette", "Close command palette; the controls remain where they were"],
+    cantonese: ["關閉", "關閉", "關閉面板", "關閉命令面板", "關閉命令面板；控制項照樣留返原位"],
+  },
+  "palette.search.label": {
+    english: ["Search desktop commands", "Search desktop commands", "Search available desktop commands", "Search available desktop commands locally", "Search available desktop commands before they start playing hide-and-seek"],
+    cantonese: ["搜尋桌面命令", "搜尋桌面命令", "搜尋可用桌面命令", "本機搜尋可用桌面命令", "搜尋可用桌面命令，趁佢哋未玩捉迷藏"],
+  },
+  "palette.search.placeholder": {
+    english: ["Search Docs or settings…", "Search Docs or settings…", "Search Docs or settings locally…", "Search available Docs or settings…", "Search available Docs or settings; invisible controls get no invitation…"],
+    cantonese: ["搜尋文件或設定…", "搜尋文件或設定…", "本機搜尋文件或設定…", "搜尋可用文件或設定…", "搜尋可用文件或設定；匿埋嘅掣冇邀請函…"],
+  },
+  "palette.regex.dialogLabel": {
+    english: ["Regex builder for desktop commands", "Regex builder for desktop commands", "Local Regex builder for desktop commands", "Bounded local Regex builder for desktop commands", "Bounded local Regex builder for desktop commands; no runaway patterns"],
+    cantonese: ["桌面命令 Regex 建構器", "桌面命令 Regex 建構器", "桌面命令本機 Regex 建構器", "桌面命令有界本機 Regex 建構器", "桌面命令有界本機 Regex 建構器；唔俾模式失控"],
+  },
+  "palette.regex.tokensLabel": {
+    english: ["Command palette regex pattern shortcuts", "Command palette regex pattern shortcuts", "Command palette Regex shortcuts", "Bounded command palette Regex shortcuts", "Bounded command palette Regex shortcuts; tiny buttons, sensible patterns"],
+    cantonese: ["命令面板 Regex 模式快捷鍵", "命令面板 Regex 模式快捷鍵", "命令面板 Regex 快捷鍵", "有界命令面板 Regex 快捷鍵", "有界命令面板 Regex 快捷鍵；掣細細，模式要醒目"],
+  },
+  "palette.regex.patternLabel": {
+    english: ["Bounded local pattern", "Bounded local pattern", "Bounded local pattern", "Bounded local pattern for available commands", "Bounded local pattern; no runaway regex party"],
+    cantonese: ["有界本機模式", "有界本機模式", "有界本機模式", "可用命令用嘅有界本機模式", "有界本機模式；唔開 Regex 失控派對"],
+  },
+  "palette.regex.placeholder": {
+    english: ["For example: ^Open|Search", "For example: ^Open|Search", "For example: ^Open|Search", "For example: ^Open|Search (bounded)", "For example: ^Open|Search; bounded means the regex behaves"],
+    cantonese: ["例如：^Open|Search", "例如：^Open|Search", "例如：^Open|Search", "例如：^Open|Search（有界）", "例如：^Open|Search；有界先至唔會玩失控"],
+  },
+  "palette.regex.ignoreCase": {
+    english: ["Ignore case", "Ignore case", "Ignore letter case", "Ignore letter case locally", "Ignore letter case; let capitals take a day off"],
+    cantonese: ["忽略大小寫", "忽略大小寫", "忽略字母大小寫", "本機忽略字母大小寫", "忽略字母大小寫；大細階今日放假"],
+  },
+  "palette.regex.plainStatus": {
+    english: ["Plain text search is active. Regex is an explicit local opt-in.", "Plain text search is active. Regex is an explicit local opt-in.", "Plain text search is active; Regex stays opt-in.", "Plain text search is active; Regex stays a bounded local opt-in.", "Plain text search is active; Regex waits politely for an explicit invitation."],
+    cantonese: ["純文字搜尋已啟用；Regex 要明確喺本機開啟。", "純文字搜尋已啟用；Regex 要明確喺本機開啟。", "純文字搜尋已啟用；Regex 仍然要自己開。", "純文字搜尋已啟用；Regex 仍然係有界本機選擇。", "純文字搜尋已啟用；Regex 有禮貌咁等你明確邀請。"],
+  },
+  "palette.regex.ready": {
+    english: ["Regex mode is ready. Add a bounded pattern or choose a token.", "Regex mode is ready. Add a bounded pattern or choose a token.", "Regex mode is ready; add a bounded pattern or choose a token.", "Regex mode is ready; add a bounded pattern or choose a token for available commands.", "Regex mode is ready; feed it a bounded pattern before it starts making abstract art."],
+    cantonese: ["Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；喺可用命令加入有界模式或者揀一個字元。", "Regex 模式準備好；俾佢食有界模式，唔好等佢畫抽象畫。"],
+  },
+  "palette.regex.running": {
+    english: ["Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands; no network request is made.", "Pattern runs locally against available desktop commands; no network request gets a backstage pass."],
+    cantonese: ["模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行；唔會發出網絡請求。", "模式會喺可用桌面命令度本機執行；網絡請求冇後台通行證。"],
+  },
+  "palette.regex.invalid": {
+    english: ["The local regex pattern is invalid.", "The local regex pattern is invalid.", "The local regex pattern is invalid for this search.", "The local regex pattern is invalid; fix it before filtering commands.", "The local regex pattern is invalid; it tripped over its own brackets."],
+    cantonese: ["本機 Regex 模式無效。", "本機 Regex 模式無效。", "呢個搜尋嘅本機 Regex 模式無效。", "本機 Regex 模式無效；修正後先可以篩選命令。", "本機 Regex 模式無效；佢俾自己啲括號絆倒咗。"],
+  },
+  "palette.status.loading": {
+    english: ["Loading available desktop search surfaces…", "Loading available desktop search surfaces…", "Loading available desktop search surfaces locally…", "Checking actual visibility and enabled state…", "Checking actual visibility and enabled state; phantom controls stay outside…"],
+    cantonese: ["載入可用桌面搜尋頁面中…", "載入可用桌面搜尋頁面中…", "本機載入可用桌面搜尋頁面中…", "檢查實際可見同啟用狀態中…", "檢查實際可見同啟用狀態中；幽靈控制項留喺門外…"],
+  },
+  "palette.status.available": {
+    english: ["{count} command(s) available.", "{count} command(s) available.", "{count} command(s) are available locally.", "{count} available command(s); hidden and disabled controls are excluded.", "{count} available command(s); the palette counted real controls, not decorative ghosts."],
+    cantonese: ["有 {count} 個命令可用。", "有 {count} 個命令可用。", "本機有 {count} 個命令可用。", "有 {count} 個命令可用；隱藏同停用控制項已剔除。", "有 {count} 個命令可用；面板數真掣，唔數裝飾幽靈。"],
+  },
+  "palette.status.empty": {
+    english: ["No available desktop search surface matches this query.", "No available desktop search surface matches this query.", "No available desktop search surface matches this local query.", "No visible and enabled desktop search surface matches this query.", "No visible and enabled desktop search surface matches this query; the hidden controls are not pretending."],
+    cantonese: ["冇可用桌面搜尋頁面符合呢個搜尋。", "冇可用桌面搜尋頁面符合呢個搜尋。", "冇可用桌面搜尋頁面符合呢個本機搜尋。", "冇可見又啟用嘅桌面搜尋頁面符合呢個搜尋。", "冇可見又啟用嘅桌面搜尋頁面符合呢個搜尋；匿埋嘅掣冇扮嘢。"],
+  },
+  "palette.status.unavailable": {
+    english: ["That command is no longer available; the palette stayed open and no control was focused.", "That command is no longer available; the palette stayed open and no control was focused.", "That command is no longer available in the current desktop state.", "That command is hidden, filtered, or disabled in the current state.", "That command has gone backstage; the palette refuses to focus a phantom."],
+    cantonese: ["嗰個命令已經唔可用；面板保持開啟，冇聚焦任何控制項。", "嗰個命令已經唔可用；面板保持開啟，冇聚焦任何控制項。", "嗰個命令喺目前桌面狀態已經唔可用。", "嗰個命令喺目前狀態隱藏、篩走或者停用。", "嗰個命令去咗後台；面板唔肯聚焦幽靈。"],
+  },
+  "palette.results.label": {
+    english: ["Available desktop command results", "Available desktop command results", "Available local desktop command results", "Visible and enabled desktop command results", "Visible and enabled desktop command results; no phantom rows"],
+    cantonese: ["可用桌面命令結果", "可用桌面命令結果", "可用本機桌面命令結果", "可見又啟用嘅桌面命令結果", "可見又啟用嘅桌面命令結果；冇幽靈行"],
+  },
+  "palette.command.docsSearch": {
+    english: ["Search offline documentation", "Search offline documentation", "Search offline documentation", "Search bundled offline documentation", "Search bundled offline documentation; the articles stay home"],
+    cantonese: ["搜尋離線文件", "搜尋離線文件", "搜尋離線文件", "搜尋內置離線文件", "搜尋內置離線文件；文章留喺屋企"],
+  },
+  "palette.command.docsSearchDescription": {
+    english: ["Open Docs and focus the local article search.", "Open Docs and focus the local article search.", "Open Docs and focus the local article search.", "Open Docs and focus its available local search.", "Open Docs and focus the local search; no browser treasure hunt."],
+    cantonese: ["開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦可用本機搜尋。", "開啟文件並聚焦本機搜尋；唔使出門搵寶藏。"],
+  },
+  "palette.command.docsRegex": {
+    english: ["Open documentation regex builder", "Open documentation regex builder", "Open documentation regex builder", "Open the bundled documentation Regex builder", "Open the bundled documentation Regex builder; bounded patterns only"],
+    cantonese: ["開啟文件 Regex 建構器", "開啟文件 Regex 建構器", "開啟文件 Regex 建構器", "開啟內置文件 Regex 建構器", "開啟內置文件 Regex 建構器；只准有界模式"],
+  },
+  "palette.command.docsRegexDescription": {
+    english: ["Open Docs and focus its anchored Regex builder.", "Open Docs and focus its anchored Regex builder.", "Open Docs and focus its anchored local Regex builder.", "Open Docs and focus its anchored bounded Regex builder.", "Open Docs and focus its anchored bounded Regex builder; the pattern stays in its lane."],
+    cantonese: ["開啟文件並聚焦佢嘅錨定 Regex 建構器。", "開啟文件並聚焦佢嘅錨定 Regex 建構器。", "開啟文件並聚焦錨定本機 Regex 建構器。", "開啟文件並聚焦錨定有界 Regex 建構器。", "開啟文件並聚焦錨定有界 Regex 建構器；模式唔越界。"],
+  },
+  "palette.command.settingsSearch": {
+    english: ["Search universal settings", "Search universal settings", "Search universal settings locally", "Search visible universal settings", "Search visible universal settings; the hidden shelf stays shut"],
+    cantonese: ["搜尋通用設定", "搜尋通用設定", "本機搜尋通用設定", "搜尋可見通用設定", "搜尋可見通用設定；匿埋嗰格繼續關門"],
+  },
+  "palette.command.settingsSearchDescription": {
+    english: ["Open Universal settings and focus its local search.", "Open Universal settings and focus its local search.", "Open Universal settings and focus its local settings search.", "Open Universal settings and focus the available settings search.", "Open Universal settings and focus the available settings search; no phantom teleport."],
+    cantonese: ["開啟通用設定並聚焦本機搜尋。", "開啟通用設定並聚焦本機搜尋。", "開啟通用設定並聚焦本機設定搜尋。", "開啟通用設定並聚焦可用設定搜尋。", "開啟通用設定並聚焦可用設定搜尋；唔會傳送去幽靈位。"],
+  },
+  "palette.command.settingsRegex": {
+    english: ["Open settings regex builder", "Open settings regex builder", "Open settings Regex builder", "Open the visible settings Regex builder", "Open the visible settings Regex builder; bounded and local"],
+    cantonese: ["開啟設定 Regex 建構器", "開啟設定 Regex 建構器", "開啟設定 Regex 建構器", "開啟可見設定 Regex 建構器", "開啟可見設定 Regex 建構器；有界又本機"],
+  },
+  "palette.command.settingsRegexDescription": {
+    english: ["Open Universal settings and focus its anchored Regex builder.", "Open Universal settings and focus its anchored Regex builder.", "Open Universal settings and focus its anchored local Regex builder.", "Open Universal settings and focus its anchored bounded Regex builder.", "Open Universal settings and focus its anchored bounded Regex builder; the settings stay in charge."],
+    cantonese: ["開啟通用設定並聚焦佢嘅錨定 Regex 建構器。", "開啟通用設定並聚焦佢嘅錨定 Regex 建構器。", "開啟通用設定並聚焦錨定本機 Regex 建構器。", "開啟通用設定並聚焦錨定有界 Regex 建構器。", "開啟通用設定並聚焦錨定有界 Regex 建構器；設定話事。"],
+  },
+  "notifications.search.title": {
+    english: ["Search desktop notifications", "Search desktop notifications", "Search desktop notifications locally", "Search desktop notifications without losing the evidence", "Search desktop notifications; the little audit trail gets a proper magnifying glass"],
+    cantonese: ["搜尋桌面通知", "搜尋桌面通知", "本機搜尋桌面通知", "搜尋桌面通知，唔好整走證據", "搜尋桌面通知；細細條記錄都要有放大鏡"],
+  },
+  "notifications.search.label": {
+    english: ["Search desktop notifications", "Search desktop notifications", "Search local desktop notifications", "Search local desktop notifications", "Search local desktop notifications before the records start hiding"],
+    cantonese: ["搜尋桌面通知", "搜尋桌面通知", "搜尋本機桌面通知", "搜尋本機桌面通知", "搜尋本機桌面通知，趁記錄未開始匿埋"],
+  },
+  "notifications.search.placeholder": {
+    english: ["Search notices…", "Search notices…", "Search local notices…", "Search notification records…", "Search notification records; facts stay factual…"],
+    cantonese: ["搜尋通知…", "搜尋通知…", "本機搜尋通知…", "搜尋通知記錄…", "搜尋通知記錄；事實繼續係事實…"],
+  },
+  "notifications.regex.dialogLabel": {
+    english: ["Regex builder for desktop notifications", "Regex builder for desktop notifications", "Local Regex builder for desktop notifications", "Bounded local Regex builder for desktop notifications", "Bounded local Regex builder for desktop notifications; no notification confetti"],
+    cantonese: ["桌面通知 Regex 建構器", "桌面通知 Regex 建構器", "桌面通知本機 Regex 建構器", "桌面通知有界本機 Regex 建構器", "桌面通知有界本機 Regex 建構器；唔搞通知紙碎"],
+  },
+  "notifications.regex.tokensLabel": {
+    english: ["Desktop notification regex pattern shortcuts", "Desktop notification regex pattern shortcuts", "Desktop notification Regex shortcuts", "Bounded desktop notification Regex shortcuts", "Bounded desktop notification Regex shortcuts; audit-friendly"],
+    cantonese: ["桌面通知 Regex 模式快捷鍵", "桌面通知 Regex 模式快捷鍵", "桌面通知 Regex 快捷鍵", "有界桌面通知 Regex 快捷鍵", "有界桌面通知 Regex 快捷鍵；方便查數"],
+  },
+  "notifications.regex.patternLabel": {
+    english: ["Bounded local pattern", "Bounded local pattern", "Bounded local pattern", "Bounded local pattern for notification records", "Bounded local pattern; no runaway notification regex"],
+    cantonese: ["有界本機模式", "有界本機模式", "有界本機模式", "通知記錄用嘅有界本機模式", "有界本機模式；通知 Regex 唔准失控"],
+  },
+  "notifications.regex.placeholder": {
+    english: ["For example: save|draft", "For example: save|draft", "For example: save|draft", "For example: save|draft (bounded)", "For example: save|draft; the records like a tidy pattern"],
+    cantonese: ["例如：save|draft", "例如：save|draft", "例如：save|draft", "例如：save|draft（有界）", "例如：save|draft；記錄都鍾意整齊模式"],
+  },
+  "notifications.regex.ignoreCase": {
+    english: ["Ignore case", "Ignore case", "Ignore letter case", "Ignore letter case locally", "Ignore letter case; let the notification capitals nap"],
+    cantonese: ["忽略大小寫", "忽略大小寫", "忽略字母大小寫", "本機忽略字母大小寫", "忽略字母大小寫；通知大細階瞓陣先"],
+  },
   "settings.appearance.title": {
     english: ["Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent for the desktop shell", "Theme, density, and accent: the shell gets a wardrobe, not a new identity"],
     cantonese: ["主題、密度同強調色", "主題、密度同強調色", "主題、密度同強調色", "桌面外殼嘅主題、密度同強調色", "主題、密度同強調色：外殼換衫，身份唔換"],
@@ -509,7 +699,7 @@ function selectedLanguageCopy(definition: DesktopCopyDefinition, languageMode: U
   const english = definition.english[levelIndex(englishLevel)] ?? definition.english[0] ?? "";
   const cantonese = definition.cantonese[levelIndex(cantoneseLevel)] ?? definition.cantonese[0] ?? "";
   if (languageMode === "cantonese") return cantonese;
-  if (languageMode === "bilingual") return `${english} · ${cantonese}`;
+  if (languageMode === "bilingual") return `English: ${english} · Cantonese: ${cantonese}`;
   return english;
 }
 
