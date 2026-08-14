@@ -25,9 +25,12 @@ type ProtectedRange = {
 
 const PROTECTED_TOKEN_PATTERNS: readonly RegExp[] = [
   /(?:https?|ftp):\/\/[^\s<>"']+/gi,
-  /(?:[A-Za-z]:[\\/]|\\\\)[^\s<>"']+/g,
+  /(["'])(?:[A-Za-z]:[\\/]|\\\\|\/(?:Users|home|etc|var|opt|tmp|Program Files)[\\/])[^"'\r\n]*\1/g,
+  /(?:[A-Za-z]:[\\/]|\\\\|\/(?:Users|home|etc|var|opt|tmp|Program Files)[\\/])[^\s<>"'`,;]+/g,
+  /\b[A-Za-z_][A-Za-z0-9_]*=(?:"[^"]*"|'[^']*'|[^\s,;]+)/g,
   /#[0-9a-f]{6,8}\b/gi,
   /\b(?:v?\d+\.)+\d+(?:-[A-Za-z0-9.-]+)?\b/g,
+  /\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})?)?\b/g,
   /\b[0-9a-f]{8,64}\b/gi,
   /\b(?:[A-Za-z0-9_-]+\.)+[A-Za-z0-9_/-]+\b/g,
   /\b(?:[A-Za-z0-9_-]+\/)+[A-Za-z0-9_.-]*\b/g,
@@ -59,6 +62,36 @@ function isValidEntryList(entries: readonly PersonalVocabularyEntryV1[]): boolea
 
 function collectProtectedRanges(text: string): ProtectedRange[] {
   const ranges: ProtectedRange[] = [];
+  const collectDelimited = (opening: string, closing: string): void => {
+    let cursor = 0;
+    while (cursor < text.length) {
+      const start = text.indexOf(opening, cursor);
+      if (start < 0) return;
+      const endStart = text.indexOf(closing, start + opening.length);
+      const end = endStart < 0 ? text.length : endStart + closing.length;
+      ranges.push({ start, end });
+      cursor = end;
+    }
+  };
+
+  // Mark authored code as one unit before token matching. This covers spaces
+  // and punctuation that token-shaped expressions cannot safely infer.
+  collectDelimited("```", "```");
+  collectDelimited("`", "`");
+
+  // Shell transcripts are factual external records even when the command
+  // contains spaces, flags, URLs, or paths. Keep the prompted line exact.
+  let lineStart = 0;
+  while (lineStart < text.length) {
+    const lineEnd = text.indexOf("\n", lineStart);
+    const end = lineEnd < 0 ? text.length : lineEnd;
+    const line = text.slice(lineStart, end);
+    if (/^\s*(?:\$\s+|PS\s+[^>\r\n]+>\s+|>\s+)/.test(line)) {
+      ranges.push({ start: lineStart, end });
+    }
+    lineStart = lineEnd < 0 ? text.length : lineEnd + 1;
+  }
+
   for (const pattern of PROTECTED_TOKEN_PATTERNS) {
     pattern.lastIndex = 0;
     for (const match of text.matchAll(pattern)) {

@@ -50,6 +50,67 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.school.title",
   "settings.school.description",
   "settings.school.toggle",
+  "settings.personalVocabulary.eyebrow",
+  "settings.personalVocabulary.title",
+  "settings.personalVocabulary.description",
+  "settings.personalVocabulary.privacy",
+  "settings.personalVocabulary.status.empty",
+  "settings.personalVocabulary.status.loaded",
+  "settings.personalVocabulary.entryCount",
+  "settings.personalVocabulary.choose",
+  "settings.personalVocabulary.replace",
+  "settings.personalVocabulary.clear",
+  "settings.personalVocabulary.notice.loaded",
+  "settings.personalVocabulary.notice.rejected",
+  "settings.personalVocabulary.notice.cleared",
+  "settings.personalVocabulary.notice.clearFailed",
+  "settings.personalVocabulary.notice.loadFailed",
+  "settings.personalVocabulary.command.choose",
+  "settings.personalVocabulary.command.chooseDescription",
+  "settings.personalVocabulary.command.replace",
+  "settings.personalVocabulary.command.replaceDescription",
+  "settings.personalVocabulary.command.status",
+  "settings.personalVocabulary.command.statusDescription",
+  "settings.personalVocabulary.command.clear",
+  "settings.personalVocabulary.command.clearDescription",
+  "settings.personalVocabulary.picker.title",
+  "settings.personalVocabulary.picker.filter",
+  "palette.eyebrow",
+  "palette.title",
+  "palette.help",
+  "palette.close",
+  "palette.search.label",
+  "palette.search.placeholder",
+  "palette.regex.dialogLabel",
+  "palette.regex.tokensLabel",
+  "palette.regex.patternLabel",
+  "palette.regex.placeholder",
+  "palette.regex.ignoreCase",
+  "palette.regex.plainStatus",
+  "palette.regex.ready",
+  "palette.regex.running",
+  "palette.regex.invalid",
+  "palette.status.loading",
+  "palette.status.available",
+  "palette.status.empty",
+  "palette.status.unavailable",
+  "palette.results.label",
+  "palette.command.docsSearch",
+  "palette.command.docsSearchDescription",
+  "palette.command.docsRegex",
+  "palette.command.docsRegexDescription",
+  "palette.command.settingsSearch",
+  "palette.command.settingsSearchDescription",
+  "palette.command.settingsRegex",
+  "palette.command.settingsRegexDescription",
+  "notifications.search.title",
+  "notifications.search.label",
+  "notifications.search.placeholder",
+  "notifications.regex.dialogLabel",
+  "notifications.regex.tokensLabel",
+  "notifications.regex.patternLabel",
+  "notifications.regex.placeholder",
+  "notifications.regex.ignoreCase",
   "settings.appearance.title",
   "settings.appearance.description",
   "settings.appearance.theme",
@@ -249,6 +310,255 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     english: ["Enable focus mode", "Enable focus mode", "Enable the focus setting", "Enable the focus setting", "Enable the focus setting; the label remains yours to rename"],
     cantonese: ["啟用專注模式", "啟用專注模式", "啟用專注設定", "啟用專注設定", "啟用專注設定；個名由你改"],
   },
+  "settings.personalVocabulary.eyebrow": {
+    english: ["Private local vocabulary", "Private local vocabulary", "Private local vocabulary, kept on this computer", "Private local vocabulary, no server detour", "Private local vocabulary, the server did not get an invitation"],
+    cantonese: ["本機私人詞彙", "本機私人詞彙", "本機私人詞彙，留喺呢部電腦", "本機私人詞彙，唔繞去伺服器", "本機私人詞彙，伺服器今次冇收到請柬"],
+  },
+  "settings.personalVocabulary.title": {
+    english: ["Upload a local JSON vocabulary file", "Upload a local JSON vocabulary file", "Upload a local JSON vocabulary file for this desktop", "Upload a local JSON vocabulary file; validation comes first", "Upload a local JSON vocabulary file; the bytes must pass the bouncer"],
+    cantonese: ["上載本機 JSON 詞彙檔案", "上載本機 JSON 詞彙檔案", "為呢個桌面上載本機 JSON 詞彙檔案", "上載本機 JSON 詞彙檔案；先驗證先改字", "上載本機 JSON 詞彙檔案；啲 bytes 要先過門口"],
+  },
+  "settings.personalVocabulary.description": {
+    english: ["Choose a bounded JSON file. It is validated locally before the cache or displayed wording changes.", "Choose a bounded JSON file. Local validation happens before the cache or displayed wording changes.", "Choose a bounded JSON file; invalid input leaves the current wording alone.", "Choose a bounded JSON file; the whole payload must pass before any wording changes.", "Choose a bounded JSON file; the whole payload gets checked before the wording puts on a new hat."],
+    cantonese: ["揀一份有界 JSON 檔案；本機驗證完成前，快取同顯示文字都唔會改。", "揀一份有界 JSON 檔案；本機驗證會先行，快取同顯示文字保持原樣。", "揀一份有界 JSON 檔案；輸入無效就保留目前文字。", "揀一份有界 JSON 檔案；完整 payload 通過前，任何文字都唔會改。", "揀一份有界 JSON 檔案；完整 payload 要先驗身，文字先至可以換新帽。"],
+  },
+  "settings.personalVocabulary.privacy": {
+    english: ["File bytes, paths, and entries stay in the local cache; this settings record stores status and count only.", "File bytes, paths, and entries stay local; the settings record keeps status and count only.", "The cache stays local, while settings keep only its status and count.", "The app does not send the file, path, or entries anywhere; this record keeps status and count only.", "The file stays home, the path stays quiet, and this record keeps only status and count."],
+    cantonese: ["檔案 bytes、路徑同項目留喺本機快取；呢份設定記錄只保存狀態同數量。", "檔案 bytes、路徑同項目只留本機；設定記錄只保留狀態同數量。", "快取留喺本機，設定記錄只保留狀態同數量。", "程式唔會將檔案、路徑或項目送去任何地方；呢份記錄只保留狀態同數量。", "檔案留屋企、路徑保持安靜，呢份記錄只帶住狀態同數量。"],
+  },
+  "settings.personalVocabulary.status.empty": {
+    english: ["No local vocabulary file is active.", "No local vocabulary file is active.", "No local vocabulary file is active yet.", "No local vocabulary file is active; original shipped wording remains.", "No local vocabulary file is active; the original wording is still wearing its first-day outfit."],
+    cantonese: ["未有本機詞彙檔案啟用。", "未有本機詞彙檔案啟用。", "暫時未有本機詞彙檔案啟用。", "未有本機詞彙檔案啟用；原本出廠文字保持原樣。", "未有本機詞彙檔案啟用；原本文字仲著住出廠第一日套衫。"],
+  },
+  "settings.personalVocabulary.status.loaded": {
+    english: ["A validated local vocabulary file is active.", "A validated local vocabulary file is active.", "A validated local vocabulary file is active locally.", "A validated local vocabulary file is active; wording changes stay local.", "A validated local vocabulary file is active; the wording has received its tiny local makeover."],
+    cantonese: ["已啟用通過驗證嘅本機詞彙檔案。", "已啟用通過驗證嘅本機詞彙檔案。", "已喺本機啟用通過驗證嘅詞彙檔案。", "已啟用通過驗證嘅本機詞彙檔案；文字變更只留本機。", "已啟用通過驗證嘅本機詞彙檔案；文字換咗件細細件本機外套。"],
+  },
+  "settings.personalVocabulary.entryCount": {
+    english: ["entries loaded", "entries loaded", "entries loaded locally", "entries loaded locally", "entries loaded locally, all accounted for"],
+    cantonese: ["個項目已載入", "個項目已載入", "個項目已喺本機載入", "個項目已喺本機載入，數量清楚", "個項目已喺本機載入，粒粒有數"],
+  },
+  "settings.personalVocabulary.choose": {
+    english: ["Choose local JSON file", "Choose local JSON file", "Choose a local JSON file", "Choose a local JSON file to validate", "Choose a local JSON file; let the validator have a look"],
+    cantonese: ["揀本機 JSON 檔案", "揀本機 JSON 檔案", "揀一份本機 JSON 檔案", "揀一份本機 JSON 檔案去驗證", "揀一份本機 JSON 檔案，等驗證員望一望"],
+  },
+  "settings.personalVocabulary.replace": {
+    english: ["Replace local JSON file", "Replace local JSON file", "Replace the local JSON file", "Replace the local JSON file after validation", "Replace the local JSON file; the old cache gets a tidy handover"],
+    cantonese: ["更換本機 JSON 檔案", "更換本機 JSON 檔案", "更換本機 JSON 檔案", "驗證後更換本機 JSON 檔案", "更換本機 JSON 檔案；舊快取有交接，唔會突然失蹤"],
+  },
+  "settings.personalVocabulary.clear": {
+    english: ["Clear local vocabulary", "Clear local vocabulary", "Clear the local vocabulary cache", "Clear the local vocabulary cache and restore original wording", "Clear the local vocabulary cache; the original wording gets its encore"],
+    cantonese: ["清除本機詞彙", "清除本機詞彙", "清除本機詞彙快取", "清除本機詞彙快取並恢復原本文字", "清除本機詞彙快取；原本文字返場 encore"],
+  },
+  "settings.personalVocabulary.notice.loaded": {
+    english: ["The complete bounded JSON file passed local validation and is now active. Displayed wording changed only after validation.", "The complete bounded JSON file passed local validation and is now active. Wording changed only after validation.", "The bounded JSON file passed locally and is now active; invalid input could not sneak through.", "The complete bounded JSON file passed local validation and is active; displayed wording changed only after the full check.", "The complete bounded JSON file passed local validation and is active; the wording waited politely until the whole check finished."],
+    cantonese: ["完整有界 JSON 檔案通過本機驗證，現在已啟用。顯示文字只喺驗證後改變。", "完整有界 JSON 檔案通過本機驗證，現在已啟用。文字只喺驗證後改變。", "有界 JSON 檔案通過本機驗證並已啟用；無效輸入冇機會偷偷入場。", "完整有界 JSON 檔案通過本機驗證並已啟用；顯示文字等完整檢查後先改。", "完整有界 JSON 檔案通過本機驗證並已啟用；文字好有禮貌咁等完整檢查做完先換衫。"],
+    dialogEmoji: "✅",
+  },
+  "settings.personalVocabulary.notice.rejected": {
+    english: ["The selected file was not applied. It did not satisfy the bounded v1 JSON contract, so the previous cache and wording remain active.", "The selected file was not applied. It did not satisfy the bounded v1 JSON contract, so the previous cache and wording remain active.", "The selected file stayed out: the bounded v1 JSON contract was not satisfied, so nothing partially applied.", "The selected file was rejected before application; the previous cache and wording remain active.", "The selected file was rejected before application; the old cache keeps the wording from doing a surprise costume change."],
+    cantonese: ["所選檔案未有套用。佢唔符合有界 v1 JSON 合約，所以之前嘅快取同文字仍然啟用。", "所選檔案未有套用。佢唔符合有界 v1 JSON 合約，所以之前嘅快取同文字保持原樣。", "所選檔案留喺門外：未符合有界 v1 JSON 合約，冇任何部分會偷偷套用。", "所選檔案喺套用前已拒絕；之前嘅快取同文字仍然啟用。", "所選檔案喺套用前已拒絕；舊快取幫文字避過一場突然換衫。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.notice.cleared": {
+    english: ["The local vocabulary cache was removed. Original shipped wording is active again.", "The local vocabulary cache was removed. Original shipped wording is active again.", "The local vocabulary cache was removed; original wording is back.", "The local vocabulary cache was removed and original shipped wording is active again.", "The local vocabulary cache was removed; original shipped wording has returned for its encore."],
+    cantonese: ["本機詞彙快取已移除。原本出廠文字再次啟用。", "本機詞彙快取已移除。原本出廠文字再次啟用。", "本機詞彙快取已移除；原本文字返嚟喇。", "本機詞彙快取已移除，原本出廠文字再次啟用。", "本機詞彙快取已移除；原本出廠文字返場 encore。"],
+    dialogEmoji: "🔄",
+  },
+  "settings.personalVocabulary.notice.clearFailed": {
+    english: ["The local vocabulary cache could not be removed. The active cache and wording remain unchanged.", "The local vocabulary cache could not be removed. The active cache and wording remain unchanged.", "The local vocabulary cache could not be removed; the active wording stays put.", "The local vocabulary cache could not be removed, so the active cache and wording remain unchanged.", "The local vocabulary cache could not be removed; the cache declined its tidy exit and the wording stays put."],
+    cantonese: ["本機詞彙快取未能移除。啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除。啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除；目前文字留返原位。", "本機詞彙快取未能移除，所以啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除；快取唔肯整齊退場，文字照樣留位。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.notice.loadFailed": {
+    english: ["The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored; original wording remains active.", "The local vocabulary cache could not be restored, so original shipped wording remains active.", "The local vocabulary cache could not be restored; original shipped wording keeps the microphone."],
+    cantonese: ["本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本文字保持啟用。", "本機詞彙快取未能恢復，所以原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本出廠文字繼續拎住咪高峰。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.command.choose": {
+    english: ["Choose local vocabulary JSON", "Choose local vocabulary JSON", "Choose local vocabulary JSON", "Choose local vocabulary JSON file", "Choose local vocabulary JSON; the validator is ready"],
+    cantonese: ["揀本機詞彙 JSON", "揀本機詞彙 JSON", "揀本機詞彙 JSON", "揀本機詞彙 JSON 檔案", "揀本機詞彙 JSON；驗證員準備好喇"],
+  },
+  "settings.personalVocabulary.command.chooseDescription": {
+    english: ["Open Settings and focus the local JSON picker.", "Open Settings and focus the local JSON picker.", "Open Settings and focus the bounded local JSON picker.", "Open Settings and focus the picker before validation changes anything.", "Open Settings and focus the picker; the bytes get checked before they join the party."],
+    cantonese: ["開啟設定並聚焦本機 JSON 揀檔掣。", "開啟設定並聚焦本機 JSON 揀檔掣。", "開啟設定並聚焦有界本機 JSON 揀檔掣。", "開啟設定並聚焦揀檔掣，驗證前唔會改任何文字。", "開啟設定並聚焦揀檔掣；啲 bytes 要驗身先可以入場。"],
+  },
+  "settings.personalVocabulary.command.replace": {
+    english: ["Replace local vocabulary JSON", "Replace local vocabulary JSON", "Replace local vocabulary JSON", "Replace local vocabulary JSON after validation", "Replace local vocabulary JSON; the cache gets a new understudy"],
+    cantonese: ["更換本機詞彙 JSON", "更換本機詞彙 JSON", "更換本機詞彙 JSON", "驗證後更換本機詞彙 JSON", "更換本機詞彙 JSON；快取搵到新替身"],
+  },
+  "settings.personalVocabulary.command.replaceDescription": {
+    english: ["Open Settings and focus the replace control without exposing the file path.", "Open Settings and focus the replace control without exposing the file path.", "Open Settings and focus the local replace control; the path stays privileged.", "Open Settings and focus the replace control; the complete file is checked first.", "Open Settings and focus replace; the file path stays backstage where it belongs."],
+    cantonese: ["開啟設定並聚焦更換掣，唔會暴露檔案路徑。", "開啟設定並聚焦更換掣，唔會暴露檔案路徑。", "開啟設定並聚焦本機更換掣；路徑留喺特權邊界。", "開啟設定並聚焦更換掣；完整檔案會先驗證。", "開啟設定並聚焦更換掣；檔案路徑留喺後台，應有咁嘅禮貌。"],
+  },
+  "settings.personalVocabulary.command.status": {
+    english: ["Review local vocabulary status", "Review local vocabulary status", "Review local vocabulary status", "Review local vocabulary status and entry count", "Review local vocabulary status; the tiny counter is on duty"],
+    cantonese: ["查看本機詞彙狀態", "查看本機詞彙狀態", "查看本機詞彙狀態", "查看本機詞彙狀態同項目數量", "查看本機詞彙狀態；細細個計數員當值中"],
+  },
+  "settings.personalVocabulary.command.statusDescription": {
+    english: ["Open Settings and focus the accessible local status.", "Open Settings and focus the accessible local status.", "Open Settings and focus the local vocabulary status.", "Open Settings and focus status without exposing file bytes or paths.", "Open Settings and focus status; the file itself stays off the stage."],
+    cantonese: ["開啟設定並聚焦可存取嘅本機狀態。", "開啟設定並聚焦可存取嘅本機狀態。", "開啟設定並聚焦本機詞彙狀態。", "開啟設定並聚焦狀態，唔會暴露檔案 bytes 或路徑。", "開啟設定並聚焦狀態；檔案本身唔使上台。"],
+  },
+  "settings.personalVocabulary.command.clear": {
+    english: ["Clear local vocabulary cache", "Clear local vocabulary cache", "Clear local vocabulary cache", "Clear local vocabulary cache and restore original wording", "Clear local vocabulary cache; let the original wording take the encore"],
+    cantonese: ["清除本機詞彙快取", "清除本機詞彙快取", "清除本機詞彙快取", "清除本機詞彙快取並恢復原本文字", "清除本機詞彙快取；等原本文字返場 encore"],
+  },
+  "settings.personalVocabulary.command.clearDescription": {
+    english: ["Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control for an explicit local action.", "Open Settings and focus clear; a deliberate click is still required.", "Open Settings and focus clear; the palette points, the user decides."],
+    cantonese: ["開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣，明確進行本機動作。", "開啟設定並聚焦清除掣；仍然要用戶刻意撳掣。", "開啟設定並聚焦清除掣；命令面板只指路，用戶先決定。"],
+  },
+  "settings.personalVocabulary.picker.title": {
+    english: ["Choose local personal vocabulary JSON", "Choose local personal vocabulary JSON", "Choose a local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file; the bytes stay backstage"],
+    cantonese: ["選擇本機個人詞彙 JSON", "選擇本機個人詞彙 JSON", "選擇本機個人詞彙 JSON 檔案", "選擇有界本機個人詞彙 JSON 檔案", "選擇有界本機個人詞彙 JSON 檔案；bytes 留喺後台"],
+  },
+  "settings.personalVocabulary.picker.filter": {
+    english: ["Personal vocabulary JSON", "Personal vocabulary JSON", "Local personal vocabulary JSON", "Bounded local personal vocabulary JSON", "Bounded local personal vocabulary JSON; no mystery formats"],
+    cantonese: ["個人詞彙 JSON", "個人詞彙 JSON", "本機個人詞彙 JSON", "有界本機個人詞彙 JSON", "有界本機個人詞彙 JSON；唔玩神秘格式"],
+  },
+  "palette.eyebrow": {
+    english: ["Desktop navigation", "Desktop navigation", "Desktop navigation, locally", "Desktop navigation without hidden controls", "Desktop navigation; every result must earn its spotlight"],
+    cantonese: ["桌面導覽", "桌面導覽", "本機桌面導覽", "桌面導覽，唔會推隱藏掣出場", "桌面導覽；每個結果都要真係有得撳"],
+  },
+  "palette.title": {
+    english: ["Command palette", "Command palette", "Command palette", "Command palette for available desktop actions", "Command palette; no phantom buttons allowed"],
+    cantonese: ["命令面板", "命令面板", "命令面板", "可用桌面動作命令面板", "命令面板；唔准幽靈掣冒牌"],
+  },
+  "palette.help": {
+    english: ["Press Ctrl+Shift+F anywhere to reopen this palette. Results include only available desktop search surfaces and controls.", "Press Ctrl+Shift+F anywhere to reopen this palette. Results include only available desktop search surfaces and controls.", "Press Ctrl+Shift+F anywhere to reopen this palette. Hidden, filtered, and disabled controls stay out.", "Press Ctrl+Shift+F anywhere to reopen this palette. School mode and actual control state decide what appears.", "Press Ctrl+Shift+F anywhere to reopen this palette. If a control is hiding or disabled, the palette politely leaves it backstage."],
+    cantonese: ["喺任何地方按 Ctrl+Shift+F 再開呢個面板；結果只包括可用嘅桌面搜尋頁面同控制項。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；結果只包括可用嘅桌面搜尋頁面同控制項。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；隱藏、篩走同停用嘅掣唔會出場。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；School mode 同實際控制狀態決定顯示乜。", "喺任何地方按 Ctrl+Shift+F 再開呢個面板；掣匿埋或者停用，面板就有禮貌咁留佢喺後台。"],
+  },
+  "palette.close": {
+    english: ["Close", "Close", "Close palette", "Close command palette", "Close command palette; the controls remain where they were"],
+    cantonese: ["關閉", "關閉", "關閉面板", "關閉命令面板", "關閉命令面板；控制項照樣留返原位"],
+  },
+  "palette.search.label": {
+    english: ["Search desktop commands", "Search desktop commands", "Search available desktop commands", "Search available desktop commands locally", "Search available desktop commands before they start playing hide-and-seek"],
+    cantonese: ["搜尋桌面命令", "搜尋桌面命令", "搜尋可用桌面命令", "本機搜尋可用桌面命令", "搜尋可用桌面命令，趁佢哋未玩捉迷藏"],
+  },
+  "palette.search.placeholder": {
+    english: ["Search Docs or settings…", "Search Docs or settings…", "Search Docs or settings locally…", "Search available Docs or settings…", "Search available Docs or settings; invisible controls get no invitation…"],
+    cantonese: ["搜尋文件或設定…", "搜尋文件或設定…", "本機搜尋文件或設定…", "搜尋可用文件或設定…", "搜尋可用文件或設定；匿埋嘅掣冇邀請函…"],
+  },
+  "palette.regex.dialogLabel": {
+    english: ["Regex builder for desktop commands", "Regex builder for desktop commands", "Local Regex builder for desktop commands", "Bounded local Regex builder for desktop commands", "Bounded local Regex builder for desktop commands; no runaway patterns"],
+    cantonese: ["桌面命令 Regex 建構器", "桌面命令 Regex 建構器", "桌面命令本機 Regex 建構器", "桌面命令有界本機 Regex 建構器", "桌面命令有界本機 Regex 建構器；唔俾模式失控"],
+  },
+  "palette.regex.tokensLabel": {
+    english: ["Command palette regex pattern shortcuts", "Command palette regex pattern shortcuts", "Command palette Regex shortcuts", "Bounded command palette Regex shortcuts", "Bounded command palette Regex shortcuts; tiny buttons, sensible patterns"],
+    cantonese: ["命令面板 Regex 模式快捷鍵", "命令面板 Regex 模式快捷鍵", "命令面板 Regex 快捷鍵", "有界命令面板 Regex 快捷鍵", "有界命令面板 Regex 快捷鍵；掣細細，模式要醒目"],
+  },
+  "palette.regex.patternLabel": {
+    english: ["Bounded local pattern", "Bounded local pattern", "Bounded local pattern", "Bounded local pattern for available commands", "Bounded local pattern; no runaway regex party"],
+    cantonese: ["有界本機模式", "有界本機模式", "有界本機模式", "可用命令用嘅有界本機模式", "有界本機模式；唔開 Regex 失控派對"],
+  },
+  "palette.regex.placeholder": {
+    english: ["For example: ^Open|Search", "For example: ^Open|Search", "For example: ^Open|Search", "For example: ^Open|Search (bounded)", "For example: ^Open|Search; bounded means the regex behaves"],
+    cantonese: ["例如：^Open|Search", "例如：^Open|Search", "例如：^Open|Search", "例如：^Open|Search（有界）", "例如：^Open|Search；有界先至唔會玩失控"],
+  },
+  "palette.regex.ignoreCase": {
+    english: ["Ignore case", "Ignore case", "Ignore letter case", "Ignore letter case locally", "Ignore letter case; let capitals take a day off"],
+    cantonese: ["忽略大小寫", "忽略大小寫", "忽略字母大小寫", "本機忽略字母大小寫", "忽略字母大小寫；大細階今日放假"],
+  },
+  "palette.regex.plainStatus": {
+    english: ["Plain text search is active. Regex is an explicit local opt-in.", "Plain text search is active. Regex is an explicit local opt-in.", "Plain text search is active; Regex stays opt-in.", "Plain text search is active; Regex stays a bounded local opt-in.", "Plain text search is active; Regex waits politely for an explicit invitation."],
+    cantonese: ["純文字搜尋已啟用；Regex 要明確喺本機開啟。", "純文字搜尋已啟用；Regex 要明確喺本機開啟。", "純文字搜尋已啟用；Regex 仍然要自己開。", "純文字搜尋已啟用；Regex 仍然係有界本機選擇。", "純文字搜尋已啟用；Regex 有禮貌咁等你明確邀請。"],
+  },
+  "palette.regex.ready": {
+    english: ["Regex mode is ready. Add a bounded pattern or choose a token.", "Regex mode is ready. Add a bounded pattern or choose a token.", "Regex mode is ready; add a bounded pattern or choose a token.", "Regex mode is ready; add a bounded pattern or choose a token for available commands.", "Regex mode is ready; feed it a bounded pattern before it starts making abstract art."],
+    cantonese: ["Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；加入有界模式或者揀一個字元。", "Regex 模式準備好；喺可用命令加入有界模式或者揀一個字元。", "Regex 模式準備好；俾佢食有界模式，唔好等佢畫抽象畫。"],
+  },
+  "palette.regex.running": {
+    english: ["Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands.", "Pattern runs locally against available desktop commands; no network request is made.", "Pattern runs locally against available desktop commands; no network request gets a backstage pass."],
+    cantonese: ["模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行。", "模式會喺可用桌面命令度本機執行；唔會發出網絡請求。", "模式會喺可用桌面命令度本機執行；網絡請求冇後台通行證。"],
+  },
+  "palette.regex.invalid": {
+    english: ["The local regex pattern is invalid.", "The local regex pattern is invalid.", "The local regex pattern is invalid for this search.", "The local regex pattern is invalid; fix it before filtering commands.", "The local regex pattern is invalid; it tripped over its own brackets."],
+    cantonese: ["本機 Regex 模式無效。", "本機 Regex 模式無效。", "呢個搜尋嘅本機 Regex 模式無效。", "本機 Regex 模式無效；修正後先可以篩選命令。", "本機 Regex 模式無效；佢俾自己啲括號絆倒咗。"],
+  },
+  "palette.status.loading": {
+    english: ["Loading available desktop search surfaces…", "Loading available desktop search surfaces…", "Loading available desktop search surfaces locally…", "Checking actual visibility and enabled state…", "Checking actual visibility and enabled state; phantom controls stay outside…"],
+    cantonese: ["載入可用桌面搜尋頁面中…", "載入可用桌面搜尋頁面中…", "本機載入可用桌面搜尋頁面中…", "檢查實際可見同啟用狀態中…", "檢查實際可見同啟用狀態中；幽靈控制項留喺門外…"],
+  },
+  "palette.status.available": {
+    english: ["{count} command(s) available.", "{count} command(s) available.", "{count} command(s) are available locally.", "{count} available command(s); hidden and disabled controls are excluded.", "{count} available command(s); the palette counted real controls, not decorative ghosts."],
+    cantonese: ["有 {count} 個命令可用。", "有 {count} 個命令可用。", "本機有 {count} 個命令可用。", "有 {count} 個命令可用；隱藏同停用控制項已剔除。", "有 {count} 個命令可用；面板數真掣，唔數裝飾幽靈。"],
+  },
+  "palette.status.empty": {
+    english: ["No available desktop search surface matches this query.", "No available desktop search surface matches this query.", "No available desktop search surface matches this local query.", "No visible and enabled desktop search surface matches this query.", "No visible and enabled desktop search surface matches this query; the hidden controls are not pretending."],
+    cantonese: ["冇可用桌面搜尋頁面符合呢個搜尋。", "冇可用桌面搜尋頁面符合呢個搜尋。", "冇可用桌面搜尋頁面符合呢個本機搜尋。", "冇可見又啟用嘅桌面搜尋頁面符合呢個搜尋。", "冇可見又啟用嘅桌面搜尋頁面符合呢個搜尋；匿埋嘅掣冇扮嘢。"],
+  },
+  "palette.status.unavailable": {
+    english: ["That command is no longer available; the palette stayed open and no control was focused.", "That command is no longer available; the palette stayed open and no control was focused.", "That command is no longer available in the current desktop state.", "That command is hidden, filtered, or disabled in the current state.", "That command has gone backstage; the palette refuses to focus a phantom."],
+    cantonese: ["嗰個命令已經唔可用；面板保持開啟，冇聚焦任何控制項。", "嗰個命令已經唔可用；面板保持開啟，冇聚焦任何控制項。", "嗰個命令喺目前桌面狀態已經唔可用。", "嗰個命令喺目前狀態隱藏、篩走或者停用。", "嗰個命令去咗後台；面板唔肯聚焦幽靈。"],
+  },
+  "palette.results.label": {
+    english: ["Available desktop command results", "Available desktop command results", "Available local desktop command results", "Visible and enabled desktop command results", "Visible and enabled desktop command results; no phantom rows"],
+    cantonese: ["可用桌面命令結果", "可用桌面命令結果", "可用本機桌面命令結果", "可見又啟用嘅桌面命令結果", "可見又啟用嘅桌面命令結果；冇幽靈行"],
+  },
+  "palette.command.docsSearch": {
+    english: ["Search offline documentation", "Search offline documentation", "Search offline documentation", "Search bundled offline documentation", "Search bundled offline documentation; the articles stay home"],
+    cantonese: ["搜尋離線文件", "搜尋離線文件", "搜尋離線文件", "搜尋內置離線文件", "搜尋內置離線文件；文章留喺屋企"],
+  },
+  "palette.command.docsSearchDescription": {
+    english: ["Open Docs and focus the local article search.", "Open Docs and focus the local article search.", "Open Docs and focus the local article search.", "Open Docs and focus its available local search.", "Open Docs and focus the local search; no browser treasure hunt."],
+    cantonese: ["開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦本機文章搜尋。", "開啟文件並聚焦可用本機搜尋。", "開啟文件並聚焦本機搜尋；唔使出門搵寶藏。"],
+  },
+  "palette.command.docsRegex": {
+    english: ["Open documentation regex builder", "Open documentation regex builder", "Open documentation regex builder", "Open the bundled documentation Regex builder", "Open the bundled documentation Regex builder; bounded patterns only"],
+    cantonese: ["開啟文件 Regex 建構器", "開啟文件 Regex 建構器", "開啟文件 Regex 建構器", "開啟內置文件 Regex 建構器", "開啟內置文件 Regex 建構器；只准有界模式"],
+  },
+  "palette.command.docsRegexDescription": {
+    english: ["Open Docs and focus its anchored Regex builder.", "Open Docs and focus its anchored Regex builder.", "Open Docs and focus its anchored local Regex builder.", "Open Docs and focus its anchored bounded Regex builder.", "Open Docs and focus its anchored bounded Regex builder; the pattern stays in its lane."],
+    cantonese: ["開啟文件並聚焦佢嘅錨定 Regex 建構器。", "開啟文件並聚焦佢嘅錨定 Regex 建構器。", "開啟文件並聚焦錨定本機 Regex 建構器。", "開啟文件並聚焦錨定有界 Regex 建構器。", "開啟文件並聚焦錨定有界 Regex 建構器；模式唔越界。"],
+  },
+  "palette.command.settingsSearch": {
+    english: ["Search universal settings", "Search universal settings", "Search universal settings locally", "Search visible universal settings", "Search visible universal settings; the hidden shelf stays shut"],
+    cantonese: ["搜尋通用設定", "搜尋通用設定", "本機搜尋通用設定", "搜尋可見通用設定", "搜尋可見通用設定；匿埋嗰格繼續關門"],
+  },
+  "palette.command.settingsSearchDescription": {
+    english: ["Open Universal settings and focus its local search.", "Open Universal settings and focus its local search.", "Open Universal settings and focus its local settings search.", "Open Universal settings and focus the available settings search.", "Open Universal settings and focus the available settings search; no phantom teleport."],
+    cantonese: ["開啟通用設定並聚焦本機搜尋。", "開啟通用設定並聚焦本機搜尋。", "開啟通用設定並聚焦本機設定搜尋。", "開啟通用設定並聚焦可用設定搜尋。", "開啟通用設定並聚焦可用設定搜尋；唔會傳送去幽靈位。"],
+  },
+  "palette.command.settingsRegex": {
+    english: ["Open settings regex builder", "Open settings regex builder", "Open settings Regex builder", "Open the visible settings Regex builder", "Open the visible settings Regex builder; bounded and local"],
+    cantonese: ["開啟設定 Regex 建構器", "開啟設定 Regex 建構器", "開啟設定 Regex 建構器", "開啟可見設定 Regex 建構器", "開啟可見設定 Regex 建構器；有界又本機"],
+  },
+  "palette.command.settingsRegexDescription": {
+    english: ["Open Universal settings and focus its anchored Regex builder.", "Open Universal settings and focus its anchored Regex builder.", "Open Universal settings and focus its anchored local Regex builder.", "Open Universal settings and focus its anchored bounded Regex builder.", "Open Universal settings and focus its anchored bounded Regex builder; the settings stay in charge."],
+    cantonese: ["開啟通用設定並聚焦佢嘅錨定 Regex 建構器。", "開啟通用設定並聚焦佢嘅錨定 Regex 建構器。", "開啟通用設定並聚焦錨定本機 Regex 建構器。", "開啟通用設定並聚焦錨定有界 Regex 建構器。", "開啟通用設定並聚焦錨定有界 Regex 建構器；設定話事。"],
+  },
+  "notifications.search.title": {
+    english: ["Search desktop notifications", "Search desktop notifications", "Search desktop notifications locally", "Search desktop notifications without losing the evidence", "Search desktop notifications; the little audit trail gets a proper magnifying glass"],
+    cantonese: ["搜尋桌面通知", "搜尋桌面通知", "本機搜尋桌面通知", "搜尋桌面通知，唔好整走證據", "搜尋桌面通知；細細條記錄都要有放大鏡"],
+  },
+  "notifications.search.label": {
+    english: ["Search desktop notifications", "Search desktop notifications", "Search local desktop notifications", "Search local desktop notifications", "Search local desktop notifications before the records start hiding"],
+    cantonese: ["搜尋桌面通知", "搜尋桌面通知", "搜尋本機桌面通知", "搜尋本機桌面通知", "搜尋本機桌面通知，趁記錄未開始匿埋"],
+  },
+  "notifications.search.placeholder": {
+    english: ["Search notices…", "Search notices…", "Search local notices…", "Search notification records…", "Search notification records; facts stay factual…"],
+    cantonese: ["搜尋通知…", "搜尋通知…", "本機搜尋通知…", "搜尋通知記錄…", "搜尋通知記錄；事實繼續係事實…"],
+  },
+  "notifications.regex.dialogLabel": {
+    english: ["Regex builder for desktop notifications", "Regex builder for desktop notifications", "Local Regex builder for desktop notifications", "Bounded local Regex builder for desktop notifications", "Bounded local Regex builder for desktop notifications; no notification confetti"],
+    cantonese: ["桌面通知 Regex 建構器", "桌面通知 Regex 建構器", "桌面通知本機 Regex 建構器", "桌面通知有界本機 Regex 建構器", "桌面通知有界本機 Regex 建構器；唔搞通知紙碎"],
+  },
+  "notifications.regex.tokensLabel": {
+    english: ["Desktop notification regex pattern shortcuts", "Desktop notification regex pattern shortcuts", "Desktop notification Regex shortcuts", "Bounded desktop notification Regex shortcuts", "Bounded desktop notification Regex shortcuts; audit-friendly"],
+    cantonese: ["桌面通知 Regex 模式快捷鍵", "桌面通知 Regex 模式快捷鍵", "桌面通知 Regex 快捷鍵", "有界桌面通知 Regex 快捷鍵", "有界桌面通知 Regex 快捷鍵；方便查數"],
+  },
+  "notifications.regex.patternLabel": {
+    english: ["Bounded local pattern", "Bounded local pattern", "Bounded local pattern", "Bounded local pattern for notification records", "Bounded local pattern; no runaway notification regex"],
+    cantonese: ["有界本機模式", "有界本機模式", "有界本機模式", "通知記錄用嘅有界本機模式", "有界本機模式；通知 Regex 唔准失控"],
+  },
+  "notifications.regex.placeholder": {
+    english: ["For example: save|draft", "For example: save|draft", "For example: save|draft", "For example: save|draft (bounded)", "For example: save|draft; the records like a tidy pattern"],
+    cantonese: ["例如：save|draft", "例如：save|draft", "例如：save|draft", "例如：save|draft（有界）", "例如：save|draft；記錄都鍾意整齊模式"],
+  },
+  "notifications.regex.ignoreCase": {
+    english: ["Ignore case", "Ignore case", "Ignore letter case", "Ignore letter case locally", "Ignore letter case; let the notification capitals nap"],
+    cantonese: ["忽略大小寫", "忽略大小寫", "忽略字母大小寫", "本機忽略字母大小寫", "忽略字母大小寫；通知大細階瞓陣先"],
+  },
   "settings.appearance.title": {
     english: ["Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent for the desktop shell", "Theme, density, and accent: the shell gets a wardrobe, not a new identity"],
     cantonese: ["主題、密度同強調色", "主題、密度同強調色", "主題、密度同強調色", "桌面外殼嘅主題、密度同強調色", "主題、密度同強調色：外殼換衫，身份唔換"],
@@ -318,8 +628,8 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     cantonese: ["重設通用設定", "重設通用設定", "喺本機重設通用設定", "重設通用設定；伺服器檔案保持原樣", "重設通用設定；伺服器唔會收到突然搬屋通知"],
   },
   "settings.footnote": {
-    english: ["This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. Full contract coverage is tracked in the repository inventory.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The repository inventory tracks the wider contract.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. Wider coverage stays explicit in the inventory.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The inventory names what is implemented and what remains.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The inventory is the referee, not a decorative clipboard."],
-    cantonese: ["呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；完整合約覆蓋記錄喺項目清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；項目清單記錄更闊合約。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；更闊覆蓋會清楚列喺清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；清單會列明已做同未做。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；清單係裁判，唔係裝飾用夾板。"],
+    english: ["This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. Full contract coverage is tracked in the repository inventory.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The repository inventory tracks the wider contract.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. Wider coverage stays explicit in the inventory.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The inventory names what is implemented and what remains.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The inventory is the referee, not a decorative clipboard."],
+    cantonese: ["呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；完整合約覆蓋記錄喺項目清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；項目清單記錄更闊合約。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；更闊覆蓋會清楚列喺清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；清單會列明已做同未做。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；清單係裁判，唔係裝飾用夾板。"],
   },
   "settings.status.loading": {
     english: ["Loading local universal settings…", "Loading local universal settings…", "Loading local universal settings locally…", "Loading local universal settings; no server action is involved…", "Loading local universal settings; the server is not invited to this bit…"],
@@ -389,7 +699,7 @@ function selectedLanguageCopy(definition: DesktopCopyDefinition, languageMode: U
   const english = definition.english[levelIndex(englishLevel)] ?? definition.english[0] ?? "";
   const cantonese = definition.cantonese[levelIndex(cantoneseLevel)] ?? definition.cantonese[0] ?? "";
   if (languageMode === "cantonese") return cantonese;
-  if (languageMode === "bilingual") return `${english} · ${cantonese}`;
+  if (languageMode === "bilingual") return `English: ${english} · Cantonese: ${cantonese}`;
   return english;
 }
 

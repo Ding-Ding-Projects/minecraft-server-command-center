@@ -598,29 +598,29 @@
                 <div class="notification-search-card__heading">
                   <div>
                     <p class="eyebrow">Find a notice</p>
-                    <h3 id="desktop-notification-search-title">Search desktop notifications</h3>
+                    <h3 id="desktop-notification-search-title" data-presentation-key="notifications.search.title">Search desktop notifications</h3>
                   </div>
                   <span class="badge" id="notification-persistence-status">Checking local storage…</span>
                 </div>
                 <div class="regex-builder-anchor" data-regex-builder-surface="desktop-notifications">
                   <div class="settings-search-row">
-                    <label class="sr-only" for="notification-search">Search desktop notifications</label>
-                    <input id="notification-search" class="text-input" type="search" maxlength="160" placeholder="Search notices…" autocomplete="off" />
-                    <button class="outlined-button" type="button" id="notification-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-regex-builder">Regex</button>
+                    <label class="sr-only" for="notification-search" data-presentation-key="notifications.search.label">Search desktop notifications</label>
+                    <input id="notification-search" class="text-input" type="search" maxlength="160" data-presentation-key="notifications.search.placeholder" data-presentation-attribute="placeholder" placeholder="Search notices…" autocomplete="off" />
+                    <button class="outlined-button" type="button" id="notification-regex-toggle" data-presentation-key="settings.regex.button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-regex-builder">Regex</button>
                   </div>
-                  <div class="settings-regex-builder" id="notification-regex-builder" role="dialog" aria-label="Regex builder for desktop notifications" hidden>
-                    <label class="field__label" for="notification-regex-pattern">Bounded local pattern</label>
-                    <input id="notification-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: save|draft" spellcheck="false" />
-                    <div class="settings-regex-tokens" aria-label="Desktop notification regex pattern shortcuts">
-                      <button class="input-action" type="button" data-regex-token="^">Start</button>
-                      <button class="input-action" type="button" data-regex-token="$">End</button>
-                      <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
-                      <button class="input-action" type="button" data-regex-token="()">Group</button>
-                      <button class="input-action" type="button" data-regex-token="|">Either</button>
-                      <button class="input-action" type="button" data-regex-token="+">One or more</button>
+                  <div class="settings-regex-builder" id="notification-regex-builder" role="dialog" data-presentation-key="notifications.regex.dialogLabel" data-presentation-attribute="aria-label" aria-label="Regex builder for desktop notifications" hidden>
+                    <label class="field__label" for="notification-regex-pattern" data-presentation-key="notifications.regex.patternLabel">Bounded local pattern</label>
+                    <input id="notification-regex-pattern" class="text-input" type="text" maxlength="160" data-presentation-key="notifications.regex.placeholder" data-presentation-attribute="placeholder" placeholder="For example: save|draft" spellcheck="false" />
+                    <div class="settings-regex-tokens" data-presentation-key="notifications.regex.tokensLabel" data-presentation-attribute="aria-label" aria-label="Desktop notification regex pattern shortcuts">
+                      <button class="input-action" type="button" data-regex-token="^" data-presentation-key="settings.regex.start">Start</button>
+                      <button class="input-action" type="button" data-regex-token="$" data-presentation-key="settings.regex.end">End</button>
+                      <button class="input-action" type="button" data-regex-token="[A-Za-z]" data-presentation-key="settings.regex.letters">Letters</button>
+                      <button class="input-action" type="button" data-regex-token="()" data-presentation-key="settings.regex.group">Group</button>
+                      <button class="input-action" type="button" data-regex-token="|" data-presentation-key="settings.regex.either">Either</button>
+                      <button class="input-action" type="button" data-regex-token="+" data-presentation-key="settings.regex.oneOrMore">One or more</button>
                     </div>
-                    <label class="check-row"><input id="notification-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
-                    <p class="field__hint" id="notification-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                    <label class="check-row"><input id="notification-regex-ignore-case" type="checkbox" checked /> <span data-presentation-key="notifications.regex.ignoreCase">Ignore case</span></label>
+                    <p class="field__hint" id="notification-regex-status" role="status" aria-live="polite" data-presentation-key="settings.regex.plainStatus">Plain text search is active. Regex is an explicit local opt-in.</p>
                   </div>
                 </div>
               </section>
@@ -660,35 +660,35 @@
         <section class="command-palette" id="command-palette-dialog" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" aria-describedby="command-palette-help" aria-keyshortcuts="Control+Shift+F" aria-hidden="true">
           <header class="command-palette__header">
             <div>
-              <p class="eyebrow">Desktop navigation</p>
-              <h2 id="command-palette-title">Command palette</h2>
-              <p id="command-palette-help">Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> anywhere to reopen this palette. Results are limited to existing desktop search surfaces.</p>
+              <p class="eyebrow" data-presentation-key="palette.eyebrow">Desktop navigation</p>
+              <h2 id="command-palette-title" data-presentation-key="palette.title">Command palette</h2>
+              <p id="command-palette-help" data-presentation-key="palette.help">Press Ctrl+Shift+F anywhere to reopen this palette. Results include only available desktop search surfaces and controls.</p>
             </div>
-            <button class="outlined-button" type="button" data-command-palette-close>Close</button>
+            <button class="outlined-button" type="button" data-command-palette-close data-presentation-key="palette.close">Close</button>
           </header>
           <div class="regex-builder-anchor" data-regex-builder-surface="command-palette">
             <div class="settings-search-row">
-              <label class="sr-only" for="command-palette-search">Search desktop commands</label>
-              <input id="command-palette-search" class="text-input" type="search" maxlength="160" placeholder="Search Docs or settings…" autocomplete="off" />
-              <button class="outlined-button" type="button" id="command-palette-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="command-palette-regex-builder">Regex</button>
+              <label class="sr-only" for="command-palette-search" data-presentation-key="palette.search.label">Search desktop commands</label>
+              <input id="command-palette-search" class="text-input" type="search" maxlength="160" data-presentation-key="palette.search.placeholder" data-presentation-attribute="placeholder" placeholder="Search Docs or settings…" autocomplete="off" />
+              <button class="outlined-button" type="button" id="command-palette-regex-toggle" data-presentation-key="settings.regex.button" aria-haspopup="dialog" aria-expanded="false" aria-controls="command-palette-regex-builder">Regex</button>
             </div>
-            <div class="settings-regex-builder" id="command-palette-regex-builder" role="dialog" aria-label="Regex builder for desktop commands" hidden>
-              <label class="field__label" for="command-palette-regex-pattern">Bounded local pattern</label>
-              <input id="command-palette-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Open|Search" spellcheck="false" />
-              <div class="settings-regex-tokens" aria-label="Command palette regex pattern shortcuts">
-                <button class="input-action" type="button" data-regex-token="^">Start</button>
-                <button class="input-action" type="button" data-regex-token="$">End</button>
-                <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
-                <button class="input-action" type="button" data-regex-token="()">Group</button>
-                <button class="input-action" type="button" data-regex-token="|">Either</button>
-                <button class="input-action" type="button" data-regex-token="+">One or more</button>
+            <div class="settings-regex-builder" id="command-palette-regex-builder" role="dialog" data-presentation-key="palette.regex.dialogLabel" data-presentation-attribute="aria-label" aria-label="Regex builder for desktop commands" hidden>
+              <label class="field__label" for="command-palette-regex-pattern" data-presentation-key="palette.regex.patternLabel">Bounded local pattern</label>
+              <input id="command-palette-regex-pattern" class="text-input" type="text" maxlength="160" data-presentation-key="palette.regex.placeholder" data-presentation-attribute="placeholder" placeholder="For example: ^Open|Search" spellcheck="false" />
+              <div class="settings-regex-tokens" data-presentation-key="palette.regex.tokensLabel" data-presentation-attribute="aria-label" aria-label="Command palette regex pattern shortcuts">
+                <button class="input-action" type="button" data-regex-token="^" data-presentation-key="settings.regex.start">Start</button>
+                <button class="input-action" type="button" data-regex-token="$" data-presentation-key="settings.regex.end">End</button>
+                <button class="input-action" type="button" data-regex-token="[A-Za-z]" data-presentation-key="settings.regex.letters">Letters</button>
+                <button class="input-action" type="button" data-regex-token="()" data-presentation-key="settings.regex.group">Group</button>
+                <button class="input-action" type="button" data-regex-token="|" data-presentation-key="settings.regex.either">Either</button>
+                <button class="input-action" type="button" data-regex-token="+" data-presentation-key="settings.regex.oneOrMore">One or more</button>
               </div>
-              <label class="check-row"><input id="command-palette-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
-              <p class="field__hint" id="command-palette-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+              <label class="check-row"><input id="command-palette-regex-ignore-case" type="checkbox" checked /> <span data-presentation-key="palette.regex.ignoreCase">Ignore case</span></label>
+              <p class="field__hint" id="command-palette-regex-status" role="status" aria-live="polite" data-presentation-key="palette.regex.plainStatus">Plain text search is active. Regex is an explicit local opt-in.</p>
             </div>
           </div>
-          <p class="field__hint" id="command-palette-status" role="status" aria-live="polite">Loading existing desktop search surfaces…</p>
-          <div class="command-palette__results" id="command-palette-result-list" role="listbox" aria-label="Desktop search commands" aria-live="polite"></div>
+          <p class="field__hint" id="command-palette-status" role="status" aria-live="polite" data-presentation-key="palette.status.loading">Loading available desktop search surfaces…</p>
+          <div class="command-palette__results" id="command-palette-result-list" role="listbox" data-presentation-key="palette.results.label" data-presentation-attribute="aria-label" aria-label="Available desktop command results" aria-live="polite"></div>
         </section>
       </div>
       <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
