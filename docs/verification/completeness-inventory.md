@@ -4,6 +4,17 @@
 
 This is a hand-written inventory for the desktop foundation, not a discovered list. A source path in the table is source-only evidence until it has corresponding test, build, runtime, and capture evidence. Source inspection does not prove that a behavior runs in a built application.
 
+The universal-surface rows below are mirrored by the explicit metadata registry
+in `scripts/universal-contract-inventory.mjs`. The registry has one record for
+each canonical row and seven required evidence slots: implementation,
+documentation, localization, persistence applicability, focused check,
+built-artifact interaction, and capture evidence. A slot may honestly record a
+partial, unimplemented, or unverified state, but it may not disappear. Run
+`npm run test:universal-contract-inventory` to check the exact 26-row order,
+the Markdown table, every evidence slot, and the intentional remove/restore
+mutation proof. The check is hand-written and fail-closed; it does not discover
+rows from the files it happens to find.
+
 ## Inventory
 
 | Foundation item | Implementation path or paths | Documentation | Source status | Test/build/runtime/capture evidence |
@@ -71,7 +82,7 @@ interaction evidence, and a real capture before it can be marked verified.
 | Offline in-app documentation browser and complete landing/documentation site | Partial documentation source only; no bundled app browser | Partial planner docs surface; not full contract | No article bundle completeness guard | Not recorded |
 | Accessibility, responsive sizing, high-scale layout, reduced motion, and real captures for every surface | Source declarations exist in places; full coverage unverified | Source declarations exist in places; full coverage unverified | No per-surface localized capture matrix | No approved headless UI interaction or capture evidence |
 | Shared live Status Hub registration and app-owned status surface | Not implemented | Not implemented | Scratchpad fallback exists only for this session | No authenticated delivery or app proof |
-| Negative regression guard for the complete inventory | Partial exact-marker negative regressions in `scripts/test-universal-contracts.mjs`, `scripts/test-desktop-search-foundation.mjs`, and `scripts/test-desktop-presentation-settings.mjs`; the new presentation check removes each required presentation, control, and persistence registration one at a time; complete inventory guard absent | Partial source-contract coverage only; complete inventory guard absent | [Universal settings foundation](../reference/universal-settings.md), [Desktop presentation settings](../reference/desktop-presentation-settings.md), [Offline documentation browser](../reference/offline-documentation-browser.md), and this inventory | The focused source checks and exact removal regressions pass for this slice; complete-inventory deletion coverage remains unverified |
+| Negative regression guard for the complete inventory | `scripts/universal-contract-inventory.mjs` and `scripts/test-universal-contract-inventory.mjs` keep the explicit desktop-side registry and guard | The same registry is the companion-site-independent verification record; no product surface is claimed | This inventory documents the exact row/evidence contract and the difference between partial, unimplemented, unverified, and not-applicable evidence | `npm run test:universal-contract-inventory` is the focused source regression check; it passed with 26 rows and 420 intentional remove/restore mutations; no packaged interaction or capture is claimed for this verification-only row |
 
 ## Required evidence before a release claim
 
@@ -79,7 +90,16 @@ Before release documentation can mark a row verified, it must name the exact sou
 
 ## Negative regression requirement
 
-A future verification suite should include explicit negative checks that fail when the typed draft registration, Planner Handoff v1 schema or prohibited-field rejection, restricted bridge, Java runtime opaque-ID registration or Paper-catalog-validation/Spigot-non-mapping state, argv tokenization, Paper/Spigot category registration, documentation article, or explicit no-launch boundary is removed. The checks must be exact enough to detect an entirely missing registration rather than merely a renamed descendant.
+The complete inventory guard is `scripts/test-universal-contract-inventory.mjs`,
+backed by the explicit rows in `scripts/universal-contract-inventory.mjs`.
+It keeps a second hand-written list of the 26 canonical IDs and titles, checks
+that the Markdown audit table has the same rows in the same order, requires all
+seven evidence slots on every row, and requires persistence to declare either
+an applicable record or a reasoned not-applicable state. Its mutation proof
+removes each row, each evidence slot, each slot assertion, and each documented
+row one at a time; every removal must fail, and the untouched registry must
+pass again. A discovery-only list cannot satisfy these boundaries because the
+expected IDs and titles live outside the discovered data.
 
 ## Current status
 
