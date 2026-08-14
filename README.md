@@ -65,9 +65,9 @@ The browser-local companion uses these planning destinations:
 - **Runtime** — version, Java requirement, and resource planning.
 - **Safety** — consequential-operation and desktop-boundary explanations.
 - **Docs** — local companion documentation.
-- **Notification centre** — browser-local review of non-blocking notices,
-  explicit selection scopes, inverse selection, and bulk dismissal for
-  dismissible records.
+- **Notification centre** — browser-local and desktop-renderer review of
+  non-blocking notices, explicit selection scopes, inverse selection, and bulk
+  dismissal for dismissible records.
 - **Release status** — a source-embedded version-pinned release record with a
   direct Windows installer handoff, explicit unsigned warning, and no browser
   release lookup or download-completion claim.
@@ -77,16 +77,21 @@ contract.
 
 ## Desktop foundation
 
-The desktop renderer has nine vertical guided tabs: Overview, Runtime, World,
-Access, Paths, Start preview, CLI catalog, Docs, and Universal settings. Its
+The desktop renderer has ten vertical guided tabs: Overview, Runtime, World,
+Access, Paths, Start preview, CLI catalog, Docs, Universal settings, and
+Notification centre. Its
 preview is an array of argument tokens sourced from the versioned typed
 Paper/Spigot registry; it is not a shell command and remains non-launching. The
 Docs tab bundles the desktop Markdown set, renders it through one escaped local
 path, searches title/body text through the shared bounded search matcher and
 anchored regex builder, and resolves only local article links. Universal
 settings uses the same builder path, and `Ctrl+Shift+F` opens a bounded command
-palette for those existing desktop search surfaces. Complete menu, dropdown,
-app-wide command, and packaged runtime coverage remain partial.
+palette for those existing desktop search surfaces. Notification centre records
+the existing snackbar events in bounded renderer-local schema-v1 storage and
+supports Active/Dismissed/All review, Review/Dismiss actions, scoped select-all,
+inverse selection, and dismissible-only bulk dismissal. Complete menu,
+dropdown, app-wide command, localization, and packaged runtime coverage remain
+partial.
 
 - [Desktop documentation index](docs/README.md)
 - [Desktop foundation architecture](docs/architecture/desktop-foundation.md)
@@ -95,6 +100,7 @@ app-wide command, and packaged runtime coverage remain partial.
 - [Typed Paper and Spigot registry reference](docs/reference/paper-spigot-cli-catalog.md)
 - [Java runtime setup reference](docs/reference/java-runtime-setup.md)
 - [Universal settings foundation](docs/reference/universal-settings.md)
+- [Notification centre foundation](docs/reference/notification-centre.md)
 - [Offline documentation browser foundation](docs/reference/offline-documentation-browser.md)
 - [Desktop completeness inventory](docs/verification/completeness-inventory.md)
 

@@ -5,9 +5,9 @@ bounded local review surface. Informational, success, warning, and
 non-decision error notices remain useful after the corner toast is gone without
 becoming a server feed, account feature, or delivery claim.
 
-This is a site-only foundation. The desktop application does not gain a
-notification centre from this change, and the companion does not invent remote
-delivery.
+The same contract now has a desktop-renderer foundation as well. The desktop
+path uses its own storage key and local renderer state; it does not share
+records with the companion site and neither surface invents remote delivery.
 
 ## Behavior
 
@@ -21,12 +21,20 @@ delivery.
   record keeps its title, detail, tone, creation time, and dismissal time.
 - Search is plain text by default and uses the site's anchored regex-builder
   route only when regex is deliberately enabled.
+- The desktop renderer uses the existing snackbar path as its toast source.
+  Each snackbar remains non-blocking and gains real **Review** and **Dismiss**
+  actions; Review opens the desktop notification tab and focuses the record.
+- The desktop navigation includes a Notification centre tab with the same
+  Active, Dismissed, and All views, scoped select-all, inverse selection, and
+  dismissible-only bulk dismissal behavior.
 
 ## Bounded schema and persistence
 
-Records are stored only in browser-local storage under
-`minecraft-server-command-center.site.notifications.v1`. The schema version is
-`1` and each record contains a tone, bounded title and detail, an ISO
+Companion records are stored only in browser-local storage under
+`minecraft-server-command-center.site.notifications.v1`. Desktop records are
+stored only in renderer-local storage under
+`minecraft-server-command-center.desktop.notifications.v1`. Both schemas use
+version `1`, and each record contains a tone, bounded title and detail, an ISO
 timestamp, a dismissible flag, and a nullable `dismissedAt` value.
 
 The parser fails closed. It rejects unknown schema versions, unexpected fields,
@@ -40,9 +48,11 @@ rather than claiming that a notice was saved. Persistence is independent of the
 planner draft and universal-settings records, so resetting those settings does
 not silently erase notification review history.
 
-The centre is a local review trail for this planner's toast notices, not a
+Each centre is a local review trail for its own surface's toast notices, not a
 complete application-wide event log. Derived inline validation rows are not
-retroactively presented as persisted events.
+retroactively presented as persisted events. Desktop storage remains bounded
+to the renderer and does not add a preload, main-process, filesystem, or
+network route.
 
 ## Selection and bulk dismissal
 
@@ -64,12 +74,13 @@ record remains available; an irreversible delete path is outside this scope.
 
 ## Failure, accessibility, and security boundaries
 
-The centre uses named view buttons with pressed states, a fieldset for
+The centres use named view buttons with pressed states, a fieldset for
 select-all scope, named checkboxes per record, live status text for bulk
 results, a labelled list, and a named dismiss action for each dismissible
-record. The corner toast remains a polite live region and returns to the centre
-through a real **Review** action. The responsive list and action row wrap at
-narrow widths rather than clipping controls.
+record. The corner toast remains a polite live region and returns to the
+centre through a real **Review** action. The desktop record list and action row
+wrap at narrow widths rather than clipping controls, and each list has its own
+plain-text-first anchored regex builder.
 
 Records contain no credentials, paths, server data, telemetry, analytics,
 account information, or remote request payloads. No record is sent anywhere.
@@ -83,13 +94,16 @@ The implementation and focused negative regression are in
 [`eab9433`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/eab94338fbb0f75621213f2b66cd569478853c3e); the warning/error persistence
 correction is in
 [`7b37bd6`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/7b37bd6332924bf0d2c13fd59bd154a256af9139).
-The focused test removes exact notification-centre registration and
-bulk-action markers one at a time and turns red for each removal before
-restoring them.
+The desktop implementation and focused negative regression are in
+[`d12e8f7`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d12e8f7dd1211df706ec18857b004f714ae5d6be). The focused checks remove
+exact desktop registration, storage, and bulk-action markers one at a time
+and turn red for each removal before restoring them.
 
 The local verification record is:
 
 - `npm run test:site-notification-center` passed.
+- `npm run test:desktop-notification-center` passed.
+- `npm run build:renderer` and `npm run build:main` passed.
 - TypeScript passed via the primary checkout's installed `tsc`.
 - The site build passed via the existing Vinext toolchain.
 - Site lint passed with 0 errors and 2 existing `img` warnings at

@@ -90,6 +90,14 @@
   unsupported data, and are never delivered remotely. The current controls
   ship English source copy; complete localization, desktop implementation, and
   packaged-runtime interaction remain outside this partial boundary.
+- Added the desktop renderer notification-centre foundation with bounded local
+  schema-v1 records for existing snackbar events, non-blocking Review/Dismiss
+  actions, Active/Dismissed/All views, scoped select-all, inverse selection, and
+  dismissible-only bulk dismissal
+  ([`d12e8f7`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/d12e8f7dd1211df706ec18857b004f714ae5d6be)). The article is registered in
+  the offline documentation bundle. Focused source checks and renderer/main
+  builds passed; packaged runtime interaction, complete localization, and
+  capture evidence remain unverified.
 - Kept warning and error notices visible until dismissal while preserving the
   short informational and success timeout
   ([`7b37bd6`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/7b37bd6332924bf0d2c13fd59bd154a256af9139)).

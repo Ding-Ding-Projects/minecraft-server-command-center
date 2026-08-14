@@ -13,7 +13,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | [Release dim sum metadata](release-dim-sum-metadata.md) | Defines bounded public-catalog resolution, per-project code-name reservation, release-note linking, and an honest no-asset fallback without copying a photo. |
 | [Universal settings foundation](universal-settings.md) | Defines the shared schema, local persistence, bounded personal-vocabulary loader, School mode boundary, logo selection, privacy behavior, and current verification limits. |
 | [Offline documentation browser foundation](offline-documentation-browser.md) | Defines the desktop-only typed Markdown bundle, isolated renderer subset, local search and regex hook, article-link resolution, and offline/privacy limits. |
-| [Notification centre foundation](notification-centre.md) | Defines the companion site's bounded browser-local notice records, review and bulk-dismiss behavior, accessibility/security boundaries, and current verification limits. |
+| [Notification centre foundation](notification-centre.md) | Defines the companion site's and desktop renderer's bounded local notice records, non-blocking review and bulk-dismiss behavior, accessibility/security boundaries, and current verification limits. |
 
 ## Source policy
 
