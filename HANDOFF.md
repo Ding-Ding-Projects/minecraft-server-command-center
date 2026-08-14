@@ -184,7 +184,8 @@ For the bounded desktop search lane, `npm run test:desktop-search`,
 2026-08-14. The negative regression covers exact shared-builder registrations
 and the `Ctrl+Shift+F` shortcut. These are source/build checks only; packaged
 runtime interaction, screen-reader interaction, and real captures remain
-unverified.
+unverified. The implementation and this verification record are carried by
+[`a6468a9`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/a6468a924620761622714ff1d545c8827eab14a6).
 
 ## Safe continuation
 

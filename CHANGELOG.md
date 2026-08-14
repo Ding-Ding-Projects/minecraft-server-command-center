@@ -87,7 +87,7 @@
   `Ctrl+Shift+F` opens a command palette that focuses those searches or their
   builders. The hand-written negative regression removes each registration and
   the shortcut one at a time; complete app-wide menu, dropdown, and command
-  coverage remains partial.
+  coverage remains partial ([`a6468a9`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/a6468a924620761622714ff1d545c8827eab14a6)).
 
 - A desktop-only offline documentation browser foundation: a typed bundle of
   the non-site Markdown articles, one escaped local renderer path, title/body
