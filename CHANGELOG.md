@@ -7,9 +7,16 @@
 - Hardened the universal-contract inventory guard with an independent literal
   27-row oracle, including the application display-name row, a literal
   seven-slot contract, independent desktop and companion-site evidence,
-  checker-rooted tracked-file validation, an exact metadata-owned Markdown
+  checker-rooted HEAD-tree tracked-file validation, an exact metadata-owned Markdown
   projection, and boundary mutations. Existing partial, not-implemented, and
   unverified states remain explicit.
+- Strengthened the universal-contract inventory guard against the five accepted
+  repair findings: surface records and path sets must remain independent,
+  regenerated Markdown cannot legalize mandatory `not-applicable` evidence,
+  tracked paths must exist in the committed `HEAD` tree rather than only the
+  mutable index, and symlink/junction fixtures now degrade safely when the host
+  lacks reparse-point creation capability. The focused mutation count is now
+  892, up from the 887-mutation baseline.
 - Changed the release line-count command to consume large `git blame
   --line-porcelain --root` output incrementally, avoiding Node's
   `spawnSync git ENOBUFS` failure without changing line buckets or surviving-line
@@ -36,8 +43,11 @@
 ### Verification
 
 - `npm run test:universal-contract-inventory` passed with 27 canonical rows,
-  7 evidence slots, 2 independent surface keys per row, and 887 negative
-  mutations. `npm run test:universal-contracts`,
+  7 evidence slots, 2 independent surface keys per row, and 892 negative
+  mutations. The run rejected the isolated staged-only path, regenerated
+  mandatory-applicability mutation, collapsed/shared/duplicated surface paths,
+  and successful symlink reparse fixture, with cleanup verified. `npm run
+  test:universal-contracts`,
   `npm run test:offline-documentation`, both syntax checks, and `git diff --check`
   also passed; the supported `npm run build` completed the asset, main, catalog,
   and renderer build steps.

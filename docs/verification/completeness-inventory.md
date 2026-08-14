@@ -12,9 +12,20 @@ built-artifact interaction, and capture evidence. A slot may honestly record a
 partial, unimplemented, or unverified state, but it may not disappear. Run
 `npm run test:universal-contract-inventory` to check the exact 27-row order,
 the Markdown projection, every evidence slot, both independent surface keys,
-and the intentional remove/rename/restore mutation proof. The check is
-hand-written and fail-closed; it does not discover rows from the files it
-happens to find.
+the intentional remove/rename/restore mutation proof, regenerated-document
+applicability proof, HEAD-tree path proof, staged-only fixture, surface path
+uniqueness/disjointness, and capability-aware symlink/junction cleanup. The
+check is hand-written and fail-closed; it does not discover rows from the
+files it happens to find.
+
+Surface evidence is validated as two separate records with separate path
+arrays. Paths are unique within each surface and disjoint between desktop and
+the companion site. Tracked-file evidence is resolved from the committed
+`HEAD` tree rather than the mutable index, so a path that exists only in a
+staged test fixture is rejected. The mandatory evidence rule is checked after
+regenerating the affected Markdown row, so a stale projection cannot mask a
+mandatory `not-applicable` mutation. Symlink and junction fixtures are
+capability-aware, and every fixture is removed and verified during cleanup.
 
 ## Inventory
 

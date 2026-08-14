@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
-  existsSync,
+  mkdtempSync,
   lstatSync,
+  rmSync,
   symlinkSync,
-  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -18,6 +18,7 @@ import {
   sep,
   win32,
 } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import {
   UNIVERSAL_CONTRACT_EVIDENCE_KEYS,
@@ -31,6 +32,7 @@ const inventoryMetadataPath = resolve(repositoryRoot, "scripts/universal-contrac
 const inventoryDocumentationPath = resolve(repositoryRoot, "docs/verification/completeness-inventory.md");
 const inventoryMetadataSource = await readFile(inventoryMetadataPath, "utf8");
 const inventoryDocumentationSource = await readFile(inventoryDocumentationPath, "utf8");
+const fixtureToken = `${process.pid}-${Date.now()}`;
 
 const expectedRows = Object.freeze([
   ["language-modes-and-school-mode", "English, playful Cantonese, bilingual modes; independent funny levels; emoji toggle; renameable School mode"],
@@ -124,7 +126,7 @@ function assertSourceContract(source) {
   }
 }
 
-function assertRepositoryFile(relativePath, context) {
+function assertRepositoryFile(relativePath, context, gitEnvironment = process.env) {
   assert.equal(typeof relativePath, "string", `${context} path must be a string`);
   assert.ok(relativePath.length > 0, `${context} path must not be empty`);
   assert.equal(relativePath.trim(), relativePath, `${context} path must not have surrounding whitespace`);
@@ -153,14 +155,80 @@ function assertRepositoryFile(relativePath, context) {
   const finalStats = lstatSync(candidate);
   assert.equal(finalStats.isFile(), true, `${context} path must name a file, not a directory: ${relativePath}`);
 
-  const gitResult = spawnSync("git", ["ls-files", "--error-unmatch", "--", relativePath], {
+  const gitResult = spawnSync("git", ["ls-tree", "--full-tree", "--name-only", "HEAD", "--", relativePath], {
     cwd: repositoryRoot,
+    env: gitEnvironment,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
-  assert.equal(gitResult.error, undefined, `${context} could not inspect Git index evidence`);
-  assert.equal(gitResult.status, 0, `${context} path must be tracked in the Git index: ${relativePath}`);
-  assert.equal(gitResult.stdout.trim(), relativePath, `${context} path must resolve to exactly one tracked Git path: ${relativePath}`);
+  assert.equal(gitResult.error, undefined, `${context} could not inspect the HEAD tree`);
+  assert.equal(gitResult.status, 0, `${context} path must be present in the HEAD tree: ${relativePath}`);
+  assert.equal(gitResult.stdout.trim(), relativePath, `${context} path must resolve to exactly one HEAD tree path: ${relativePath}`);
+}
+
+function pathExistsForCleanup(path) {
+  try {
+    lstatSync(path);
+    return true;
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function removeFixture(path) {
+  rmSync(path, { force: true, recursive: true });
+  assert.equal(pathExistsForCleanup(path), false, `fixture must be removed during cleanup: ${path}`);
+}
+
+function isReparseFixtureCapabilityError(error) {
+  return ["EACCES", "EINVAL", "ENOTSUP", "EPERM"].includes(error?.code);
+}
+
+function createReparseFixture() {
+  const symlinkRelativePath = `scripts/.inventory-symlink-${fixtureToken}.mjs`;
+  const symlinkAbsolutePath = resolve(repositoryRoot, symlinkRelativePath);
+  const junctionRelativePath = `.inventory-junction-${fixtureToken}`;
+  const junctionAbsolutePath = resolve(repositoryRoot, junctionRelativePath);
+  const targetFile = "test-universal-contract-inventory.mjs";
+
+  assert.equal(pathExistsForCleanup(symlinkAbsolutePath), false, `symlink fixture path must not already exist: ${symlinkAbsolutePath}`);
+  assert.equal(pathExistsForCleanup(junctionAbsolutePath), false, `junction fixture path must not already exist: ${junctionAbsolutePath}`);
+
+  try {
+    symlinkSync(targetFile, symlinkAbsolutePath, "file");
+    return Object.freeze({
+      kind: "symlink",
+      relativePath: symlinkRelativePath,
+      cleanupPaths: Object.freeze([symlinkAbsolutePath]),
+    });
+  } catch (error) {
+    if (pathExistsForCleanup(symlinkAbsolutePath)) {
+      removeFixture(symlinkAbsolutePath);
+    }
+    if (!isReparseFixtureCapabilityError(error)) {
+      throw error;
+    }
+  }
+
+  try {
+    symlinkSync(resolve(repositoryRoot, "scripts"), junctionAbsolutePath, "junction");
+    return Object.freeze({
+      kind: "junction",
+      relativePath: `${junctionRelativePath}/test-universal-contract-inventory.mjs`,
+      cleanupPaths: Object.freeze([junctionAbsolutePath]),
+    });
+  } catch (error) {
+    if (pathExistsForCleanup(junctionAbsolutePath)) {
+      removeFixture(junctionAbsolutePath);
+    }
+    if (!isReparseFixtureCapabilityError(error)) {
+      throw error;
+    }
+    return null;
+  }
 }
 
 function assertDocumentationTable(source, inventory) {
@@ -191,12 +259,25 @@ function assertDocumentationTable(source, inventory) {
   );
 }
 
-function assertEvidenceSlot(slot, rowId, evidenceKey) {
+function formatProjectedMarkdownRow(row) {
+  return `| ${projectUniversalContractMarkdownRow(row).join(" | ")} |`;
+}
+
+function replaceProjectedMarkdownRow(source, originalRow, replacementRow) {
+  const originalLine = formatProjectedMarkdownRow(originalRow);
+  const replacementLine = formatProjectedMarkdownRow(replacementRow);
+  const originalIndex = source.indexOf(originalLine);
+  assert.ok(originalIndex >= 0, "the expected Markdown projection row must exist exactly before regeneration");
+  assert.equal(source.indexOf(originalLine, originalIndex + originalLine.length), -1, "the expected Markdown projection row must occur exactly once before regeneration");
+  return `${source.slice(0, originalIndex)}${replacementLine}${source.slice(originalIndex + originalLine.length)}`;
+}
+
+function assertEvidenceSlot(slot, rowId, evidenceKey, gitEnvironment = process.env) {
   assert.ok(slot && typeof slot === "object" && !Array.isArray(slot), `${rowId} must keep ${evidenceKey} evidence metadata`);
   assert.ok(allowedStatuses.has(slot.status), `${rowId} ${evidenceKey} must use a known evidence status`);
   assert.ok(Array.isArray(slot.paths) && slot.paths.length > 0, `${rowId} ${evidenceKey} must list at least one auditable path`);
   for (const path of slot.paths) {
-    assertRepositoryFile(path, `${rowId} ${evidenceKey}`);
+    assertRepositoryFile(path, `${rowId} ${evidenceKey}`, gitEnvironment);
   }
   assert.equal(typeof slot.assertion, "string", `${rowId} ${evidenceKey} must keep an assertion`);
   assert.ok(slot.assertion.trim().length >= 20, `${rowId} ${evidenceKey} assertion is too short to be auditable`);
@@ -221,19 +302,34 @@ function assertEvidenceSlot(slot, rowId, evidenceKey) {
   }
 }
 
-function assertSurfaceEvidence(surface, rowId, surfaceKey) {
+function assertSurfaceEvidence(surface, rowId, surfaceKey, gitEnvironment = process.env) {
   assert.ok(surface && typeof surface === "object" && !Array.isArray(surface), `${rowId} must keep ${surfaceKey} surface evidence`);
   assert.deepEqual(Object.keys(surface).sort(), ["assertion", "paths", "status"], `${rowId} ${surfaceKey} surface evidence must keep its declared fields`);
   assert.ok(allowedSurfaceStatuses.has(surface.status), `${rowId} ${surfaceKey} must use a known surface status`);
   assert.ok(Array.isArray(surface.paths) && surface.paths.length > 0, `${rowId} ${surfaceKey} must list independent auditable paths`);
   for (const path of surface.paths) {
-    assertRepositoryFile(path, `${rowId} ${surfaceKey}`);
+    assertRepositoryFile(path, `${rowId} ${surfaceKey}`, gitEnvironment);
   }
   assert.equal(typeof surface.assertion, "string", `${rowId} ${surfaceKey} must keep an assertion`);
   assert.ok(surface.assertion.trim().length >= 20, `${rowId} ${surfaceKey} assertion is too short to be auditable`);
 }
 
-function assertInventory(inventory, documentationSource) {
+function assertIndependentSurfaceEvidence(row) {
+  const desktop = row.surfaces.desktop;
+  const companionSite = row.surfaces.companionSite;
+  assert.notEqual(desktop, companionSite, `${row.id} desktop and companion-site surface records must remain separate objects`);
+  assert.notEqual(desktop.paths, companionSite.paths, `${row.id} desktop and companion-site path arrays must remain separate objects`);
+
+  const desktopPaths = new Set(desktop.paths);
+  const companionSitePaths = new Set(companionSite.paths);
+  assert.equal(desktopPaths.size, desktop.paths.length, `${row.id} desktop surface paths must be unique`);
+  assert.equal(companionSitePaths.size, companionSite.paths.length, `${row.id} companion-site surface paths must be unique`);
+  for (const path of desktopPaths) {
+    assert.equal(companionSitePaths.has(path), false, `${row.id} desktop and companion-site surface paths must be disjoint: ${path}`);
+  }
+}
+
+function assertInventory(inventory, documentationSource, { gitEnvironment = process.env } = {}) {
   assertSourceContract(inventoryMetadataSource);
   assert.deepEqual([...UNIVERSAL_CONTRACT_EVIDENCE_KEYS], expectedEvidenceKeys, "the production evidence-slot list must match the independent seven-slot oracle");
   assert.deepEqual([...UNIVERSAL_CONTRACT_SURFACE_KEYS], expectedSurfaceKeys, "the production surface-key list must match the independent two-surface oracle");
@@ -266,13 +362,13 @@ function assertInventory(inventory, documentationSource) {
       expectedSurfaceKeys.slice().sort(),
       `${row.id} must keep both independent surface evidence keys`,
     );
-    assert.notDeepEqual(row.surfaces.desktop.paths, row.surfaces.companionSite.paths, `${row.id} desktop and companion-site paths must not collapse into one flat list`);
     for (const evidenceKey of expectedEvidenceKeys) {
-      assertEvidenceSlot(row.evidence[evidenceKey], row.id, evidenceKey);
+      assertEvidenceSlot(row.evidence[evidenceKey], row.id, evidenceKey, gitEnvironment);
     }
     for (const surfaceKey of expectedSurfaceKeys) {
-      assertSurfaceEvidence(row.surfaces[surfaceKey], row.id, surfaceKey);
+      assertSurfaceEvidence(row.surfaces[surfaceKey], row.id, surfaceKey, gitEnvironment);
     }
+    assertIndependentSurfaceEvidence(row);
   }
 }
 
@@ -374,6 +470,49 @@ delete invalidPersistenceReason[4].evidence.persistence.reason;
 assertMutationFails("removing a not-applicable persistence reason", () => assertInventory(invalidPersistenceReason, inventoryDocumentationSource));
 mutationCount += 1;
 
+const collapsedSurfacePaths = cloneInventory();
+collapsedSurfacePaths[0].surfaces.companionSite = {
+  ...collapsedSurfacePaths[0].surfaces.companionSite,
+  paths: collapsedSurfacePaths[0].surfaces.desktop.paths,
+};
+assertMutationFails("collapsing desktop and companion-site surface paths", () => assertInventory(collapsedSurfacePaths, inventoryDocumentationSource));
+mutationCount += 1;
+
+const duplicatedDesktopSurfacePath = cloneInventory();
+duplicatedDesktopSurfacePath[0].surfaces.desktop.paths = [
+  duplicatedDesktopSurfacePath[0].surfaces.desktop.paths[0],
+  ...duplicatedDesktopSurfacePath[0].surfaces.desktop.paths,
+];
+assertMutationFails("duplicating a desktop surface path", () => assertInventory(duplicatedDesktopSurfacePath, inventoryDocumentationSource));
+mutationCount += 1;
+
+const sharedSurfacePath = cloneInventory();
+sharedSurfacePath[0].surfaces.companionSite.paths = [
+  sharedSurfacePath[0].surfaces.desktop.paths[0],
+  ...sharedSurfacePath[0].surfaces.companionSite.paths,
+];
+assertMutationFails("sharing a path between desktop and companion-site surfaces", () => assertInventory(sharedSurfacePath, inventoryDocumentationSource));
+mutationCount += 1;
+
+const regeneratedMandatoryNotApplicable = cloneInventory();
+regeneratedMandatoryNotApplicable[0].evidence.documentation = {
+  applicable: false,
+  status: "not-applicable",
+  paths: ["docs/verification/completeness-inventory.md"],
+  assertion: "Mandatory documentation evidence cannot be marked not-applicable.",
+  reason: "This semantic mutation must be rejected even after Markdown regeneration.",
+};
+const regeneratedMandatoryNotApplicableDocumentation = replaceProjectedMarkdownRow(
+  inventoryDocumentationSource,
+  UNIVERSAL_CONTRACT_INVENTORY[0],
+  regeneratedMandatoryNotApplicable[0],
+);
+assertMutationFails(
+  "regenerating Markdown after marking mandatory evidence not-applicable",
+  () => assertInventory(regeneratedMandatoryNotApplicable, regeneratedMandatoryNotApplicableDocumentation),
+);
+mutationCount += 1;
+
 const pathMutations = [
   ["absolute evidence path", resolve(repositoryRoot, "README.md")],
   ["escaping evidence path", "../README.md"],
@@ -386,7 +525,7 @@ for (const [label, path] of pathMutations) {
   mutationCount += 1;
 }
 
-const untrackedRelativePath = `.inventory-untracked-${process.pid}.txt`;
+const untrackedRelativePath = `.inventory-untracked-${fixtureToken}.txt`;
 const untrackedAbsolutePath = resolve(repositoryRoot, untrackedRelativePath);
 writeFileSync(untrackedAbsolutePath, "temporary inventory mutation fixture\n", "utf8");
 try {
@@ -395,21 +534,62 @@ try {
   assertMutationFails("untracked evidence path", () => assertInventory(mutated, inventoryDocumentationSource));
   mutationCount += 1;
 } finally {
-  unlinkSync(untrackedAbsolutePath);
+  removeFixture(untrackedAbsolutePath);
 }
 
-const symlinkRelativePath = `scripts/.inventory-symlink-${process.pid}.mjs`;
-const symlinkAbsolutePath = resolve(repositoryRoot, symlinkRelativePath);
-symlinkSync("test-universal-contract-inventory.mjs", symlinkAbsolutePath, "file");
+const stagedOnlyRelativePath = `.inventory-staged-only-${fixtureToken}.txt`;
+const stagedOnlyAbsolutePath = resolve(repositoryRoot, stagedOnlyRelativePath);
+const stagedIndexRoot = mkdtempSync(join(tmpdir(), `universal-contract-index-${process.pid}-`));
+const stagedIndexPath = join(stagedIndexRoot, "index");
+const stagedGitEnvironment = { ...process.env, GIT_INDEX_FILE: stagedIndexPath };
+writeFileSync(stagedOnlyAbsolutePath, "temporary staged-only inventory fixture\n", "utf8");
 try {
+  const addResult = spawnSync("git", ["add", "--", stagedOnlyRelativePath], {
+    cwd: repositoryRoot,
+    env: stagedGitEnvironment,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  assert.equal(addResult.error, undefined, "the staged-only fixture could not be added to the isolated test index");
+  assert.equal(addResult.status, 0, `the staged-only fixture could not be added to the isolated test index: ${addResult.stderr}`);
+
+  const stagedProbe = spawnSync("git", ["ls-files", "--error-unmatch", "--", stagedOnlyRelativePath], {
+    cwd: repositoryRoot,
+    env: stagedGitEnvironment,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  assert.equal(stagedProbe.status, 0, "the staged-only fixture must be visible from the isolated mutable index");
+  assert.equal(stagedProbe.stdout.trim(), stagedOnlyRelativePath, "the staged-only probe must resolve exactly one mutable-index path");
+
   const mutated = cloneInventory();
-  mutated[0].evidence.implementation.paths = [symlinkRelativePath];
-  assertMutationFails("symlink evidence path", () => assertInventory(mutated, inventoryDocumentationSource));
+  mutated[0].evidence.implementation.paths = [stagedOnlyRelativePath];
+  assertMutationFails(
+    "staged-only evidence path",
+    () => assertInventory(mutated, inventoryDocumentationSource, { gitEnvironment: stagedGitEnvironment }),
+  );
   mutationCount += 1;
 } finally {
-  if (existsSync(symlinkAbsolutePath)) {
-    unlinkSync(symlinkAbsolutePath);
+  removeFixture(stagedOnlyAbsolutePath);
+  removeFixture(stagedIndexRoot);
+}
+
+let reparseFixtureKind = "unavailable";
+const reparseFixture = createReparseFixture();
+if (reparseFixture) {
+  reparseFixtureKind = reparseFixture.kind;
+  try {
+    const mutated = cloneInventory();
+    mutated[0].evidence.implementation.paths = [reparseFixture.relativePath];
+    assertMutationFails(`${reparseFixture.kind} evidence path`, () => assertInventory(mutated, inventoryDocumentationSource));
+    mutationCount += 1;
+  } finally {
+    for (const cleanupPath of reparseFixture.cleanupPaths) {
+      removeFixture(cleanupPath);
+    }
   }
+} else {
+  console.log("INFO: symlink and junction fixture creation were unavailable; the reparse mutation was not counted");
 }
 
 for (const [rowId, rowTitle] of expectedRows) {
@@ -432,4 +612,4 @@ assertMutationFails("changing a non-empty Markdown evidence cell", () => assertI
 mutationCount += 1;
 
 assertInventory(UNIVERSAL_CONTRACT_INVENTORY, inventoryDocumentationSource);
-console.log(`PASS: explicit universal-contract inventory, ${UNIVERSAL_CONTRACT_INVENTORY.length} canonical rows, ${expectedEvidenceKeys.length} evidence slots, ${expectedSurfaceKeys.length} independent surfaces per row, and ${mutationCount} negative mutations`);
+console.log(`PASS: explicit universal-contract inventory, ${UNIVERSAL_CONTRACT_INVENTORY.length} canonical rows, ${expectedEvidenceKeys.length} evidence slots, ${expectedSurfaceKeys.length} independent surfaces per row, and ${mutationCount} negative mutations (reparse fixture: ${reparseFixtureKind})`);

@@ -80,7 +80,8 @@ installer execution, accessibility interaction, or real captures.
 
 ## Universal inventory guard repair
 
-The focused inventory repair is based on exact commit
+The focused inventory repair is based on exact target commit
+`958d4439c77bff27d5a726655269b479087f0b6a`, whose requested base is
 `d04c246b8a5282b7a7ee252c57f0f9a778c78114`. It keeps an independent literal
 27-row oracle, including the previously absent user-renamable application
 display-name row, and validates the production registry and Markdown rows
@@ -90,18 +91,22 @@ remain not-applicable only with an explicit reason.
 
 Each row now records separate `desktop` and `companionSite` evidence keys. The
 checker resolves its root from its own module, rejects absolute, escaping,
-symlink/reparse, directory, and untracked evidence paths, uses argv-array Git
-index inspection, and cross-checks every Markdown evidence cell against the
-metadata-owned five-cell projection. Exact line-boundary and suffix-rename
-mutations cover the source contract, while row, evidence, surface, path, and
-documentation mutations remain fail-closed.
+symlink/reparse, directory, and untracked evidence paths, proves tracked files
+from the committed `HEAD` tree, and cross-checks every Markdown evidence cell
+against the metadata-owned five-cell projection. Surface records and path
+arrays are independently owned; paths are unique per surface and disjoint
+between surfaces. A regenerated Markdown row cannot mask a mandatory
+`not-applicable` mutation. The staged-only fixture is visible to an isolated
+mutable index but is rejected by the `HEAD` proof, and symlink/junction setup
+is capability-aware with verified cleanup.
 
 Verification for this lane: `npm run test:universal-contract-inventory`
 passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
-per row, and 887 negative mutations. `npm run test:universal-contracts`,
-`npm run test:offline-documentation`, both syntax checks, and
-`git diff --check`, and the supported `npm run build` passed. Product rows
-retain their existing partial,
+per row, and 892 negative mutations; the successful reparse fixture was a
+symlink. The staged-only, regenerated-Markdown, surface uniqueness/disjointness,
+and fixture-cleanup probes passed. `npm run test:universal-contracts`,
+`npm run test:offline-documentation`, both syntax checks, `git diff --check`,
+and the supported `npm run build` passed. Product rows retain their existing partial,
 not-implemented, and unverified states; this record claims no packaged
 runtime, accessibility interaction, release, or capture evidence.
 
