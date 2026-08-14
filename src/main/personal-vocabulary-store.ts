@@ -124,10 +124,10 @@ export async function replacePersonalVocabulary(
     throw new Error("The selected vocabulary file was rejected before it could change the active cache.");
   }
 
-  await mkdir(userDataDirectory, { recursive: true });
   const target = cachePath(userDataDirectory);
   const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
   try {
+    await mkdir(userDataDirectory, { recursive: true });
     await writeFile(temporary, JSON.stringify({ schemaVersion: 1, entries: next.entries }, null, 2) + "\n", {
       encoding: "utf8",
       mode: 0o600,

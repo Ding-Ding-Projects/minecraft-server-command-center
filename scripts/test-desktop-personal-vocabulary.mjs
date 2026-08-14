@@ -32,6 +32,9 @@ const requiredMarkers = [
   ["src/preload/index.ts", "clear: () => ipcRenderer.invoke(\"personal-vocabulary:clear\")"],
   ["src/main/index.ts", "ipcMain.handle(\"personal-vocabulary:load\", () => loadPersonalVocabulary(app.getPath(\"userData\"))"],
   ["src/main/index.ts", "ipcMain.handle(\"personal-vocabulary:choose\""],
+  ["src/main/index.ts", "const persistedSettings = await loadUniversalSettings(app.getPath(\"userData\"));"],
+  ["src/main/index.ts", "funnyLevelEnglish: persistedSettings.funnyLevelEnglish,"],
+  ["src/main/index.ts", "funnyLevelCantonese: persistedSettings.funnyLevelCantonese,"],
   ["src/main/index.ts", "ipcMain.handle(\"personal-vocabulary:clear\", () => clearPersonalVocabulary(app.getPath(\"userData\"))"],
   ["src/main/index.ts", "presentDesktopCopy(\"settings.personalVocabulary.picker.title\""],
   ["package.json", "\"test:desktop-personal-vocabulary\": \"node --experimental-strip-types scripts/test-desktop-personal-vocabulary.mjs\""],
@@ -42,6 +45,16 @@ const requiredMarkers = [
   ["src/renderer/main.ts", "applyPersonalVocabularyReplacements(text, activePersonalVocabularyEntries(), { boundary: \"ui\" })"],
   ["src/renderer/main.ts", "function renderPersonalVocabularyControl(): void {"],
   ["src/renderer/main.ts", "function effectivePresentationSettings(): UniversalSettingsV1 {"],
+  ["src/renderer/main.ts", "current.getAttribute(\"aria-disabled\") === \"true\""],
+  ["src/renderer/main.ts", "if (current.hasAttribute(\"inert\") || current.hasAttribute(\"disabled\")) return false;"],
+  ["src/renderer/main.ts", "return style.display !== \"none\" && style.visibility !== \"hidden\" && style.visibility !== \"collapse\";"],
+  ["src/renderer/main.ts", "if (!commandPaletteCommandAvailable(command)) {\n      openCommandPalette();"],
+  ["src/renderer/main.ts", "document.documentElement.lang = settings.languageMode === \"cantonese\""],
+  ["src/renderer/main.ts", "english.lang = \"en\";"],
+  ["src/renderer/main.ts", "cantonese.lang = \"zh-Hant-HK\";"],
+  ["src/renderer/main.ts", "bindOfflineDocumentation(userCopy);"],
+  ["src/renderer/offline-documentation.ts", "const PROTECTED_TAGS = new Set([\"code\", \"pre\", \"kbd\", \"samp\", \"output\", \"script\", \"style\"]);"],
+  ["src/renderer/offline-documentation.ts", "function applyRenderedCopy(root: HTMLElement, copy: CopyText): void {"],
   ["src/renderer/main.ts", "return universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries;"],
   ["src/renderer/main.ts", "function commandPaletteCommandAvailable(command: CommandPaletteCommand): boolean {"],
   ["src/renderer/main.ts", "const previous = universalSettings.personalVocabulary;"],
@@ -55,7 +68,14 @@ const requiredMarkers = [
   ["src/renderer/index.html", "data-presentation-key=\"notifications.regex.dialogLabel\""],
   ["src/renderer/index.html", "aria-keyshortcuts=\"Control+Shift+F\""],
   ["src/shared/desktop-presentation.ts", "\"settings.personalVocabulary.notice.rejected\": {"],
-  ["src/shared/desktop-presentation.ts", "English: ${english} · Cantonese: ${cantonese}"],
+  ["src/shared/desktop-presentation.ts", "return `English: ${parts.english} · Cantonese: ${parts.cantonese}`;"],
+  ["site/app/page.tsx", "function readLocalStorageValue(key: string):"],
+  ["site/app/page.tsx", "if (!writeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY, serialized)) {"],
+  ["site/app/page.tsx", "function companionLanguageMode(settings: UniversalSettingsV1): UniversalLanguageMode {"],
+  ["site/app/page.tsx", "function CompanionBilingualText("],
+  ["site/app/page.tsx", "schoolSuppressed: true,"],
+  ["site/app/page.tsx", "data-personal-vocabulary-boundary=\"ui\""],
+  ["site/app/personal-vocabulary-boundary.tsx", "const declaredBoundary = props[\"data-personal-vocabulary-boundary\"] ?? \"ui\";"],
 ];
 
 const sources = new Map();
@@ -64,22 +84,52 @@ for (const [path] of requiredMarkers) sources.set(path, await readText(path));
 function assertSourceContract(currentSources) {
   for (const [path, marker] of requiredMarkers) {
     const source = currentSources.get(path) ?? "";
-    assert.equal(source.split(marker).length - 1, 1, `desktop personal-vocabulary marker must have one exact boundary: ${path} :: ${marker}`);
+    assert.equal(countExactMarker(source, marker), 1, `desktop personal-vocabulary marker must have one exact boundary: ${path} :: ${marker}`);
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactMarkerPattern(marker, flags = "") {
+  const leading = /^[A-Za-z0-9_$]/.test(marker) ? "(?<![A-Za-z0-9_$])" : "";
+  const trailing = /[A-Za-z0-9_$]$/.test(marker) ? "(?![A-Za-z0-9_$])" : "";
+  return new RegExp(`${leading}${escapeRegExp(marker)}${trailing}`, flags);
+}
+
+function countExactMarker(source, marker) {
+  return source.match(exactMarkerPattern(marker, "g"))?.length ?? 0;
+}
+
+function removeExactMarker(source, marker) {
+  const pattern = exactMarkerPattern(marker);
+  const match = pattern.exec(source);
+  assert.ok(match && match.index !== undefined, `cannot remove missing exact marker: ${marker}`);
+  return source.slice(0, match.index) + source.slice(match.index + match[0].length);
 }
 
 assertSourceContract(sources);
 for (const [path, marker] of requiredMarkers) {
   const removed = new Map(sources);
-  const source = removed.get(path);
-  const index = source.indexOf(marker);
-  removed.set(path, source.slice(0, index) + source.slice(index + marker.length));
+  removed.set(path, removeExactMarker(removed.get(path), marker));
   assert.throws(
     () => assertSourceContract(removed),
     /desktop personal-vocabulary marker/,
     `negative regression stayed green after removing ${path} :: ${marker}`,
   );
 }
+
+const settingsMarkup = sources.get("src/renderer/index.html");
+const schoolSuppressibleMarker = "data-school-suppressible=\"true\"";
+assert.equal(countExactMarker(settingsMarkup, schoolSuppressibleMarker), 5, "every language, tone, emoji, and vocabulary card must declare the School-mode suppression boundary");
+const suppressionRemoved = new Map(sources);
+suppressionRemoved.set("src/renderer/index.html", removeExactMarker(settingsMarkup, schoolSuppressibleMarker));
+assert.throws(
+  () => assert.equal(countExactMarker(suppressionRemoved.get("src/renderer/index.html"), schoolSuppressibleMarker), 5, "every language, tone, emoji, and vocabulary card must declare the School-mode suppression boundary"),
+  /must declare the School-mode suppression boundary/,
+  "negative regression stayed green after removing one exact School-mode suppression declaration",
+);
 
 assert.doesNotMatch(sources.get("src/main/personal-vocabulary-store.ts"), /fetch\s*\(/, "the desktop cache must not add network access");
 for (const path of [

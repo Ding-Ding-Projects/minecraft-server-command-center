@@ -81,10 +81,11 @@ function normalizedLanguageMode(value: unknown): UniversalLanguageMode {
 }
 
 async function choosePersonalVocabulary(languageMode: UniversalLanguageMode = "english") {
+  const persistedSettings = await loadUniversalSettings(app.getPath("userData"));
   const pickerSettings = {
-    languageMode,
-    funnyLevelEnglish: 1,
-    funnyLevelCantonese: 1,
+    languageMode: normalizedLanguageMode(languageMode),
+    funnyLevelEnglish: persistedSettings.funnyLevelEnglish,
+    funnyLevelCantonese: persistedSettings.funnyLevelCantonese,
   } as const;
   const result = await dialog.showOpenDialog(requireWindow(), {
     title: presentDesktopCopy("settings.personalVocabulary.picker.title", pickerSettings),

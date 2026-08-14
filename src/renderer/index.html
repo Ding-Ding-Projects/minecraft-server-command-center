@@ -530,7 +530,7 @@
               </section>
 
               <section class="settings-card-grid" id="settings-card-grid" aria-live="polite">
-                <article class="settings-card" data-settings-item data-settings-label="Language mode">
+                <article class="settings-card" data-settings-item data-settings-label="Language mode" data-school-suppressible="true">
                   <h3 data-presentation-key="settings.language.title">Language mode</h3>
                   <p data-presentation-key="settings.language.description">English, playful Hong Kong-style Cantonese, or bilingual. The setting is local and persisted.</p>
                   <select class="select-input" data-universal-setting="languageMode" data-presentation-key="settings.language.title" data-presentation-attribute="aria-label" aria-label="Language mode">
@@ -539,19 +539,19 @@
                     <option value="bilingual" data-presentation-key="settings.language.option.bilingual">Bilingual</option>
                   </select>
                 </article>
-                <article class="settings-card" data-settings-item data-settings-label="English funny level">
+                <article class="settings-card" data-settings-item data-settings-label="English funny level" data-school-suppressible="true">
                   <h3 data-presentation-key="settings.englishFunny.title">English funny level</h3>
                   <p data-presentation-key="settings.englishFunny.description">Styles message voice from serious to maximum playful without changing facts.</p>
                   <input type="range" min="1" max="5" step="1" data-universal-setting="funnyLevelEnglish" aria-label="English funny level" />
                   <output data-universal-output="funnyLevelEnglish">2 / 5</output>
                 </article>
-                <article class="settings-card" data-settings-item data-settings-label="Cantonese funny level">
+                <article class="settings-card" data-settings-item data-settings-label="Cantonese funny level" data-school-suppressible="true">
                   <h3 data-presentation-key="settings.cantoneseFunny.title">Cantonese funny level</h3>
                   <p data-presentation-key="settings.cantoneseFunny.description">Independent Cantonese voice control with the same factual-warning boundary.</p>
                   <input type="range" min="1" max="5" step="1" data-universal-setting="funnyLevelCantonese" aria-label="Cantonese funny level" />
                   <output data-universal-output="funnyLevelCantonese">3 / 5</output>
                 </article>
-                <article class="settings-card" data-settings-item data-settings-label="Emoji dialogs">
+                <article class="settings-card" data-settings-item data-settings-label="Emoji dialogs" data-school-suppressible="true">
                   <h3 data-presentation-key="settings.emoji.title">Dialog emoji decoration</h3>
                   <p data-presentation-key="settings.emoji.description">Decorative emoji can be shown in dialogs and message boxes without entering control labels.</p>
                   <label class="switch-row switch-row--inline" for="settings-show-emojis"><span data-presentation-key="settings.emoji.toggle">Show emojis</span><input id="settings-show-emojis" type="checkbox" data-universal-setting="showEmojisInDialogs" /><span class="switch-track" aria-hidden="true"></span></label>
@@ -566,6 +566,17 @@
                   <p data-presentation-key="settings.school.description">Rename the focus setting. Its unlock value is not stored in this preference file.</p>
                   <input class="text-input" type="text" maxlength="80" data-universal-setting="schoolModeName" data-presentation-key="settings.school.title" data-presentation-attribute="aria-label" aria-label="School mode name" />
                   <label class="switch-row switch-row--inline" for="settings-school-mode"><span data-presentation-key="settings.school.toggle">Enable focus mode</span><input id="settings-school-mode" type="checkbox" data-universal-setting="schoolModeEnabled" /><span class="switch-track" aria-hidden="true"></span></label>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Personal vocabulary" data-school-suppressible="true">
+                  <p class="eyebrow" data-presentation-key="settings.personalVocabulary.eyebrow">Private local vocabulary</p>
+                  <h3 data-presentation-key="settings.personalVocabulary.title">Upload a local JSON vocabulary file</h3>
+                  <p data-presentation-key="settings.personalVocabulary.description">Choose a bounded JSON file. It is validated locally before the cache or displayed wording changes.</p>
+                  <p id="personal-vocabulary-status" class="field__hint" role="status" aria-live="polite" tabindex="0">No local vocabulary file is active.</p>
+                  <p class="field__hint" data-presentation-key="settings.personalVocabulary.privacy">File bytes, paths, and entries stay in the local cache; this settings record stores status and count only.</p>
+                  <div class="settings-inline-controls personal-vocabulary-actions">
+                    <button class="outlined-button" type="button" id="choose-personal-vocabulary" data-presentation-key="settings.personalVocabulary.choose">Choose local JSON file</button>
+                    <button class="text-action" type="button" id="clear-personal-vocabulary" data-presentation-key="settings.personalVocabulary.clear" disabled>Clear local vocabulary</button>
+                  </div>
                 </article>
                 <article class="settings-card" data-settings-item data-settings-label="Theme density accent">
                   <h3 data-presentation-key="settings.appearance.title">Theme, density, and accent</h3>
@@ -582,7 +593,7 @@
                 <span id="universal-settings-state" class="field__hint" role="status" aria-live="polite">Loading local universal settings…</span>
                 <button class="outlined-button" type="button" id="reset-universal-settings" data-presentation-key="settings.actions.reset">Reset universal settings</button>
               </div>
-              <p class="field__hint" data-presentation-key="settings.footnote">This panel intentionally excludes credentials, arbitrary commands, remote services, and private vocabulary values. Full contract coverage is tracked in the repository inventory.</p>
+              <p class="field__hint" data-presentation-key="settings.footnote">This panel intentionally excludes credentials, arbitrary commands, remote services, and vocabulary file contents. Full contract coverage is tracked in the repository inventory.</p>
             </section>
 
             <section class="tab-panel" role="tabpanel" id="panel-notifications" aria-labelledby="tab-notifications" data-panel="notifications" hidden>

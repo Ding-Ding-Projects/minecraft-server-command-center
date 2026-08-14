@@ -21,6 +21,7 @@ const TRANSLATABLE_ATTRIBUTES = ["aria-label", "aria-description", "alt", "place
 type HostProps = Record<string, unknown> & {
   children?: ReactNode;
   "data-personal-vocabulary"?: "preserve" | "apply";
+  "data-personal-vocabulary-boundary"?: PersonalVocabularyTextBoundary;
 };
 
 function transformNode(node: ReactNode, entries: readonly PersonalVocabularyEntryV1[], inheritedPreserve = false): ReactNode {
@@ -31,9 +32,11 @@ function transformNode(node: ReactNode, entries: readonly PersonalVocabularyEntr
 
   const props = node.props as HostProps;
   const tagName = typeof node.type === "string" ? node.type.toLowerCase() : "";
+  const declaredBoundary = props["data-personal-vocabulary-boundary"] ?? "ui";
   const preserve = inheritedPreserve
     || PROTECTED_TAGS.has(tagName)
-    || props["data-personal-vocabulary"] === "preserve";
+    || props["data-personal-vocabulary"] === "preserve"
+    || declaredBoundary !== "ui";
   const nextProps: HostProps = { ...props };
   let changed = false;
 
@@ -41,7 +44,7 @@ function transformNode(node: ReactNode, entries: readonly PersonalVocabularyEntr
     for (const attribute of TRANSLATABLE_ATTRIBUTES) {
       const value = props[attribute];
       if (typeof value !== "string") continue;
-      const translated = applyPersonalVocabularyReplacements(value, entries);
+      const translated = applyPersonalVocabularyReplacements(value, entries, { boundary: declaredBoundary });
       if (translated !== value) {
         nextProps[attribute] = translated;
         changed = true;

@@ -26,6 +26,10 @@ type ProtectedRange = {
 const PROTECTED_TOKEN_PATTERNS: readonly RegExp[] = [
   /(?:https?|ftp):\/\/[^\s<>"']+/gi,
   /(["'])(?:[A-Za-z]:[\\/]|\\\\|\/(?:Users|home|etc|var|opt|tmp|Program Files)[\\/])[^"'\r\n]*\1/g,
+  // Keep unquoted paths with spaces intact too. A path is still factual when
+  // it is copied without quotation marks, and splitting it at whitespace
+  // would let a private replacement rewrite only its tail.
+  /(?:[A-Za-z]:[\\/]|\\\\|\/(?:Users|home|etc|var|opt|tmp|Program Files)[\\/])[^<>"'\r\n`,;]+/g,
   /(?:[A-Za-z]:[\\/]|\\\\|\/(?:Users|home|etc|var|opt|tmp|Program Files)[\\/])[^\s<>"'`,;]+/g,
   /\b[A-Za-z_][A-Za-z0-9_]*=(?:"[^"]*"|'[^']*'|[^\s,;]+)/g,
   /#[0-9a-f]{6,8}\b/gi,
