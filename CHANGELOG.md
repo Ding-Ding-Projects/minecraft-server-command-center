@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Raised the root Electron development range from `^34.0.0` to `^42.4.0`, removing
+  the vulnerable `extract-zip@2.0.1` path from the supported resolved tree while
+  avoiding an unnecessary move to the 43 line.
 - Wired the desktop settings surface to the persisted English, playful
   Hong Kong-style Cantonese, and bilingual presentation modes, with independent
   English and Cantonese funny levels from 1 through 5.
@@ -12,6 +15,10 @@
 
 ### Verification
 
+- Added `npm run test:security-audit`, which audits a disposable generated lockfile
+  and fails if Electron is below `42.4.0`, the vulnerable `extract-zip` path returns,
+  or npm reports any vulnerability. The root `npm audit` command remains `ENOLOCK`
+  because the repository has no root lockfile.
 - Added `npm run test:desktop-presentation-settings`, including payload-free
   mode, slider, emoji, persistence, and exact negative-registration checks.
 - Source and build checks do not claim packaged runtime interaction, screen
