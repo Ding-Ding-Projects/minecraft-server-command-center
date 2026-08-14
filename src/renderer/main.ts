@@ -878,6 +878,11 @@ async function restorePersonalVocabulary(): Promise<void> {
     const previous = universalSettings.personalVocabulary;
     const state = await window.commandCenter.personalVocabulary.load();
     applyPersonalVocabularyState(state);
+    if (state.recovery === "malformed-cache-removal-failed") {
+      scheduleUniversalSettingsSave();
+      showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cacheRemovalFailed", effectivePresentationSettings()), "warning");
+      return;
+    }
     if (previous.status !== state.status || previous.entryCount !== state.entryCount) {
       scheduleUniversalSettingsSave();
     }
