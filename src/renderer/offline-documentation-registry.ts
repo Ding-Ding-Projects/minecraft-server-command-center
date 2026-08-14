@@ -2,6 +2,7 @@ import architectureDesktopFoundation from "../../docs/architecture/desktop-found
 import architectureReadme from "../../docs/architecture/README.md?raw";
 import docsReadme from "../../docs/README.md?raw";
 import referenceJavaRuntime from "../../docs/reference/java-runtime-setup.md?raw";
+import referenceNotificationCentre from "../../docs/reference/notification-centre.md?raw";
 import referencePaperSpigotCatalog from "../../docs/reference/paper-spigot-cli-catalog.md?raw";
 import referenceReadme from "../../docs/reference/README.md?raw";
 import referenceReleaseDimSum from "../../docs/reference/release-dim-sum-metadata.md?raw";
@@ -28,6 +29,7 @@ const articles: readonly OfflineDocumentationArticle[] = [
   { id: "architecture-desktop-foundation", title: "Desktop foundation architecture", sourcePath: "docs/architecture/desktop-foundation.md", markdown: architectureDesktopFoundation },
   { id: "architecture-readme", title: "Architecture documentation", sourcePath: "docs/architecture/README.md", markdown: architectureReadme },
   { id: "reference-java-runtime-setup", title: "Java runtime discovery and review-only setup", sourcePath: "docs/reference/java-runtime-setup.md", markdown: referenceJavaRuntime },
+  { id: "reference-notification-centre", title: "Notification centre foundation", sourcePath: "docs/reference/notification-centre.md", markdown: referenceNotificationCentre },
   { id: "reference-paper-spigot-cli-catalog", title: "Paper and Spigot launch catalog", sourcePath: "docs/reference/paper-spigot-cli-catalog.md", markdown: referencePaperSpigotCatalog },
   { id: "reference-readme", title: "Runtime reference", sourcePath: "docs/reference/README.md", markdown: referenceReadme },
   { id: "reference-release-dim-sum-metadata", title: "Release dim sum metadata", sourcePath: "docs/reference/release-dim-sum-metadata.md", markdown: referenceReleaseDimSum },

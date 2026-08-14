@@ -13,8 +13,9 @@ import {
 } from "../site/app/notification-center.ts";
 
 const repoRoot = resolve(process.cwd());
-const pageSource = await readFile(resolve(repoRoot, "site/app/page.tsx"), "utf8");
-const moduleSource = await readFile(resolve(repoRoot, "site/app/notification-center.ts"), "utf8");
+const readText = async (path) => (await readFile(resolve(repoRoot, path), "utf8")).replace(/\r\n/g, "\n");
+const pageSource = await readText("site/app/page.tsx");
+const moduleSource = await readText("site/app/notification-center.ts");
 
 const requiredPageMarkers = [
   'id: "notifications",\n    label: "Notification centre",',
