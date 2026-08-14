@@ -24,6 +24,7 @@ const expectedArticlePaths = [
   "docs/reference/desktop-presentation-settings.md",
   "docs/reference/java-runtime-setup.md",
   "docs/reference/notification-centre.md",
+  "docs/reference/npm-security-audit.md",
   "docs/reference/offline-documentation-browser.md",
   "docs/reference/paper-spigot-cli-catalog.md",
   "docs/reference/release-dim-sum-metadata.md",
