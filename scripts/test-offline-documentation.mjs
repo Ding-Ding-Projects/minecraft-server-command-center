@@ -37,6 +37,7 @@ const expectedArticlePaths = [
   "docs/server-configuration/README.md",
   "docs/server-configuration/paper-spigot-cli.md",
   "docs/verification/README.md",
+  "docs/verification/artifact-path-verification.md",
   "docs/verification/completeness-inventory.md",
   "docs/verification/release-line-count.md",
   "docs/verification/release-publication-timing.md",
