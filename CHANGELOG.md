@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.38 — 2026-08-14
+
+### Changed
+
+- Refreshed the companion site's embedded installer handoff to the published
+  `v0.1.38` release for commit
+  [`fbd7530`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/fbd75307e14bbe049adf73c40bb74fc375f970c3).
+- Published the unsigned Windows Squirrel.Windows artifacts with dim-sum code
+  name `Fish Maw Siu Mai · 花膠燒賣`.
+
+### Verification
+
+- GitHub Actions run
+  [`31782817096`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31782817096)
+  completed successfully and published the non-draft release
+  [`v0.1.38`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.38)
+  for exact commit `fbd75307e14bbe049adf73c40bb74fc375f970c3`.
+- Release timing was `00:02:17`; `Setup.exe`, `RELEASES`, and the full
+  `.nupkg` were published, unsigned, and each download URL returned HTTP 200.
+- The release line-count table reported 23,816 non-generated total lines and
+  21,357 non-blank lines, with 23,821 grand-total lines and 21,361 grand-total
+  non-blank lines.
+
 ## 0.1.33 — 2026-08-14
 
 ### Changed

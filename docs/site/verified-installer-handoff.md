@@ -14,12 +14,13 @@ does not need to discover or request release information:
 
 | Field | Embedded value |
 | --- | --- |
-| Release tag | `v0.1.33` |
-| Source commit | `44d23c9c8bbbe9aa2967f17b5c27f49cebcdee10` |
-| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.33> |
+| Release tag | `v0.1.38` |
+| Source commit | `fbd75307e14bbe049adf73c40bb74fc375f970c3` |
+| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.38> |
 | Installer asset | `Setup.exe` |
-| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.33/Setup.exe> |
-| Published asset size | `115092992` bytes |
+| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.38/Setup.exe> |
+| Published asset size | `115224576` bytes |
+| Release published at | `2026-08-14T08:12:36Z` |
 | Signing state | Unsigned |
 
 The source uses these fields only for visible copy and ordinary anchor targets.

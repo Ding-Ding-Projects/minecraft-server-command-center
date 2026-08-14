@@ -44,13 +44,13 @@ text across every surface, and the desktop does not yet expose that picker.
 
 ## Current release proof
 
-The release audit for commit `7974e8b975838ed167710e1aa130024fd457f897`
+The release audit for commit `fbd75307e14bbe049adf73c40bb74fc375f970c3`
 verified GitHub Actions run
-[`31771514026`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31771514026)
-as successful and published release `v0.1.32`.
+[`31782817096`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31782817096)
+as successful and published release `v0.1.38`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.32-full.nupkg`. The published asset URLs
+`minecraft-server-command-center-0.1.38-full.nupkg`. The published asset URLs
 responded with HTTP 200 and the release notes contain workflow timing, the
 committed line-count table, and the linked public dim-sum catalog metadata.
 The assets are unsigned; no signing material is used.
