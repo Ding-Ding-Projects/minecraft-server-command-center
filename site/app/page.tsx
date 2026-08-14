@@ -581,8 +581,12 @@ export default function Home() {
   const plannerHandoffInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
-    setHydrated(true);
+    const restore = () => {
+      setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
+      setHydrated(true);
+    };
+    const timer = window.setTimeout(restore, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -759,15 +763,6 @@ export default function Home() {
     setHandoffStatus({ tone: "neutral", message: "Imported planner handoff discarded. The browser-local draft was not changed." });
     setNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
   };
-  const copyPlan = async () => {
-    try {
-      await navigator.clipboard.writeText(activeArgv.join(" "));
-      setNotice({ tone: "success", title: "Read-only plan copied", detail: "Paste it into the installed desktop application; this site does not launch servers." });
-    } catch {
-      setNotice({ tone: "warning", title: "Copy was unavailable", detail: "Your browser did not allow clipboard access. The typed plan remains visible for manual use." });
-    }
-  };
-
   const appStyle = { "--seed": draft.seed } as CSSProperties;
   const selectedPage = PAGE_DEFINITIONS.find((page) => page.id === activePage) ?? PAGE_DEFINITIONS[0];
   const pendingPlannerHandoffPreview = pendingPlannerHandoff ? previewPlannerHandoff(pendingPlannerHandoff) : null;
@@ -961,18 +956,20 @@ export default function Home() {
               <h2>Plan RCON and consent safely</h2>
             </div>
           </div>
-          <label className="switch-row">
-            <span>
+          <div className="switch-row">
+            <span id="rcon-enabled-label">
               <strong>Enable RCON planning</strong>
               <small>Shows a non-secret management port choice only.</small>
             </span>
             <input
+              id="rcon-enabled"
               type="checkbox"
+              aria-labelledby="rcon-enabled-label"
               checked={draft.rconEnabled}
               onChange={(event) => updateDraft("rconEnabled", event.target.checked)}
             />
             <span className="switch-track" aria-hidden="true" />
-          </label>
+          </div>
           {draft.rconEnabled ? (
             <NumberStepper
               id="rcon-port"
@@ -986,18 +983,20 @@ export default function Home() {
           ) : (
             <p className="field-help">RCON is off in this draft. The installed desktop application owns protected credentials if you later enable it.</p>
           )}
-          <label className="switch-row switch-row--eula">
-            <span>
+          <div className="switch-row switch-row--eula">
+            <span id="eula-accepted-label">
               <strong>I have reviewed the Minecraft EULA</strong>
               <small>This is an acknowledgement for the handoff plan, not a substitute for reading the EULA.</small>
             </span>
             <input
+              id="eula-accepted"
               type="checkbox"
+              aria-labelledby="eula-accepted-label"
               checked={draft.eulaAccepted}
               onChange={(event) => updateDraft("eulaAccepted", event.target.checked)}
             />
             <span className="switch-track" aria-hidden="true" />
-          </label>
+          </div>
           {!draft.eulaAccepted ? <p className="field-error">The desktop application should block launch until this acknowledgement is true.</p> : null}
         </section>
 
@@ -1479,8 +1478,10 @@ export default function Home() {
       ) : null}
 
       {paletteOpen ? (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setPaletteOpen(false)}>
-          <section className="command-palette" role="dialog" aria-modal="true" aria-labelledby="palette-title" onMouseDown={(event) => event.stopPropagation()}>
+          <div className="modal-backdrop" role="presentation" onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPaletteOpen(false);
+          }}>
+            <section className="command-palette" role="dialog" aria-modal="true" aria-labelledby="palette-title">
             <div className="command-palette__heading">
               <div>
                 <p className="eyebrow">Ctrl Shift F</p>
