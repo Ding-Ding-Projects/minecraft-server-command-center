@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Repaired the Windows desktop main-process packaging seam for the Java runtime
+  manager. `build:main` now copies the checked-in
+  `src/main/java-runtime-manager.cjs` beside the compiled
+  `dist/main/java-runtime-controller.js`, and the focused package-seam check
+  proves the built manager byte-matches the source and that an absent manager
+  turns the check red before packaging can be trusted.
 - Hardened the personal-vocabulary boundary against concurrent local changes.
   Desktop cache load, replace, and clear operations now serialize per
   application-data directory; malformed-cache cleanup compares the observed
