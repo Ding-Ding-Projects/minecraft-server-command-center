@@ -302,6 +302,48 @@ function makePublishedRelease(input: {
 
 const PUBLISHED_RELEASE_RECORDS: readonly ChangelogRelease[] = [
   {
+    version: "0.1.44",
+    tag: "v0.1.44",
+    releaseDate: "2026-08-14",
+    releaseTargetSha: "0888fa23289bbb58fd88c5455131a0eb1911da45",
+    releaseUrl: `${RELEASE}v0.1.44`,
+    sourceRecord: "Published release record",
+    categories: [
+      {
+        label: "Release",
+        items: [
+          "Published the non-draft v0.1.44 release for the exact source commit 0888fa23289bbb58fd88c5455131a0eb1911da45 with unsigned Windows Squirrel.Windows artifacts.",
+          "Dim sum code name: Watercress Beef Balls · 西洋菜牛肉球.",
+        ],
+      },
+      {
+        label: "Verification",
+        items: [
+          "GitHub Actions run 31796111487 completed successfully and published the non-draft v0.1.44 release for the exact target commit.",
+          "Workflow started at 2026-08-14T11:24:55.0000000+00:00; release publication completed at 2026-08-14T11:27:45.1661752+00:00; workflow duration was 00:02:50.",
+          "Setup.exe was published unsigned at https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.44/Setup.exe with an exact published size of 140399616 bytes.",
+          "Line-count table: Own source 61 files / 19896 lines / 18400 non-blank; Tests 0 / 0 / 0; Styles / markup 48 / 7477 / 6222; Generated 1 / 5 / 4; Other project text 2 / 54 / 44.",
+          "Line-count totals: project total (non-generated) 111 files / 27427 lines / 24666 non-blank; grand total counted 112 / 27432 / 24670; attribution total 112 / 27432 / 24670; package-manager lockfiles excluded: 1 file.",
+        ],
+      },
+    ],
+    commits: [
+      {
+        label: "Release target",
+        sha: "0888fa23289bbb58fd88c5455131a0eb1911da45",
+        url: `${COMMIT}0888fa23289bbb58fd88c5455131a0eb1911da45`,
+      },
+    ],
+    links: [
+      { label: "GitHub Actions run 31796111487", url: `${ACTIONS}31796111487` },
+      { label: "Published release record", url: `${RELEASE}v0.1.44` },
+      {
+        label: "Setup.exe · 140399616 bytes",
+        url: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.44/Setup.exe",
+      },
+    ],
+  },
+  {
     version: "0.1.42",
     tag: "v0.1.42",
     releaseDate: "2026-08-14",

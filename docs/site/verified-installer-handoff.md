@@ -14,13 +14,13 @@ does not need to discover or request release information:
 
 | Field | Embedded value |
 | --- | --- |
-| Release tag | `v0.1.42` |
-| Source commit | `052144ce44c7daf068170375d448b2da001a052a` |
-| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.42> |
+| Release tag | `v0.1.44` |
+| Source commit | `0888fa23289bbb58fd88c5455131a0eb1911da45` |
+| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.44> |
 | Installer asset | `Setup.exe` |
-| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.42/Setup.exe> |
-| Published asset size | `140395520` bytes |
-| Release published at | `2026-08-14T10:35:42Z` |
+| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.44/Setup.exe> |
+| Published asset size | `140399616` bytes |
+| Release published at | `2026-08-14T11:27:44Z` |
 | Signing state | Unsigned |
 
 The source uses these fields only for visible copy and ordinary anchor targets.
@@ -43,24 +43,26 @@ person activates one of the explicit links.
 ## Published release evidence
 
 The embedded record is backed by GitHub Actions run
-[`31792576349`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31792576349),
-which completed successfully for the exact source commit. Workflow timing was
-`00:03:53`, from `2026-08-14T10:31:50.0000000+00:00` through release publication
-at `2026-08-14T10:35:43.0761085+00:00`. The release's dim-sum code name is
-`Steamed Beef Balls · 山竹牛肉`.
+[`31796111487`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31796111487),
+which completed successfully for the exact source commit
+[`0888fa23289bbb58fd88c5455131a0eb1911da45`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/0888fa23289bbb58fd88c5455131a0eb1911da45).
+Workflow timing was `00:02:50`, from `2026-08-14T11:24:55.0000000+00:00`
+through release publication at `2026-08-14T11:27:45.1661752+00:00`. The
+release was published at `2026-08-14T11:27:44Z`; its dim-sum code name is
+`Watercress Beef Balls · 西洋菜牛肉球`.
 
 The published line-count evidence is:
 
 | Category | Files | Total lines | Non-blank lines |
 | --- | ---: | ---: | ---: |
-| Own source | 61 | 19749 | 18256 |
+| Own source | 61 | 19896 | 18400 |
 | Tests | 0 | 0 | 0 |
-| Styles / markup | 47 | 7329 | 6103 |
+| Styles / markup | 48 | 7477 | 6222 |
 | Generated | 1 | 5 | 4 |
 | Other project text | 2 | 54 | 44 |
-| **Project total (non-generated)** | **110** | **27132** | **24403** |
-| **Grand total counted** | **111** | **27137** | **24407** |
-| **Attribution total** | **111** | **27137** | **24407** |
+| **Project total (non-generated)** | **111** | **27427** | **24666** |
+| **Grand total counted** | **112** | **27432** | **24670** |
+| **Attribution total** | **112** | **27432** | **24670** |
 
 One package-manager lockfile was excluded from the line-count totals. The
 release workflow builds and packages only; it does not run tests or lint.
