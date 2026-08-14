@@ -14,13 +14,13 @@ does not need to discover or request release information:
 
 | Field | Embedded value |
 | --- | --- |
-| Release tag | `v0.1.38` |
-| Source commit | `fbd75307e14bbe049adf73c40bb74fc375f970c3` |
-| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.38> |
+| Release tag | `v0.1.42` |
+| Source commit | `052144ce44c7daf068170375d448b2da001a052a` |
+| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.42> |
 | Installer asset | `Setup.exe` |
-| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.38/Setup.exe> |
-| Published asset size | `115224576` bytes |
-| Release published at | `2026-08-14T08:12:36Z` |
+| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.42/Setup.exe> |
+| Published asset size | `140395520` bytes |
+| Release published at | `2026-08-14T10:35:42Z` |
 | Signing state | Unsigned |
 
 The source uses these fields only for visible copy and ordinary anchor targets.
@@ -39,6 +39,31 @@ person activates one of the explicit links.
 - The site never claims that a transfer, installation, update, application
   startup, or Minecraft server action completed. GitHub owns any transfer
   after the user activates the link.
+
+## Published release evidence
+
+The embedded record is backed by GitHub Actions run
+[`31792576349`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31792576349),
+which completed successfully for the exact source commit. Workflow timing was
+`00:03:53`, from `2026-08-14T10:31:50.0000000+00:00` through release publication
+at `2026-08-14T10:35:43.0761085+00:00`. The release's dim-sum code name is
+`Steamed Beef Balls · 山竹牛肉`.
+
+The published line-count evidence is:
+
+| Category | Files | Total lines | Non-blank lines |
+| --- | ---: | ---: | ---: |
+| Own source | 61 | 19749 | 18256 |
+| Tests | 0 | 0 | 0 |
+| Styles / markup | 47 | 7329 | 6103 |
+| Generated | 1 | 5 | 4 |
+| Other project text | 2 | 54 | 44 |
+| **Project total (non-generated)** | **110** | **27132** | **24403** |
+| **Grand total counted** | **111** | **27137** | **24407** |
+| **Attribution total** | **111** | **27137** | **24407** |
+
+One package-manager lockfile was excluded from the line-count totals. The
+release workflow builds and packages only; it does not run tests or lint.
 
 ## Updating the record safely
 

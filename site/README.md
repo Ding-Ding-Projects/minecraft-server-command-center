@@ -68,12 +68,18 @@ starts a background transfer, or claims that a transfer or installation
 completed. Update all manifest fields together only after a published,
 non-draft release record has been verified.
 
+The current verified record is `v0.1.42` for source commit
+`052144ce44c7daf068170375d448b2da001a052a`. Its published `Setup.exe` asset is
+`140395520` bytes; the supporting release workflow is run `31792576349` with
+timing `00:03:53`, and the release's dim-sum code name is
+`Steamed Beef Balls · 山竹牛肉`.
+
 Read [Verified installer handoff](../docs/site/verified-installer-handoff.md)
 before changing the record.
 
 ## Changelog viewer
 
-The **Changelog** destination renders all 26 non-draft, non-prerelease versions
+The **Changelog** destination renders all 28 non-draft, non-prerelease versions
 available from the repository's factual release records. It uses the
 categorized checked-in `CHANGELOG.md` records where available and the verified
 published release records for the remaining versions. Each entry keeps its release date, categories, exact
