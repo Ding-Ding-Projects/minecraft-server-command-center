@@ -1,3 +1,5 @@
+import { boundedResultLimit, createBoundedSearchMatcher, REGEX_SEARCH_LIMITS } from "./regex-search.ts";
+
 export const OFFLINE_DOCUMENTATION_SCHEMA_VERSION = 1 as const;
 
 export const OFFLINE_DOCUMENTATION_LIMITS = {
@@ -7,9 +9,10 @@ export const OFFLINE_DOCUMENTATION_LIMITS = {
   maxSourcePathLength: 240,
   maxMarkdownCharacters: 64 * 1024,
   maxTotalMarkdownCharacters: 256 * 1024,
-  maxSearchCharacters: 160,
-  maxRegexPatternCharacters: 160,
-  maxResults: 64,
+  maxSearchCharacters: REGEX_SEARCH_LIMITS.maxQueryCharacters,
+  maxRegexPatternCharacters: REGEX_SEARCH_LIMITS.maxPatternCharacters,
+  maxCandidateCharacters: REGEX_SEARCH_LIMITS.maxCandidateCharacters,
+  maxResults: REGEX_SEARCH_LIMITS.maxResults,
   maxLinkCharacters: 512,
 } as const;
 
@@ -107,45 +110,14 @@ function searchText(article: OfflineDocumentationArticle): string {
   return `${article.title}\n${article.markdown}`;
 }
 
-function boundedFlags(flags: string): string {
-  const unique = [...new Set(flags.split(""))].join("");
-  return unique.replace(/[^im]/g, "").slice(0, 2);
-}
-
 export function searchOfflineDocumentation(
   registry: OfflineDocumentationRegistry,
   options: OfflineDocumentationSearchOptions,
 ): OfflineDocumentationResult<readonly OfflineDocumentationArticle[]> {
-  if (options.query.length > OFFLINE_DOCUMENTATION_LIMITS.maxSearchCharacters) {
-    return { ok: false, reason: "The documentation search is limited to 160 characters." };
-  }
-  const maxResults = Math.min(
-    Math.max(1, Math.trunc(options.maxResults ?? OFFLINE_DOCUMENTATION_LIMITS.maxResults)),
-    OFFLINE_DOCUMENTATION_LIMITS.maxResults,
-  );
-  if (options.mode === "plain") {
-    const query = options.query.trim().toLocaleLowerCase();
-    const matches = query.length === 0
-      ? registry.articles
-      : registry.articles.filter((article) => searchText(article).toLocaleLowerCase().includes(query));
-    return { ok: true, value: matches.slice(0, maxResults) };
-  }
-
-  const rawPattern = options.pattern ?? options.query;
-  if (rawPattern.length > OFFLINE_DOCUMENTATION_LIMITS.maxRegexPatternCharacters) {
-    return { ok: false, reason: "The documentation regex is limited to 160 characters." };
-  }
-  const pattern = rawPattern;
-  if (pattern.length === 0) return { ok: true, value: registry.articles.slice(0, maxResults) };
-  try {
-    const expression = new RegExp(pattern, boundedFlags(options.flags ?? "i"));
-    return {
-      ok: true,
-      value: registry.articles.filter((article) => expression.test(searchText(article))).slice(0, maxResults),
-    };
-  } catch {
-    return { ok: false, reason: "The documentation regex is invalid for the local JavaScript engine." };
-  }
+  const matcher = createBoundedSearchMatcher(options);
+  if (!matcher.ok) return matcher;
+  const matches = registry.articles.filter((article) => matcher.value(searchText(article)));
+  return { ok: true, value: matches.slice(0, boundedResultLimit(options.maxResults)) };
 }
 
 function normalizeDocumentationPath(path: string): string | null {

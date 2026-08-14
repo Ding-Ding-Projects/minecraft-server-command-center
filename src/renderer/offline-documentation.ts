@@ -5,6 +5,7 @@ import {
   type OfflineDocumentationArticle,
 } from "../shared/offline-documentation";
 import { OFFLINE_DOCUMENTATION_REGISTRY } from "./offline-documentation-registry";
+import { bindAnchoredRegexBuilder, type RegexBuilderState } from "./regex-builder.ts";
 
 const searchInput = document.querySelector<HTMLInputElement>("#offline-docs-search");
 const regexToggle = document.querySelector<HTMLButtonElement>("#offline-docs-regex-toggle");
@@ -23,8 +24,8 @@ if (!searchInput || !regexToggle || !regexBuilder || !regexPattern || !regexIgno
   throw new Error("The desktop renderer is missing an offline documentation element.");
 }
 
-let regexMode = false;
 let selectedArticleId = OFFLINE_DOCUMENTATION_REGISTRY.articles[0]?.id ?? "";
+let regexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
 
 function selectedArticle(): OfflineDocumentationArticle | undefined {
   return OFFLINE_DOCUMENTATION_REGISTRY.articles.find((article) => article.id === selectedArticleId);
@@ -54,10 +55,10 @@ function renderArticle(article: OfflineDocumentationArticle, fragment: string | 
 
 function renderResults(): void {
   const search = searchOfflineDocumentation(OFFLINE_DOCUMENTATION_REGISTRY, {
-    mode: regexMode ? "regex" : "plain",
-    query: searchInput.value,
-    pattern: regexPattern.value,
-    flags: regexIgnoreCase.checked ? "i" : "",
+    mode: regexState.mode,
+    query: regexState.query,
+    pattern: regexState.pattern,
+    flags: regexState.flags,
   });
   resultList.replaceChildren();
   if (!search.ok) {
@@ -69,8 +70,8 @@ function renderResults(): void {
     resultList.append(empty);
     return;
   }
-  if (regexMode) {
-    regexStatus.textContent = regexPattern.value.length === 0
+  if (regexState.mode === "regex") {
+    regexStatus.textContent = regexState.pattern.length === 0
       ? "Regex mode is ready. Add a bounded pattern or choose a token."
       : "Pattern runs locally against article titles and Markdown bodies.";
   } else {
@@ -110,41 +111,20 @@ function openArticle(articleId: string, fragment: string | null = null): void {
   renderArticle(article, fragment);
 }
 
-function setRegexMode(enabled: boolean): void {
-  regexMode = enabled;
-  if (regexMode && regexPattern.value.length === 0) regexPattern.value = searchInput.value.slice(0, 160);
-  regexToggle.setAttribute("aria-expanded", String(regexMode));
-  regexBuilder.hidden = !regexMode;
-  if (regexMode) regexPattern.focus();
-  renderResults();
-}
-
 export function bindOfflineDocumentation(): void {
-  searchInput.addEventListener("input", () => {
-    if (regexMode) regexPattern.value = searchInput.value.slice(0, 160);
-    renderResults();
-  });
-  searchInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") event.preventDefault();
-  });
-  regexPattern.addEventListener("input", () => {
-    if (regexMode) searchInput.value = regexPattern.value.slice(0, 160);
-    renderResults();
-  });
-  regexPattern.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") event.preventDefault();
-  });
-  regexIgnoreCase.addEventListener("change", renderResults);
-  regexToggle.addEventListener("click", () => setRegexMode(!regexMode));
-  for (const token of regexBuilder.querySelectorAll<HTMLButtonElement>("[data-docs-regex-token]")) {
-    token.addEventListener("click", () => {
-      setRegexMode(true);
-      regexPattern.value = `${regexPattern.value}${token.dataset.docsRegexToken ?? ""}`.slice(0, 160);
-      searchInput.value = regexPattern.value;
+  const binding = bindAnchoredRegexBuilder({
+    id: "offline-docs",
+    searchInput,
+    toggle: regexToggle,
+    builder: regexBuilder,
+    pattern: regexPattern,
+    ignoreCase: regexIgnoreCase,
+    status: regexStatus,
+    onStateChange: (state) => {
+      regexState = state;
       renderResults();
-      regexPattern.focus();
-    });
-  }
+    },
+  });
   resultList.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -161,5 +141,6 @@ export function bindOfflineDocumentation(): void {
   });
   const article = selectedArticle();
   if (article) renderArticle(article);
+  regexState = binding.getState();
   renderResults();
 }

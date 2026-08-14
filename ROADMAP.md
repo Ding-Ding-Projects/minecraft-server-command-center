@@ -49,9 +49,11 @@ server action.
   completion or built-artifact evidence.
 - Added the desktop-only offline documentation browser foundation: a typed
   non-site Markdown bundle, one escaped local renderer subset, title/body
-  search with a bounded opt-in regex hook, local article-link resolution, and a
-  hand-written completeness check. The focused source/build checks do not prove
-  packaged runtime interaction or full CommonMark coverage.
+  search with a shared anchored bounded regex builder, local article-link
+  resolution, and a hand-written completeness check. Universal settings uses
+  the same search path, and `Ctrl+Shift+F` reaches the existing Docs/settings
+  surfaces through a bounded command palette. The focused source/build checks
+  do not prove packaged runtime interaction or full CommonMark coverage.
 
 ## Next implementation slices
 

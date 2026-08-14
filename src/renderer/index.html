@@ -440,24 +440,26 @@
                   </div>
                   <span class="badge" id="offline-docs-result-count">Loading articles…</span>
                 </div>
-                <div class="settings-search-row">
-                  <label class="sr-only" for="offline-docs-search">Search offline documentation</label>
-                  <input id="offline-docs-search" class="text-input" type="search" placeholder="Search setup, runtime, safety…" autocomplete="off" />
-                  <button class="outlined-button" type="button" id="offline-docs-regex-toggle" aria-expanded="false" aria-controls="offline-docs-regex-builder">Regex</button>
-                </div>
-                <div class="settings-regex-builder" id="offline-docs-regex-builder" hidden>
-                  <label class="field__label" for="offline-docs-regex-pattern">Bounded local pattern</label>
-                  <input id="offline-docs-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Java|Paper" spellcheck="false" />
-                  <div class="settings-regex-tokens" aria-label="Documentation regex pattern shortcuts">
-                    <button class="input-action" type="button" data-docs-regex-token="^">Start</button>
-                    <button class="input-action" type="button" data-docs-regex-token="$">End</button>
-                    <button class="input-action" type="button" data-docs-regex-token="[A-Za-z]">Letters</button>
-                    <button class="input-action" type="button" data-docs-regex-token="()">Group</button>
-                    <button class="input-action" type="button" data-docs-regex-token="|">Either</button>
-                    <button class="input-action" type="button" data-docs-regex-token="+">One or more</button>
+                <div class="regex-builder-anchor" data-regex-builder-surface="offline-docs">
+                  <div class="settings-search-row">
+                    <label class="sr-only" for="offline-docs-search">Search offline documentation</label>
+                    <input id="offline-docs-search" class="text-input" type="search" maxlength="160" placeholder="Search setup, runtime, safety…" autocomplete="off" />
+                    <button class="outlined-button" type="button" id="offline-docs-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="offline-docs-regex-builder">Regex</button>
                   </div>
-                  <label class="check-row"><input id="offline-docs-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
-                  <p class="field__hint" id="offline-docs-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                  <div class="settings-regex-builder" id="offline-docs-regex-builder" role="dialog" aria-label="Regex builder for offline documentation" hidden>
+                    <label class="field__label" for="offline-docs-regex-pattern">Bounded local pattern</label>
+                    <input id="offline-docs-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Java|Paper" spellcheck="false" />
+                    <div class="settings-regex-tokens" aria-label="Documentation regex pattern shortcuts">
+                      <button class="input-action" type="button" data-regex-token="^">Start</button>
+                      <button class="input-action" type="button" data-regex-token="$">End</button>
+                      <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
+                      <button class="input-action" type="button" data-regex-token="()">Group</button>
+                      <button class="input-action" type="button" data-regex-token="|">Either</button>
+                      <button class="input-action" type="button" data-regex-token="+">One or more</button>
+                    </div>
+                    <label class="check-row"><input id="offline-docs-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+                    <p class="field__hint" id="offline-docs-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                  </div>
                 </div>
               </section>
               <div class="offline-docs-layout">
@@ -496,24 +498,26 @@
                   </div>
                   <span class="badge">Plain text by default</span>
                 </div>
-                <div class="settings-search-row">
-                  <label class="sr-only" for="settings-search">Search universal settings</label>
-                  <input id="settings-search" class="text-input" type="search" placeholder="Search language, tone, appearance…" autocomplete="off" />
-                  <button class="outlined-button" type="button" id="settings-regex-toggle" aria-expanded="false" aria-controls="settings-regex-builder">Regex</button>
-                </div>
-                <div class="settings-regex-builder" id="settings-regex-builder" hidden>
-                  <label class="field__label" for="settings-regex-pattern">Pattern</label>
-                  <input id="settings-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Language" spellcheck="false" />
-                  <div class="settings-regex-tokens" aria-label="Regex pattern shortcuts">
-                    <button class="input-action" type="button" data-settings-token="^">Start</button>
-                    <button class="input-action" type="button" data-settings-token="$">End</button>
-                    <button class="input-action" type="button" data-settings-token="[A-Za-z]">Letters</button>
-                    <button class="input-action" type="button" data-settings-token="()">Group</button>
-                    <button class="input-action" type="button" data-settings-token="|">Either</button>
-                    <button class="input-action" type="button" data-settings-token="+">One or more</button>
+                <div class="regex-builder-anchor" data-regex-builder-surface="settings">
+                  <div class="settings-search-row">
+                    <label class="sr-only" for="settings-search">Search universal settings</label>
+                    <input id="settings-search" class="text-input" type="search" maxlength="160" placeholder="Search language, tone, appearance…" autocomplete="off" />
+                    <button class="outlined-button" type="button" id="settings-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-regex-builder">Regex</button>
                   </div>
-                  <label class="check-row"><input id="settings-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
-                  <p class="field__hint" id="settings-regex-status" role="status" aria-live="polite">Patterns run locally in the bounded JavaScript engine.</p>
+                  <div class="settings-regex-builder" id="settings-regex-builder" role="dialog" aria-label="Regex builder for universal settings" hidden>
+                    <label class="field__label" for="settings-regex-pattern">Bounded local pattern</label>
+                    <input id="settings-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Language" spellcheck="false" />
+                    <div class="settings-regex-tokens" aria-label="Regex pattern shortcuts">
+                      <button class="input-action" type="button" data-regex-token="^">Start</button>
+                      <button class="input-action" type="button" data-regex-token="$">End</button>
+                      <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
+                      <button class="input-action" type="button" data-regex-token="()">Group</button>
+                      <button class="input-action" type="button" data-regex-token="|">Either</button>
+                      <button class="input-action" type="button" data-regex-token="+">One or more</button>
+                    </div>
+                    <label class="check-row"><input id="settings-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+                    <p class="field__hint" id="settings-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                  </div>
                 </div>
               </section>
 
@@ -574,6 +578,41 @@
             </section>
           </form>
         </main>
+      </div>
+      <div class="command-palette-backdrop" id="command-palette" hidden>
+        <section class="command-palette" id="command-palette-dialog" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" aria-describedby="command-palette-help" aria-keyshortcuts="Control+Shift+F" aria-hidden="true">
+          <header class="command-palette__header">
+            <div>
+              <p class="eyebrow">Desktop navigation</p>
+              <h2 id="command-palette-title">Command palette</h2>
+              <p id="command-palette-help">Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> anywhere to reopen this palette. Results are limited to existing desktop search surfaces.</p>
+            </div>
+            <button class="outlined-button" type="button" data-command-palette-close>Close</button>
+          </header>
+          <div class="regex-builder-anchor" data-regex-builder-surface="command-palette">
+            <div class="settings-search-row">
+              <label class="sr-only" for="command-palette-search">Search desktop commands</label>
+              <input id="command-palette-search" class="text-input" type="search" maxlength="160" placeholder="Search Docs or settings…" autocomplete="off" />
+              <button class="outlined-button" type="button" id="command-palette-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="command-palette-regex-builder">Regex</button>
+            </div>
+            <div class="settings-regex-builder" id="command-palette-regex-builder" role="dialog" aria-label="Regex builder for desktop commands" hidden>
+              <label class="field__label" for="command-palette-regex-pattern">Bounded local pattern</label>
+              <input id="command-palette-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Open|Search" spellcheck="false" />
+              <div class="settings-regex-tokens" aria-label="Command palette regex pattern shortcuts">
+                <button class="input-action" type="button" data-regex-token="^">Start</button>
+                <button class="input-action" type="button" data-regex-token="$">End</button>
+                <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
+                <button class="input-action" type="button" data-regex-token="()">Group</button>
+                <button class="input-action" type="button" data-regex-token="|">Either</button>
+                <button class="input-action" type="button" data-regex-token="+">One or more</button>
+              </div>
+              <label class="check-row"><input id="command-palette-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+              <p class="field__hint" id="command-palette-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+            </div>
+          </div>
+          <p class="field__hint" id="command-palette-status" role="status" aria-live="polite">Loading existing desktop search surfaces…</p>
+          <div class="command-palette__results" id="command-palette-result-list" role="listbox" aria-label="Desktop search commands" aria-live="polite"></div>
+        </section>
       </div>
       <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
     </div>

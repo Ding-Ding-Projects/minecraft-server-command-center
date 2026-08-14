@@ -19,14 +19,17 @@ Minecraft Server Command Center is being established as a guided Material Design
 | Preload bridge | `src/preload/index.ts` | Exposes the smallest typed renderer-facing API. | Does not expose unrestricted filesystem or process APIs. |
 | Renderer document | `src/renderer/index.html` | Defines the custom title bar, vertical tab shell, guided form controls, Java runtime candidate/assessment card, preview panel, catalog panel, and explicit no-launch notice. | Does not contain privileged operations or a Java-path text field. |
 | Offline documentation registry | `src/renderer/offline-documentation-registry.ts`, `src/shared/offline-documentation.ts` | Bundles the hand-written non-site Markdown set, validates typed article bounds, searches local title/body text, resolves local article links, and renders one escaped Markdown subset. | Does not fetch URLs, read arbitrary paths, execute provider-authored markup, or include `docs/site/`. |
-| Offline documentation renderer | `src/renderer/offline-documentation.ts` | Owns the Docs tab's local article list, plain-text search, bounded regex hook, article selection, and hash-only navigation through the shared renderer. | Does not add preload/main IPC, network access, analytics, secrets, or user-data persistence. |
-| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires bounded runtime discovery, opaque candidate selection, direct-probe assessment rendering, direct argv tokens, the catalog, and the offline Docs tab while keeping launch unavailable. | Does not execute a process, shell command, installer, package manager, or configuration writer. |
+| Shared search matcher | `src/shared/regex-search.ts` | Owns plain-text-first matching, explicit regex opt-in, `i`/`m` flags, query/pattern/candidate/result bounds, and invalid-pattern results for desktop search surfaces. | Does not persist patterns, make network requests, or expose an unbounded regex evaluator. |
+| Anchored regex-builder binding | `src/renderer/regex-builder.ts` | Binds each search field to its own anchored builder, bidirectional query/pattern state, accessible status, token helpers, Escape focus return, and explicit mode toggle. | Does not share state between fields or broaden coverage to menus/dropdowns that are not present in this foundation. |
+| Offline documentation renderer | `src/renderer/offline-documentation.ts` | Owns the Docs tab's local article list, shared plain-text search, anchored regex builder, article selection, and hash-only navigation through the shared renderer. | Does not add preload/main IPC, network access, analytics, secrets, or user-data persistence. |
+| Renderer behavior | `src/renderer/main.ts` | Loads/saves the normalized draft, wires bounded runtime discovery, opaque candidate selection, direct-probe assessment rendering, direct argv tokens, the catalog, the offline Docs tab, Universal settings search, and a `Ctrl+Shift+F` palette for those existing search surfaces while keeping launch unavailable. | Does not execute a process, shell command, installer, package manager, or configuration writer; the palette is not a complete app-wide command registry. |
 | Renderer presentation | `src/renderer/styles.css` | Supplies Material Design 3 color roles, shape, elevation, focus styling, reduced-motion handling, and responsive tab/form layouts. | Source styling only; it has not been rendered in a built application. |
 | Planner Handoff v1 envelope | src/shared/planner-handoff.ts | Defines the versioned, bounded, non-secret planning exchange shape and normalization boundary. | Does not carry paths, URLs, secrets, raw command text, file contents, or execution instructions. |
 
-All mappings above have source-design inspection evidence. The offline
-documentation mapping also has focused contract and root-build evidence from
-this lane; no mapping claims a packaged launch, visual interaction, or capture.
+All mappings above have source-design inspection evidence. The shared search
+mapping has focused source-contract and desktop build evidence from this lane;
+no mapping claims a packaged launch, visual interaction, screen-reader
+exercise, or capture.
 
 ## Data flow
 
@@ -61,7 +64,11 @@ bounded controls, direct argv tokens, mapped/unavailable catalog rows, local
 draft status, and non-blocking save feedback. A disabled visible action states
 that server launch is intentionally unavailable. The Docs tab presents the
 typed offline article registry, local title/body search with plain text as the
-default, an opt-in bounded regex hook, and local article-link navigation.
+default, an anchored opt-in bounded regex builder, and local article-link
+navigation. Universal settings has the same shared search path. `Ctrl+Shift+F`
+opens a bounded command palette whose four current commands focus either
+existing search surface or open its builder; it does not claim a complete
+destination, setting, menu, or dropdown registry.
 
 Input changes are normalized before they are scheduled for local draft
 persistence. The renderer requests only the narrow preload API for draft
@@ -73,10 +80,10 @@ accessibility semantics have not been exercised in a built application.
 The Docs tab has no privileged bridge dependency. Vite imports the selected
 desktop Markdown files as raw local assets at build time. The shared
 `offline-documentation.ts` contract validates the typed registry, filters
-searches locally, turns only registry-relative `.md` links into in-app
-navigation, and escapes all rendered text. External links and media remain
-visible as unavailable offline. The renderer subset is intentionally not a
-full CommonMark implementation; see [Offline documentation browser
+searches through `regex-search.ts`, turns only registry-relative `.md` links
+into in-app navigation, and escapes all rendered text. External links and
+media remain visible as unavailable offline. The renderer subset is
+intentionally not a full CommonMark implementation; see [Offline documentation browser
 foundation](../reference/offline-documentation-browser.md) for the exact
 limits and focused verification commands.
 
