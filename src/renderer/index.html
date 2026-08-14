@@ -54,6 +54,9 @@
             <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-settings" id="tab-settings" tabindex="-1" data-tab="settings">
               <span aria-hidden="true">⚙</span><span>Universal settings</span>
             </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-notifications" id="tab-notifications" tabindex="-1" data-tab="notifications">
+              <span aria-hidden="true">◌</span><span>Notification centre</span>
+            </button>
           </div>
           <div class="navigation-rail__footer">
             <span class="status-dot" aria-hidden="true"></span>
@@ -575,6 +578,75 @@
                 <button class="outlined-button" type="button" id="reset-universal-settings">Reset universal settings</button>
               </div>
               <p class="field__hint">This panel intentionally excludes credentials, arbitrary commands, remote services, and private vocabulary values. Full contract coverage is tracked in the repository inventory.</p>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-notifications" aria-labelledby="tab-notifications" data-panel="notifications" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Local review trail</p>
+                  <h2>Notification centre</h2>
+                </div>
+                <span class="section-heading__chip">Schema v1 · local only</span>
+              </div>
+              <p class="catalog-source">Desktop snackbars stay non-blocking. This panel keeps their bounded local records so you can review, dismiss, and bulk-dismiss notices without sending anything anywhere.</p>
+              <section class="notification-search-card" aria-labelledby="desktop-notification-search-title">
+                <div class="notification-search-card__heading">
+                  <div>
+                    <p class="eyebrow">Find a notice</p>
+                    <h3 id="desktop-notification-search-title">Search desktop notifications</h3>
+                  </div>
+                  <span class="badge" id="notification-persistence-status">Checking local storage…</span>
+                </div>
+                <div class="regex-builder-anchor" data-regex-builder-surface="desktop-notifications">
+                  <div class="settings-search-row">
+                    <label class="sr-only" for="notification-search">Search desktop notifications</label>
+                    <input id="notification-search" class="text-input" type="search" maxlength="160" placeholder="Search notices…" autocomplete="off" />
+                    <button class="outlined-button" type="button" id="notification-regex-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-regex-builder">Regex</button>
+                  </div>
+                  <div class="settings-regex-builder" id="notification-regex-builder" role="dialog" aria-label="Regex builder for desktop notifications" hidden>
+                    <label class="field__label" for="notification-regex-pattern">Bounded local pattern</label>
+                    <input id="notification-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: save|draft" spellcheck="false" />
+                    <div class="settings-regex-tokens" aria-label="Desktop notification regex pattern shortcuts">
+                      <button class="input-action" type="button" data-regex-token="^">Start</button>
+                      <button class="input-action" type="button" data-regex-token="$">End</button>
+                      <button class="input-action" type="button" data-regex-token="[A-Za-z]">Letters</button>
+                      <button class="input-action" type="button" data-regex-token="()">Group</button>
+                      <button class="input-action" type="button" data-regex-token="|">Either</button>
+                      <button class="input-action" type="button" data-regex-token="+">One or more</button>
+                    </div>
+                    <label class="check-row"><input id="notification-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+                    <p class="field__hint" id="notification-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                  </div>
+                </div>
+              </section>
+              <section class="notification-centre" aria-labelledby="notification-controls-title">
+                <div class="notification-centre__heading">
+                  <div>
+                    <p class="eyebrow">Review and act</p>
+                    <h3 id="notification-controls-title"><span id="notification-active-count">0</span> active · <span id="notification-dismissed-count">0</span> dismissed</h3>
+                  </div>
+                  <span class="status-chip status-chip--neutral" id="notification-record-count">0 / 100 stored</span>
+                </div>
+                <div class="notification-centre__view-row" role="group" aria-label="Desktop notification record view">
+                  <button type="button" class="segment is-selected" data-notification-view="active" aria-pressed="true">Active <span id="notification-view-active-count">0</span></button>
+                  <button type="button" class="segment" data-notification-view="dismissed" aria-pressed="false">Dismissed <span id="notification-view-dismissed-count">0</span></button>
+                  <button type="button" class="segment" data-notification-view="all" aria-pressed="false">All <span id="notification-view-all-count">0</span></button>
+                </div>
+                <fieldset class="notification-centre__scope">
+                  <legend>Select-all scope</legend>
+                  <label><input type="radio" name="notification-select-scope" value="view" data-notification-scope checked /> Current view only</label>
+                  <label><input type="radio" name="notification-select-scope" value="all" data-notification-scope /> Every matching record</label>
+                </fieldset>
+                <div class="button-row" aria-label="Desktop notification selection actions">
+                  <button type="button" class="outlined-button outlined-button--compact" data-notification-action="select-all">Select all</button>
+                  <button type="button" class="outlined-button outlined-button--compact" data-notification-action="invert">Invert selection</button>
+                  <button type="button" class="outlined-button outlined-button--compact" data-notification-action="clear" disabled>Clear selection (0)</button>
+                  <button type="button" class="filled-button filled-button--compact" data-notification-action="dismiss-selected" disabled>Dismiss selected (0)</button>
+                </div>
+                <p id="notification-bulk-dismiss-help" class="field-help">Only selected active records marked dismissible can be dismissed. Dismissal keeps the record for review.</p>
+                <p id="notification-status-message" class="field-help" role="status" aria-live="polite"></p>
+                <div class="notification-record-list" id="notification-record-list" role="list" aria-label="Desktop notification records"></div>
+              </section>
             </section>
           </form>
         </main>
