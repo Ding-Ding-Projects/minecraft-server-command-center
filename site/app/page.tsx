@@ -808,6 +808,12 @@ export default function Home() {
   const personalVocabularyInput = useRef<HTMLInputElement>(null);
   const customLogoInput = useRef<HTMLInputElement>(null);
 
+  const publishNotice = (input: Notice) => {
+    const record = createNotificationRecord(input);
+    setNotificationRecords((current) => appendNotificationRecord(current, record));
+    setNotice(record);
+  };
+
   useEffect(() => {
     const restore = () => {
       setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
@@ -1129,11 +1135,6 @@ export default function Home() {
     },
   ].filter((item) => testSearch(`${item.label} ${item.detail}`, paletteSearch));
 
-  const publishNotice = (input: Notice) => {
-    const record = createNotificationRecord(input);
-    setNotificationRecords((current) => appendNotificationRecord(current, record));
-    setNotice(record);
-  };
   const applyChangelogPreset = (preset: Exclude<ChangelogPreset, "custom">) => {
     const latestDate = CHANGELOG_RELEASES[0]?.releaseDate ?? "";
     const year = latestDate.slice(0, 4);
