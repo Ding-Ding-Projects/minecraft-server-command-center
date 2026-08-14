@@ -78,6 +78,67 @@ lane ran the companion-site build, lint, type-check, focused changelog guard,
 and Pages staging commands. It did not exercise the packaged desktop UI,
 installer execution, accessibility interaction, or real captures.
 
+## Universal inventory guard repair
+
+The second bounded repair lane is based on exact target commit
+`fdbef9e265fac3bf015f6f3fc52dd1a26df4e180`, whose requested base is
+`958d4439c77bff27d5a726655269b479087f0b6a`. The earlier target/base pair
+`958d4439c77bff27d5a726655269b479087f0b6a` /
+`d04c246b8a5282b7a7ee252c57f0f9a778c78114` is historical first-repair
+context, not the source of this lane.
+
+The hand-written oracle still preserves exactly 27 canonical rows, 7 evidence
+slots, and 2 independent surface keys per row. It continues to validate the
+production registry and the metadata-owned Markdown projection, reject
+not-applicable values for mandatory slots, and allow persistence to be
+not-applicable only with an explicit reason. Product rows retain their existing
+partial, not-implemented, and unverified states.
+
+The guard now records both kinds of proof honestly. Aggregate mutations keep
+the stale-document checks that prove the Markdown projection and row shape.
+Targeted R2-R5 mutations regenerate the affected metadata-owned projection
+before running the semantic assertion, so stale Markdown cannot be the reason
+they fail: surface records and path arrays are independently owned; the
+mandatory applicability mutation changes only `status`; the staged-only path
+is rejected by immutable `HEAD` membership rather than the mutable index; and
+  duplicate desktop/companion-site and overlap path mutations isolate uniqueness
+  and disjointness. Reparse
+coverage retains the final-component symlink and adds an ancestor junction
+probe whose descendant file remains valid; the probe calls the shared
+path-component assertion directly, making that assertion itself decisive.
+Reparse creation accepts only `EACCES`, `EINVAL`, `ENOTSUP`, or `EPERM`, and
+every fixture is removed and verified.
+
+Verification for this lane: `npm run test:universal-contract-inventory`
+passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
+per row, and 894 negative mutations on the host supporting both
+`ancestor-junction` and `final-symlink` fixtures. Aggregate stale-projection,
+regenerated-projection, staged-only, status-only applicability,
+uniqueness/disjointness, ancestor-reparse, final-symlink, and cleanup probes
+passed. The focused `npm run test:universal-contracts`,
+`npm run test:offline-documentation`, both syntax checks, and `git diff --check`
+also passed. Temporary assertion-removal probes for R2-R6 were restored before
+the final run; the independent audit found R3-R5 red and R2/R6 green. Node emitted only
+the existing `MODULE_TYPELESS_PACKAGE_JSON` warnings for the TypeScript
+contract modules; no packaged runtime, accessibility interaction, release, or
+capture evidence is claimed.
+
+This follow-up starts from exact base commit
+`3e6671a5ff79b4a6d9f78c8da2117175112f53e9`. It adds an exact source-contract
+mutation for the production `assertNoReparseComponents(relativePath, context);`
+call inside `assertRepositoryFile`; removing that call must turn the inventory
+check red. The independent assertion-removal audit of the prior R2-R6 probes
+was narrower than the earlier wording claimed: R3-R5 turned red, while R2 and
+R6 stayed green. This record therefore makes no claim that all R2-R6 probes
+turned red.
+
+Follow-up verification: `npm run test:universal-contract-inventory` passed with
+27 canonical rows, 7 evidence slots, 2 independent surface keys per row, and
+895 negative mutations, including `ancestor-junction` and `final-symlink`
+fixtures. The added production-call removal mutation turned the checker red;
+fixture cleanup also passed. No packaged runtime, accessibility interaction,
+release, or capture evidence is claimed.
+
 ## Planner Handoff v1 record
 
 Planner Handoff v1 is documented as a strict, versioned, bounded, non-secret

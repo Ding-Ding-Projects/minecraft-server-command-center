@@ -19,6 +19,7 @@
     "test:desktop-presentation-settings": "node --experimental-strip-types scripts/test-desktop-presentation-settings.mjs",
     "test:planner-handoff": "node node_modules/jiti/lib/jiti-cli.mjs scripts/test-planner-handoff.mjs",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
+    "test:universal-contract-inventory": "node scripts/test-universal-contract-inventory.mjs",
     "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",
     "test:release-line-count": "node scripts/test-release-line-count.mjs",
     "test:desktop-search": "node --experimental-strip-types scripts/test-desktop-search-foundation.mjs",
