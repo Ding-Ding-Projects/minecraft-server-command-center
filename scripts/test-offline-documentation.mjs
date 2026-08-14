@@ -21,6 +21,7 @@ const expectedArticlePaths = [
   "docs/architecture/README.md",
   "docs/architecture/desktop-foundation.md",
   "docs/reference/README.md",
+  "docs/reference/desktop-presentation-settings.md",
   "docs/reference/java-runtime-setup.md",
   "docs/reference/notification-centre.md",
   "docs/reference/offline-documentation-browser.md",

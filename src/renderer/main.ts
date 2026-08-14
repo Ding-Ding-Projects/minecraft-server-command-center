@@ -8,6 +8,12 @@ import type {
   PickerKind
 } from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
+import {
+  decorateDialogMessage,
+  presentDesktopCopy,
+  presentDialogCopy,
+  type DesktopPresentationKey,
+} from "../shared/desktop-presentation";
 import { createBoundedSearchMatcher } from "../shared/regex-search";
 import { DEFAULT_UNIVERSAL_SETTINGS, normalizeUniversalSettings, type UniversalSettingsV1 } from "../shared/universal-contracts";
 import {
@@ -263,11 +269,11 @@ function renderSnackbar(record: NotificationRecord): void {
   }, 4200);
 }
 
-function showSnackbar(message: string): void {
+function showSnackbar(message: string, tone?: "warning" | "error" | "success" | "info"): void {
   const record = createNotificationRecord({
-    tone: notificationToneFor(message),
-    title: "Desktop notification",
-    detail: message,
+    tone: tone ?? notificationToneFor(message),
+    title: presentDesktopCopy("notification.title", universalSettings),
+    detail: decorateDialogMessage(message, universalSettings),
   });
   notificationCenter = {
     schemaVersion: 1,
@@ -528,10 +534,45 @@ function settingsControls(): Array<HTMLInputElement | HTMLSelectElement> {
   return Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-universal-setting]"));
 }
 
+function applyDesktopPresentation(): void {
+  document.documentElement.lang = universalSettings.languageMode === "cantonese" ? "zh-Hant-HK" : "en";
+  document.documentElement.dataset.languageMode = universalSettings.languageMode;
+  for (const element of document.querySelectorAll<HTMLElement>("[data-presentation-key]")) {
+    const key = element.dataset.presentationKey as DesktopPresentationKey | undefined;
+    if (!key) continue;
+    const copy = presentDesktopCopy(key, universalSettings);
+    const attribute = element.dataset.presentationAttribute;
+    if (attribute === "placeholder") {
+      (element as HTMLInputElement).placeholder = copy;
+    } else if (attribute === "aria-label") {
+      element.setAttribute("aria-label", copy);
+    } else if (attribute === "title") {
+      element.setAttribute("title", copy);
+    } else {
+      element.textContent = copy;
+    }
+  }
+  for (const control of document.querySelectorAll<HTMLInputElement>("input[data-universal-setting][type='range']")) {
+    const key = control.dataset.universalSetting as "funnyLevelEnglish" | "funnyLevelCantonese" | undefined;
+    if (!key) continue;
+    const labelKey = key === "funnyLevelEnglish" ? "settings.englishFunny.title" : "settings.cantoneseFunny.title";
+    const value = Number(control.value);
+    control.setAttribute("aria-label", presentDesktopCopy(labelKey, universalSettings));
+    control.setAttribute("aria-valuenow", String(value));
+    control.setAttribute("aria-valuetext", `${presentDesktopCopy(labelKey, universalSettings)}: ${value} / 5`);
+  }
+  renderSettingsSearch();
+}
+
+function writeUniversalSettingsStatus(key: DesktopPresentationKey): void {
+  universalSettingsState.textContent = presentDialogCopy(key, universalSettings);
+  universalSettingsState.setAttribute("aria-label", presentDesktopCopy(key, universalSettings));
+}
+
 function renderSettingsSearch(): void {
   const matcher = createBoundedSearchMatcher(settingsRegexState);
   if (!matcher.ok) {
-    settingsRegexStatus.textContent = matcher.reason;
+    settingsRegexStatus.textContent = presentDesktopCopy("settings.regex.invalid", universalSettings);
   }
   for (const card of document.querySelectorAll<HTMLElement>("[data-settings-item]")) {
     const label = card.dataset.settingsLabel ?? "";
@@ -542,9 +583,9 @@ function renderSettingsSearch(): void {
   if (matcher.ok) {
     settingsRegexStatus.textContent = settingsRegexState.mode === "regex"
       ? settingsRegexState.pattern.length === 0
-        ? "Regex mode is ready. Add a bounded pattern or choose a token."
-        : "Pattern runs locally against this settings surface."
-      : "Plain text search is active. Regex is an explicit local opt-in.";
+        ? presentDesktopCopy("settings.regex.ready", universalSettings)
+        : presentDesktopCopy("settings.regex.running", universalSettings)
+      : presentDesktopCopy("settings.regex.plainStatus", universalSettings);
   }
 }
 
@@ -571,12 +612,12 @@ function renderUniversalSettings(): void {
   if (brand) brand.setAttribute("aria-label", universalSettings.appDisplayName);
   document.documentElement.dataset.theme = universalSettings.theme;
   document.documentElement.dataset.density = universalSettings.density;
-  renderSettingsSearch();
+  applyDesktopPresentation();
 }
 
 function scheduleUniversalSettingsSave(): void {
   if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
-  universalSettingsState.textContent = "Universal setting changes pending…";
+  writeUniversalSettingsStatus("settings.status.pending");
   universalSaveTimer = window.setTimeout(() => {
     universalSaveTimer = undefined;
     const requestedVersion = ++universalSaveVersion;
@@ -584,10 +625,10 @@ function scheduleUniversalSettingsSave(): void {
       if (requestedVersion !== universalSaveVersion) return;
       universalSettings = saved;
       renderUniversalSettings();
-      universalSettingsState.textContent = "Universal settings saved locally.";
+      writeUniversalSettingsStatus("settings.status.saved");
     }).catch(() => {
-      universalSettingsState.textContent = "Universal settings could not be saved; the current window values remain visible.";
-      showSnackbar("The universal settings file could not be saved. No server draft or process was changed.");
+      writeUniversalSettingsStatus("settings.status.saveFailed");
+      showSnackbar(presentDesktopCopy("settings.snackbar.saveFailed", universalSettings), "warning");
     });
   }, 350);
 }
@@ -612,11 +653,11 @@ function resetUniversalSettings(): void {
   universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
   renderUniversalSettings();
   void window.commandCenter.settings.save(universalSettings).then(() => {
-    universalSettingsState.textContent = "Universal settings reset and saved locally.";
-    showSnackbar("Universal settings reset. Server files and the server draft were not changed.");
+    writeUniversalSettingsStatus("settings.status.resetSaved");
+    showSnackbar(presentDesktopCopy("settings.snackbar.reset", universalSettings), "success");
   }).catch(() => {
-    universalSettingsState.textContent = "Universal settings reset in this window; the file could not be updated.";
-    showSnackbar("The universal settings reset could not be persisted.");
+    writeUniversalSettingsStatus("settings.status.resetFailed");
+    showSnackbar(presentDesktopCopy("settings.snackbar.resetFailed", universalSettings), "warning");
   });
 }
 
@@ -1415,12 +1456,12 @@ async function start(): Promise<void> {
   try {
     universalSettings = await window.commandCenter.settings.load();
     renderUniversalSettings();
-    universalSettingsState.textContent = "Universal settings ready locally.";
+    writeUniversalSettingsStatus("startup.settingsReady");
   } catch {
     universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
     renderUniversalSettings();
-    universalSettingsState.textContent = "Universal settings are using the bounded in-window defaults.";
-    showSnackbar("The universal settings file was unavailable. Bounded defaults are shown and no server state changed.");
+    writeUniversalSettingsStatus("startup.settingsDefaults");
+    showSnackbar(presentDesktopCopy("startup.settingsDefaults", universalSettings), "warning");
   }
   resetJavaRuntimeGuidance("No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.");
   try {

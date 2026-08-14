@@ -60,6 +60,13 @@ server action.
   dismissible-only bulk dismissal. The article is bundled through the existing
   offline documentation registry; focused source checks and builds do not prove
   packaged runtime interaction, complete localization, or capture evidence.
+- Added the focused desktop presentation-settings slice: the real settings
+  surface now renders English, playful Hong Kong-style Cantonese, or bilingual
+  copy; applies independent English and Cantonese funny levels from 1 through
+  5; and decorates dialog/message-box content with a persisted emoji toggle.
+  The payload-free negative regression and renderer/main builds remain source
+  and build evidence only; packaged runtime interaction and captures remain
+  unverified.
 
 ## Next implementation slices
 

@@ -113,6 +113,11 @@ The desktop source contains:
 - a schema-version-1 universal-settings record with local desktop persistence,
   language/funny-level/emoji/School-mode controls, appearance basics, tab
   docking, and companion-site logo and personal-vocabulary foundations.
+- a desktop presentation-settings catalog in
+  `src/shared/desktop-presentation.ts`, applied to the real settings surface
+  with persisted English, playful Hong Kong-style Cantonese, and bilingual
+  modes, independent funny-level sliders, and dialog/message-box emoji
+  decoration;
 - a shared bounded desktop search matcher and anchored regex-builder binding for
   the existing Docs, Universal settings, and command-palette search fields;
   `Ctrl+Shift+F` focuses those existing surfaces or their builders without
@@ -149,10 +154,12 @@ src/renderer/regex-builder.ts
 src/renderer/offline-documentation-registry.ts
 src/renderer/offline-documentation.ts
 src/renderer/styles.css
+src/shared/desktop-presentation.ts
 src/shared/regex-search.ts
 src/shared/offline-documentation.ts
 scripts/test-offline-documentation.mjs
 scripts/test-desktop-search-foundation.mjs
+scripts/test-desktop-presentation-settings.mjs
 ```
 
 The desktop renderer has no process-start IPC, shell command field, RCON
@@ -202,6 +209,15 @@ and the `Ctrl+Shift+F` shortcut. These are source/build checks only; packaged
 runtime interaction, screen-reader interaction, and real captures remain
 unverified. The implementation and this verification record are carried by
 [`a6468a9`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/a6468a924620761622714ff1d545c8827eab14a6).
+
+For the desktop presentation-settings lane, the focused payload-free check
+`npm run test:desktop-presentation-settings` covers all three language modes,
+independent funny-level changes, emoji-on/emoji-off rendering, persistence
+registrations, and one exact negative regression per required registration.
+The related `npm run test:offline-documentation`, universal-settings check,
+desktop search check, main and renderer builds, and root build are source/build
+evidence only. No packaged runtime interaction, screen-reader interaction, or
+real capture evidence is claimed for this lane.
 
 ## Safe continuation
 

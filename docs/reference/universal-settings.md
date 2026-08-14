@@ -22,6 +22,27 @@ context-isolated bridge in `src/preload/index.ts` and
 record in `site/app/page.tsx`, with the same schema normalization and a
 browser-storage boundary.
 
+## Desktop presentation settings slice
+
+The desktop renderer's presentation settings are implemented in
+`src/shared/desktop-presentation.ts` and are applied to the real Universal
+settings surface rather than to a detached sample. English, playful Hong
+Kong-style Cantonese, and bilingual modes update the settings headings,
+descriptions, search and regex-builder labels, options, control accessible
+names, and local status copy. The English and Cantonese funny-level sliders
+select five bounded variants independently, and bilingual mode uses each
+language's own level.
+
+The dialog/message-box emoji toggle decorates the desktop snackbar/message
+surface and selected live settings-status messages only. It does not alter
+buttons, action labels, field labels, slider names, or accessible names. The
+settings store already persists each value independently in
+`universal-settings.v1.json`; this slice wires those stored values to the
+desktop copy and keeps failed saves visibly local without touching server
+drafts or processes. See [Desktop presentation settings](desktop-presentation-settings.md)
+for the full behavior, privacy, failure, accessibility, and focused-check
+record.
+
 ## Desktop settings search boundary
 
 The desktop Universal settings surface uses the shared matcher in

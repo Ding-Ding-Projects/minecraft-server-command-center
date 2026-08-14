@@ -21,8 +21,16 @@ logo selection, and a local personal-vocabulary JSON boundary. These controls
 are source and focused-contract evidence only; full app-wide localization,
 credential-factor behavior, every-element appearance editing, complete tab
 management, and built-artifact interaction remain unverified. See
-[Universal settings](docs/reference/universal-settings.md) and the
+[Universal settings](docs/reference/universal-settings.md), [desktop presentation settings](docs/reference/desktop-presentation-settings.md), and the
 [completeness inventory](docs/verification/completeness-inventory.md).
+
+The desktop presentation-settings slice wires the existing local record into
+the real settings surface: English, playful Hong Kong-style Cantonese, and
+bilingual copy modes; independent English and Cantonese funny-level sliders;
+and dialog/message-box emoji decoration that never enters control labels or
+accessible names. Its focused payload-free check is
+`npm run test:desktop-presentation-settings`. This remains source and focused
+build evidence, not packaged-runtime or capture evidence.
 
 ## Current boundaries
 

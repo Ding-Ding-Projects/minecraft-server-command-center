@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Wired the desktop settings surface to the persisted English, playful
+  Hong Kong-style Cantonese, and bilingual presentation modes, with independent
+  English and Cantonese funny levels from 1 through 5.
+- Wired the persisted dialog/message-box emoji toggle to non-blocking desktop
+  message content while keeping controls and accessible names emoji-free.
+
+### Verification
+
+- Added `npm run test:desktop-presentation-settings`, including payload-free
+  mode, slider, emoji, persistence, and exact negative-registration checks.
+- Source and build checks do not claim packaged runtime interaction, screen
+  reader interaction, installer execution, or real capture evidence.
+
 ## 0.1.38 — 2026-08-14
 
 ### Changed
