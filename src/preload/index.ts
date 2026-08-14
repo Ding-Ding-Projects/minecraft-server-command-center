@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { DesktopApi, JavaRuntimePickerKind, PickerKind } from "../shared/desktop-api";
+import type { UniversalLanguageMode } from "../shared/universal-contracts";
 
 const desktopApi: DesktopApi = {
   settings: {
@@ -17,6 +18,11 @@ const desktopApi: DesktopApi = {
   },
   picker: {
     select: (kind: PickerKind) => ipcRenderer.invoke("picker:select", kind)
+  },
+  personalVocabulary: {
+    load: () => ipcRenderer.invoke("personal-vocabulary:load"),
+    choose: (languageMode?: UniversalLanguageMode) => ipcRenderer.invoke("personal-vocabulary:choose", languageMode),
+    clear: () => ipcRenderer.invoke("personal-vocabulary:clear")
   },
   runtime: {
     discover: () => ipcRenderer.invoke("runtime:discover"),

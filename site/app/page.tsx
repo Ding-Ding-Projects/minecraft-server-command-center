@@ -22,6 +22,7 @@ import {
   type UniversalLanguageMode,
   type UniversalSettingsV1
 } from "../../src/shared/universal-contracts";
+import { projectPersonalVocabularyRecovery } from "../../src/shared/personal-vocabulary-recovery";
 import { PersonalVocabularyBoundary, usePersonalVocabularyEntries } from "./personal-vocabulary-boundary";
 import {
   appendNotificationRecord,
@@ -230,6 +231,67 @@ const PAGE_DEFINITIONS: Array<{
   },
 ];
 
+const COMPANION_PAGE_CANTONESE: Record<PageId, { label: string; eyebrow: string; description: string }> = {
+  overview: { label: "總覽", eyebrow: "規劃工作區", description: "用本機優先方式，逐步規劃 Minecraft 伺服器設定。" },
+  configure: { label: "設定", eyebrow: "引導選擇", description: "設定桌面啟動計劃所需嘅安全、非秘密數值。" },
+  "paper-cli": { label: "Paper CLI", eyebrow: "唯讀參數", description: "查看已輸入嘅 Paper 啟動參數；冇可編輯嘅指令框。" },
+  "spigot-setup": { label: "Spigot 設定", eyebrow: "桌面引導流程", description: "了解 Spigot 計劃點樣交畀已安裝嘅桌面應用程式。" },
+  runtime: { label: "執行環境", eyebrow: "Java 同記憶體", description: "查看執行環境決定，同背後嘅兼容性檢查。" },
+  safety: { label: "安全", eyebrow: "啟動之前", description: "檢查 EULA、網絡暴露、RCON 同本機邊界。" },
+  docs: { label: "文件", eyebrow: "本機指南", description: "瀏覽內置指南，唔使即刻搵網上資料。" },
+  "release-status": { label: "版本狀態", eyebrow: "固定版本安裝檔", description: "查看內置版本記錄，同埋開啟指定嘅 Windows 安裝檔。" },
+  changelog: { label: "更新記錄", eyebrow: "實事版本歷史", description: "搜尋、篩選、複製同匯出呢個網站記錄嘅每個版本。" },
+  notifications: { label: "通知中心", eyebrow: "本機通知歷史", description: "查看、取消同批量管理儲存喺瀏覽器嘅非阻塞通知。" },
+  settings: { label: "通用設定", eyebrow: "本機偏好", description: "設定語言、語氣、表情符號、外觀、名稱、標誌、標籤同本機資料控制。" },
+};
+
+type CompanionTextParts = { readonly english: string; readonly cantonese: string };
+
+function companionLanguageMode(settings: UniversalSettingsV1): UniversalLanguageMode {
+  return settings.schoolModeEnabled ? "english" : settings.languageMode;
+}
+
+function companionText(parts: CompanionTextParts, settings: UniversalSettingsV1): string {
+  const mode = companionLanguageMode(settings);
+  if (mode === "cantonese") return parts.cantonese;
+  if (mode === "bilingual") return `English: ${parts.english} · Cantonese: ${parts.cantonese}`;
+  return parts.english;
+}
+
+function localizedPageDefinition(
+  page: (typeof PAGE_DEFINITIONS)[number],
+  settings: UniversalSettingsV1,
+): (typeof PAGE_DEFINITIONS)[number] {
+  const cantonese = COMPANION_PAGE_CANTONESE[page.id];
+  if (page.id === "settings" && settings.schoolModeEnabled) {
+    return {
+      ...page,
+      label: settings.schoolModeName,
+      eyebrow: "Focus settings",
+      description: `Manage ${settings.schoolModeName} and its local recovery route.`,
+    };
+  }
+  return {
+    ...page,
+    label: companionText({ english: page.label, cantonese: cantonese.label }, settings),
+    eyebrow: companionText({ english: page.eyebrow, cantonese: cantonese.eyebrow }, settings),
+    description: companionText({ english: page.description, cantonese: cantonese.description }, settings),
+  };
+}
+
+function CompanionBilingualText({ parts, settings }: { readonly parts: CompanionTextParts; readonly settings: UniversalSettingsV1 }) {
+  const mode = companionLanguageMode(settings);
+  if (mode === "cantonese") return <span lang="zh-Hant-HK">{parts.cantonese}</span>;
+  if (mode !== "bilingual") return <span lang="en">{parts.english}</span>;
+  return (
+    <>
+      <span lang="en">English: {parts.english}</span>
+      <span aria-hidden="true"> · </span>
+      <span lang="zh-Hant-HK">Cantonese: {parts.cantonese}</span>
+    </>
+  );
+}
+
 const VERSION_DETAILS: Record<GameVersion, { java: JavaVersion; note: string }> = {
   "1.21.4": { java: "21", note: "Java 21 is the compatible runtime for this preset." },
   "1.20.6": { java: "21", note: "Java 21 is the compatible runtime for this preset." },
@@ -327,6 +389,32 @@ function restoreDraft(value: string | null): PlannerDraft {
     };
   } catch {
     return DEFAULT_DRAFT;
+  }
+}
+
+function readLocalStorageValue(key: string): { readonly available: true; readonly value: string | null } | { readonly available: false; readonly value: null } {
+  try {
+    return { available: true, value: window.localStorage.getItem(key) };
+  } catch {
+    return { available: false, value: null };
+  }
+}
+
+function writeLocalStorageValue(key: string, value: string): boolean {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeLocalStorageValue(key: string): boolean {
+  try {
+    window.localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -775,6 +863,7 @@ export default function Home() {
   const [draft, setDraft] = useState<PlannerDraft>(DEFAULT_DRAFT);
   const [universalSettings, setUniversalSettings] = useState<UniversalSettingsV1>(DEFAULT_UNIVERSAL_SETTINGS);
   const [personalVocabularyEntries, setPersonalVocabularyEntries] = useState<readonly PersonalVocabularyEntryV1[]>([]);
+  const [personalVocabularyRecoveryPending, setPersonalVocabularyRecoveryPending] = useState(false);
   const [activePage, setActivePage] = useState<PageId>("overview");
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
@@ -795,6 +884,8 @@ export default function Home() {
   const [notificationPersistenceStatus, setNotificationPersistenceStatus] = useState<"checking" | "saved" | "unavailable">("checking");
   const [hydrated, setHydrated] = useState(false);
   const [universalHydrated, setUniversalHydrated] = useState(false);
+  const [draftPersistenceStatus, setDraftPersistenceStatus] = useState<"checking" | "saved" | "unavailable">("checking");
+  const [universalPersistenceStatus, setUniversalPersistenceStatus] = useState<"checking" | "saved" | "unavailable">("checking");
   const [notificationHydrated, setNotificationHydrated] = useState(false);
   const [schoolUnlockConfigured, setSchoolUnlockConfigured] = useState(false);
   const [schoolUnlockInput, setSchoolUnlockInput] = useState("");
@@ -808,9 +899,22 @@ export default function Home() {
   const personalVocabularyInput = useRef<HTMLInputElement>(null);
   const customLogoInput = useRef<HTMLInputElement>(null);
 
+  const publishNotice = (input: Notice) => {
+    const record = createNotificationRecord(input);
+    setNotificationRecords((current) => appendNotificationRecord(current, record));
+    setNotice(record);
+  };
+
   useEffect(() => {
     const restore = () => {
-      setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
+      const stored = readLocalStorageValue(STORAGE_KEY);
+      if (stored.available) {
+        setDraft(restoreDraft(stored.value));
+        setDraftPersistenceStatus("saved");
+      } else {
+        setDraftPersistenceStatus("unavailable");
+        publishNotice({ tone: "warning", title: "Browser draft unavailable", detail: "The browser could not read the local draft record. The current in-memory draft remains active and no server action is started." });
+      }
       setHydrated(true);
     };
     const timer = window.setTimeout(restore, 0);
@@ -851,43 +955,92 @@ export default function Home() {
 
   useEffect(() => {
     const restore = () => {
-      const saved = window.localStorage.getItem(UNIVERSAL_STORAGE_KEY);
+      const storedSettings = readLocalStorageValue(UNIVERSAL_STORAGE_KEY);
+      const settingsStorageAvailable = storedSettings.available;
+      const saved = storedSettings.value;
+      let restoredSettings = DEFAULT_UNIVERSAL_SETTINGS;
+      if (!settingsStorageAvailable) {
+        publishNotice({ tone: "warning", title: "Universal settings unavailable", detail: "The browser could not read the local settings record. Existing in-memory choices remain active." });
+        setUniversalPersistenceStatus("unavailable");
+      }
       let parsed: unknown;
       try {
         parsed = saved ? JSON.parse(saved) as unknown : undefined;
       } catch {
         parsed = undefined;
       }
-      const universalResult = parseUniversalSettings(parsed);
-      setUniversalSettings(universalResult.ok ? universalResult.value : DEFAULT_UNIVERSAL_SETTINGS);
-      if (!universalResult.ok) window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
-      const unlockHash = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+      if (settingsStorageAvailable) {
+        const universalResult = parseUniversalSettings(parsed);
+        restoredSettings = universalResult.ok ? universalResult.value : DEFAULT_UNIVERSAL_SETTINGS;
+        setUniversalSettings(restoredSettings);
+        setUniversalPersistenceStatus("saved");
+        if (!universalResult.ok && !removeLocalStorageValue(UNIVERSAL_STORAGE_KEY)) {
+          publishNotice({ tone: "warning", title: "Universal settings could not be reset", detail: "The invalid local settings record could not be removed; the in-memory bounded defaults remain active." });
+        }
+      }
+      let unlockHash: string | null = null;
+      try {
+        unlockHash = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+      } catch {
+        publishNotice({ tone: "warning", title: "School mode unlock unavailable", detail: "The browser could not read the local unlock record; the current mode remains unchanged." });
+      }
       setSchoolUnlockConfigured(Boolean(unlockHash));
-      const cachedVocabulary = window.localStorage.getItem(PERSONAL_VOCABULARY_CACHE_KEY);
-      if (cachedVocabulary) {
+      let cachedVocabulary: string | null = null;
+      let vocabularyCacheAvailable = true;
+      try {
+        cachedVocabulary = window.localStorage.getItem(PERSONAL_VOCABULARY_CACHE_KEY);
+      } catch {
+        vocabularyCacheAvailable = false;
+        publishNotice({ tone: "warning", title: "Personal vocabulary cache unavailable", detail: "The browser could not read the local vocabulary cache. The persisted vocabulary status and previous active wording remain unchanged." });
+      }
+      if (!vocabularyCacheAvailable) {
+        // Keep any already-active validated entries when storage is transiently unavailable.
+        // The persisted status is intentionally not rewritten to an empty state.
+      } else if (cachedVocabulary !== null) {
         const result = parsePersonalVocabularyJson(cachedVocabulary);
         if (result.ok) {
+          setPersonalVocabularyRecoveryPending(false);
           setPersonalVocabularyEntries(result.value.entries);
           setUniversalSettings((current) => ({
             ...current,
             personalVocabulary: { status: "loaded", entryCount: result.value.entries.length },
           }));
         } else {
-          window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
-          setPersonalVocabularyEntries([]);
+          try {
+            window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+            const recovery = projectPersonalVocabularyRecovery({ status: "empty", entryCount: 0 });
+            setPersonalVocabularyRecoveryPending(recovery.retryAvailable);
+            setPersonalVocabularyEntries([]);
+            setUniversalSettings((current) => ({
+              ...current,
+              personalVocabulary: { status: "empty", entryCount: 0 },
+            }));
+          } catch {
+            const recovery = projectPersonalVocabularyRecovery({ status: "empty", entryCount: 0, recovery: "malformed-cache-removal-failed" });
+            setPersonalVocabularyRecoveryPending(recovery.retryAvailable);
+            setPersonalVocabularyEntries([]);
+            setUniversalSettings((current) => ({
+              ...current,
+              personalVocabulary: { status: recovery.status, entryCount: recovery.entryCount },
+            }));
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active; use Retry cache cleanup to try again." });
+          }
+        }
+      } else {
+        setPersonalVocabularyRecoveryPending(false);
+        setPersonalVocabularyEntries([]);
+        if (restoredSettings.personalVocabulary.status === "loaded") {
           setUniversalSettings((current) => ({
             ...current,
             personalVocabulary: { status: "empty", entryCount: 0 },
           }));
         }
-      } else {
-        setPersonalVocabularyEntries([]);
-        setUniversalSettings((current) => ({
-          ...current,
-          personalVocabulary: { status: "empty", entryCount: 0 },
-        }));
       }
-      const cachedLogo = window.localStorage.getItem(CUSTOM_LOGO_CACHE_KEY);
+      const cachedLogoResult = readLocalStorageValue(CUSTOM_LOGO_CACHE_KEY);
+      const cachedLogo = cachedLogoResult.value;
+      if (!cachedLogoResult.available) {
+        publishNotice({ tone: "warning", title: "Custom logo cache unavailable", detail: "The browser could not read the local logo cache; the current shipped mark remains active." });
+      }
       if (cachedLogo?.startsWith("data:image/")) {
         setCustomLogoPreview(cachedLogo);
         setUniversalSettings((current) => ({ ...current, customLogoStatus: "loaded" }));
@@ -900,14 +1053,32 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    const save = () => {
+      if (writeLocalStorageValue(STORAGE_KEY, JSON.stringify(draft))) {
+        setDraftPersistenceStatus("saved");
+      } else {
+        setDraftPersistenceStatus("unavailable");
+        publishNotice({ tone: "warning", title: "Browser draft was not persisted", detail: "The current in-memory draft remains active, but the browser could not update its local record. No server action is started." });
+      }
+    };
+    const timer = window.setTimeout(save, 0);
+    return () => window.clearTimeout(timer);
   }, [draft, hydrated]);
 
   useEffect(() => {
     if (!universalHydrated) return;
-    window.localStorage.setItem(UNIVERSAL_STORAGE_KEY, JSON.stringify(universalSettings));
-    document.documentElement.dataset.theme = universalSettings.theme;
-    document.documentElement.dataset.density = universalSettings.density;
+    const save = () => {
+      if (writeLocalStorageValue(UNIVERSAL_STORAGE_KEY, JSON.stringify(universalSettings))) {
+        setUniversalPersistenceStatus("saved");
+      } else {
+        setUniversalPersistenceStatus("unavailable");
+        publishNotice({ tone: "warning", title: "Universal settings were not persisted", detail: "The current in-memory choices remain active, but the browser could not update its local settings record." });
+      }
+      document.documentElement.dataset.theme = universalSettings.theme;
+      document.documentElement.dataset.density = universalSettings.density;
+    };
+    const timer = window.setTimeout(save, 0);
+    return () => window.clearTimeout(timer);
   }, [universalSettings, universalHydrated]);
 
   useEffect(() => {
@@ -1070,35 +1241,49 @@ export default function Home() {
   ).length;
   const activeNotificationCount = notificationRecords.filter((record) => record.dismissedAt === null).length;
   const dismissedNotificationCount = notificationRecords.length - activeNotificationCount;
-  const matchingPages = PAGE_DEFINITIONS.filter((page) =>
+  const localizedPages = PAGE_DEFINITIONS.map((page) => localizedPageDefinition(page, universalSettings));
+  const matchingPages = localizedPages.filter((page) =>
     testSearch(`${page.label} ${page.eyebrow} ${page.description}`, navigationSearch),
   );
   const paletteItems = [
-    ...PAGE_DEFINITIONS.map((page) => ({
-      id: `page-${page.id}`,
-      label: page.label,
-      detail: page.description,
-      action: () => setActivePage(page.id),
-    })),
+    ...localizedPages.map((page) => {
+      const original = PAGE_DEFINITIONS.find((candidate) => candidate.id === page.id) ?? page;
+      const schoolSettings = page.id === "settings" && universalSettings.schoolModeEnabled;
+      return {
+        id: `page-${page.id}`,
+        label: page.label,
+        detail: page.description,
+        labelParts: schoolSettings
+          ? { english: page.label, cantonese: page.label }
+          : { english: original.label, cantonese: COMPANION_PAGE_CANTONESE[page.id].label },
+        detailParts: schoolSettings
+          ? { english: page.description, cantonese: page.description }
+          : { english: original.description, cantonese: COMPANION_PAGE_CANTONESE[page.id].description },
+        schoolSuppressed: false,
+        action: () => setActivePage(page.id),
+      };
+    }),
     {
       id: "reset-draft",
-      label: "Reset browser draft",
-      detail: "Clear the non-secret draft saved in this browser and restore the planner defaults.",
+      label: companionText({ english: "Reset browser draft", cantonese: "重設瀏覽器草稿" }, universalSettings),
+      detail: companionText({ english: "Clear the non-secret draft saved in this browser and restore the planner defaults.", cantonese: "清除儲存在瀏覽器嘅非秘密草稿，還原規劃預設值。" }, universalSettings),
+      labelParts: { english: "Reset browser draft", cantonese: "重設瀏覽器草稿" },
+      detailParts: { english: "Clear the non-secret draft saved in this browser and restore the planner defaults.", cantonese: "清除儲存在瀏覽器嘅非秘密草稿，還原規劃預設值。" },
+      schoolSuppressed: false,
       action: () => resetDraft(),
     },
     {
       id: "universal-settings",
-      label: "Open universal settings",
-      detail: "Edit the local language, tone, appearance, app-name, logo, tab-dock, and private-data controls.",
+      label: companionText({ english: "Open universal settings", cantonese: "開啟通用設定" }, universalSettings),
+      detail: companionText({ english: "Edit the local language, tone, appearance, app-name, logo, tab-dock, and private-data controls.", cantonese: "編輯本機語言、語氣、外觀、名稱、標誌、標籤位置同私隱資料控制。" }, universalSettings),
+      labelParts: { english: "Open universal settings", cantonese: "開啟通用設定" },
+      detailParts: { english: "Edit the local language, tone, appearance, app-name, logo, tab-dock, and private-data controls.", cantonese: "編輯本機語言、語氣、外觀、名稱、標誌、標籤位置同私隱資料控制。" },
+      schoolSuppressed: true,
       action: () => setActivePage("settings"),
     },
-  ].filter((item) => testSearch(`${item.label} ${item.detail}`, paletteSearch));
+  ].filter((item) => !item.schoolSuppressed || !universalSettings.schoolModeEnabled)
+    .filter((item) => testSearch(`${item.label} ${item.detail}`, paletteSearch));
 
-  const publishNotice = (input: Notice) => {
-    const record = createNotificationRecord(input);
-    setNotificationRecords((current) => appendNotificationRecord(current, record));
-    setNotice(record);
-  };
   const applyChangelogPreset = (preset: Exclude<ChangelogPreset, "custom">) => {
     const latestDate = CHANGELOG_RELEASES[0]?.releaseDate ?? "";
     const year = latestDate.slice(0, 4);
@@ -1212,24 +1397,35 @@ export default function Home() {
   const navigate = (page: PageId) => {
     setActivePage(page);
     setPaletteOpen(false);
-    publishNotice({ tone: "info", title: `Opened ${PAGE_DEFINITIONS.find((item) => item.id === page)?.label}`, detail: "The planner stayed in this browser; no server action was started." });
+    const localized = localizedPageDefinition(PAGE_DEFINITIONS.find((item) => item.id === page) ?? PAGE_DEFINITIONS[0], universalSettings);
+    publishNotice({ tone: "info", title: `Opened ${localized.label}`, detail: companionText({ english: "The planner stayed in this browser; no server action was started.", cantonese: "規劃器留喺呢個瀏覽器入面，冇啟動伺服器動作。" }, universalSettings) });
   };
   const resetDraft = () => {
     setDraft(DEFAULT_DRAFT);
     setPendingPlannerHandoff(null);
     setHandoffStatus({ tone: "neutral", message: "Browser draft reset. No planner handoff is selected." });
-    window.localStorage.removeItem(STORAGE_KEY);
-    publishNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
+    if (removeLocalStorageValue(STORAGE_KEY)) {
+      publishNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
+    } else {
+      publishNotice({ tone: "warning", title: "Browser draft reset in memory only", detail: "The current draft was reset in this page, but the browser could not remove its local record." });
+    }
   };
   const resetUniversalSettings = () => {
-    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+    const removed = [
+      PERSONAL_VOCABULARY_CACHE_KEY,
+      UNIVERSAL_STORAGE_KEY,
+      SCHOOL_UNLOCK_KEY,
+      CUSTOM_LOGO_CACHE_KEY,
+    ].every((key) => removeLocalStorageValue(key));
+    if (!removed) {
+      publishNotice({ tone: "warning", title: "Universal settings were not fully reset", detail: "One or more local records could not be removed, so the active private vocabulary and preferences remain unchanged." });
+      return;
+    }
     setPersonalVocabularyEntries([]);
+    setPersonalVocabularyRecoveryPending(false);
     setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);
     setSchoolUnlockInput("");
     setCustomLogoPreview(null);
-    window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
-    window.localStorage.removeItem(SCHOOL_UNLOCK_KEY);
-    window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
     setSchoolUnlockConfigured(false);
     publishNotice({ tone: "success", title: "Universal settings reset", detail: "Local preferences, the private vocabulary cache, the custom logo, and the toy unlock credential were cleared." });
   };
@@ -1239,13 +1435,21 @@ export default function Home() {
       return;
     }
     const digest = await sha256Text(schoolUnlockInput);
-    window.localStorage.setItem(SCHOOL_UNLOCK_KEY, digest);
+    if (!writeLocalStorageValue(SCHOOL_UNLOCK_KEY, digest)) {
+      publishNotice({ tone: "warning", title: "Unlock credential not saved", detail: "The browser could not write the local digest. The current focus setting remains unchanged." });
+      return;
+    }
     setSchoolUnlockConfigured(true);
     setSchoolUnlockInput("");
     publishNotice({ tone: "success", title: "Local unlock credential saved", detail: "The credential is stored only as a local digest. This toy lock is not a security boundary." });
   };
   const disableSchoolMode = async () => {
-    const stored = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+    const storedRecord = readLocalStorageValue(SCHOOL_UNLOCK_KEY);
+    if (!storedRecord.available) {
+      publishNotice({ tone: "warning", title: "School mode unlock unavailable", detail: "The browser could not read the local unlock record, so the current focus setting remains on." });
+      return;
+    }
+    const stored = storedRecord.value;
     if (!stored) {
       publishNotice({ tone: "warning", title: "Set an unlock credential first", detail: `Set a local credential before turning off ${universalSettings.schoolModeName}. Clearing this site's storage remains the documented recovery route.` });
       return;
@@ -1278,8 +1482,11 @@ export default function Home() {
         return;
       }
       const serialized = JSON.stringify(result.value);
-      window.localStorage.setItem(PERSONAL_VOCABULARY_CACHE_KEY, serialized);
+      if (!writeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY, serialized)) {
+        throw new Error("The local vocabulary cache could not be written. The previous vocabulary remains active.");
+      }
       setPersonalVocabularyEntries(result.value.entries);
+      setPersonalVocabularyRecoveryPending(false);
       updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
       publishNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately and now style user-facing copy. Protected commands, URLs, identifiers, paths, code, and factual records remain unchanged.` });
     } catch (error) {
@@ -1288,13 +1495,27 @@ export default function Home() {
   };
   const clearPersonalVocabulary = () => {
     try {
-      window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+      if (!removeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY)) {
+        throw new Error("The local vocabulary cache could not be removed, so the active vocabulary remains unchanged.");
+      }
       setPersonalVocabularyEntries([]);
+      setPersonalVocabularyRecoveryPending(false);
       updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
       publishNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording is active again." });
     } catch (error) {
       publishNotice({ tone: "warning", title: "Personal vocabulary was not cleared", detail: error instanceof Error ? error.message : "The local cache could not be removed, so the active vocabulary remains unchanged." });
     }
+  };
+  const retryPersonalVocabulary = () => {
+    if (!personalVocabularyRecoveryPending) return;
+    if (!removeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY)) {
+      publishNotice({ tone: "warning", title: "Personal vocabulary cache is still present", detail: "The malformed local cache could not be removed. Original shipped wording remains active; retry this cleanup again." });
+      return;
+    }
+    setPersonalVocabularyEntries([]);
+    setPersonalVocabularyRecoveryPending(false);
+    updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
+    publishNotice({ tone: "success", title: "Personal vocabulary cache cleared", detail: "The malformed cache was removed and original shipped wording is active again." });
   };
   const selectCustomLogo = async (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.currentTarget.files?.item(0);
@@ -1302,7 +1523,9 @@ export default function Home() {
     if (!selected) return;
     try {
       const dataUrl = await readCustomLogo(selected);
-      window.localStorage.setItem(CUSTOM_LOGO_CACHE_KEY, dataUrl);
+      if (!writeLocalStorageValue(CUSTOM_LOGO_CACHE_KEY, dataUrl)) {
+        throw new Error("The local logo cache could not be written; the previous mark remains active.");
+      }
       setCustomLogoPreview(dataUrl);
       updateUniversalSettings("customLogoStatus", "loaded");
       publishNotice({ tone: "success", title: "Custom logo converted locally", detail: "The validated PNG or JPEG is cached only in this browser. Package identity and installer identity were not changed." });
@@ -1311,7 +1534,10 @@ export default function Home() {
     }
   };
   const clearCustomLogo = () => {
-    window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
+    if (!removeLocalStorageValue(CUSTOM_LOGO_CACHE_KEY)) {
+      publishNotice({ tone: "warning", title: "Custom logo was not cleared", detail: "The browser could not remove the local logo cache, so the current mark remains active." });
+      return;
+    }
     setCustomLogoPreview(null);
     updateUniversalSettings("customLogoStatus", "empty");
     updateUniversalSettings("logoPreset", "default");
@@ -1369,7 +1595,7 @@ export default function Home() {
     publishNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
   };
   const appStyle = { "--seed": universalSettings.seedColor } as CSSProperties;
-  const selectedPage = PAGE_DEFINITIONS.find((page) => page.id === activePage) ?? PAGE_DEFINITIONS[0];
+  const selectedPage = localizedPages.find((page) => page.id === activePage) ?? localizedPages[0];
   const pendingPlannerHandoffPreview = pendingPlannerHandoff ? previewPlannerHandoff(pendingPlannerHandoff) : null;
 
   const configurePage = (
@@ -1791,7 +2017,7 @@ export default function Home() {
           </div>
         </div>
         <div className="destination-grid">
-          {PAGE_DEFINITIONS.filter((page) => page.id !== "overview").map((page) => (
+          {localizedPages.filter((page) => page.id !== "overview").map((page) => (
             <button key={page.id} type="button" className="destination-card" onClick={() => navigate(page.id)}>
               <span className="destination-card__eyebrow">{page.eyebrow}</span>
               <strong>{page.label}</strong>
@@ -2324,7 +2550,9 @@ export default function Home() {
             accounts, credentials, or any remote service. The full universal surface inventory remains the release gate.
           </p>
         </div>
-        <span className="status-chip status-chip--info">Schema v1</span>
+        <span className={universalPersistenceStatus === "unavailable" ? "status-chip status-chip--warning" : "status-chip status-chip--info"}>
+          {universalPersistenceStatus === "unavailable" ? "Persistence unavailable" : universalPersistenceStatus === "saved" ? "Saved locally" : "Checking local storage"}
+        </span>
       </section>
 
       <section className="surface-card" aria-labelledby="settings-language-title">
@@ -2336,7 +2564,7 @@ export default function Home() {
           <span className="status-chip status-chip--neutral">Persisted</span>
         </div>
         {universalSettings.schoolModeEnabled ? (
-          <p className="field-help field-help--large">{universalSettings.schoolModeName} is on: English is forced and Cantonese, bilingual, funny-level, emoji, and private-vocabulary controls are omitted until the setting is unlocked.</p>
+          <p className="field-help field-help--large">{universalSettings.schoolModeName} is on. English presentation is active. Unlock this setting to restore your saved preferences.</p>
         ) : (
           <>
             <div className="form-grid">
@@ -2474,7 +2702,7 @@ export default function Home() {
             <span className="field-label">Logo presets</span>
             <div className="segmented-control segmented-control--compact" role="radiogroup" aria-label="App logo presets">
               {LOGO_PRESETS.map((preset) => (
-                <button key={preset} type="button" className={universalSettings.logoPreset === preset ? "segment is-selected" : "segment"} role="radio" aria-checked={universalSettings.logoPreset === preset} onClick={() => { updateUniversalSettings("logoPreset", preset as LogoPreset); setCustomLogoPreview(null); updateUniversalSettings("customLogoStatus", "empty"); window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY); }}>
+                <button key={preset} type="button" className={universalSettings.logoPreset === preset ? "segment is-selected" : "segment"} role="radio" aria-checked={universalSettings.logoPreset === preset} onClick={() => { if (!removeLocalStorageValue(CUSTOM_LOGO_CACHE_KEY)) { publishNotice({ tone: "warning", title: "Logo preset was not applied", detail: "The browser could not clear the previous local logo, so the current mark remains active." }); return; } updateUniversalSettings("logoPreset", preset as LogoPreset); setCustomLogoPreview(null); updateUniversalSettings("customLogoStatus", "empty"); }}>
                   {preset === "default" ? "Default" : preset === "paper" ? "Paper" : "Pixel"}
                 </button>
               ))}
@@ -2516,9 +2744,9 @@ export default function Home() {
             <span className={universalSettings.personalVocabulary.status === "loaded" ? "status-chip status-chip--success" : "status-chip status-chip--neutral"}>{universalSettings.personalVocabulary.status === "loaded" ? `${universalSettings.personalVocabulary.entryCount} entries loaded` : "No file loaded"}</span>
           </div>
           <input ref={personalVocabularyInput} className="sr-only" type="file" accept="application/json,.json" onChange={selectPersonalVocabulary} aria-label="Choose local personal vocabulary JSON" />
-          <div className="button-row"><button type="button" className="secondary-button" onClick={() => personalVocabularyInput.current?.click()}>Choose personal vocabulary JSON</button><button type="button" className="secondary-button" onClick={clearPersonalVocabulary} disabled={universalSettings.personalVocabulary.status !== "loaded"}>Clear private vocabulary</button></div>
+          <div className="button-row"><button type="button" className="secondary-button" onClick={() => personalVocabularyInput.current?.click()}>Choose personal vocabulary JSON</button><button type="button" className="secondary-button" onClick={clearPersonalVocabulary} disabled={universalSettings.personalVocabulary.status !== "loaded"}>Clear private vocabulary</button><button type="button" className="secondary-button" onClick={retryPersonalVocabulary} disabled={!personalVocabularyRecoveryPending}>Retry cache cleanup</button></div>
           <p className="field-help">Schema v1 is bounded to 64 KiB, 128 entries, 160-character strings, fixed fields, safe object keys, and no duplicate keys. The cache is local-only and this foundation does not copy its values into exports, logs, or public text.</p>
-          <p className="field-error">The validated cache is recorded, but complete private text-boundary replacement across every surface is not yet shipped.</p>
+          <p className="field-help">Validated private wording is active at user-facing text boundaries. Protected code, commands, URLs, paths, identifiers, and factual external records remain unchanged.</p>
         </section>
       ) : null}
 
@@ -2548,8 +2776,8 @@ export default function Home() {
   };
 
   return (
-    <PersonalVocabularyBoundary entries={personalVocabularyEntries}>
-      <main className="planner-shell" style={appStyle}>
+    <PersonalVocabularyBoundary entries={universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries}>
+      <main className="planner-shell" style={appStyle} lang={companionLanguageMode(universalSettings) === "bilingual" ? "mul" : companionLanguageMode(universalSettings) === "cantonese" ? "zh-Hant-HK" : "en"} data-language-mode={companionLanguageMode(universalSettings)} data-personal-vocabulary-boundary="ui">
       <a className="skip-link" href="#planner-content">Skip to planner content</a>
       <header className="top-app-bar">
         <div className="brand-lockup">
@@ -2602,7 +2830,7 @@ export default function Home() {
           </div>
           <div className="navigation-rail__footer">
             <span className="status-dot" aria-hidden="true" />
-            <span>Browser-local draft</span>
+            <span>{draftPersistenceStatus === "unavailable" ? "Browser-local draft unavailable" : "Browser-local draft"}</span>
           </div>
         </aside>
 
@@ -2665,7 +2893,10 @@ export default function Home() {
                     setPaletteOpen(false);
                   }}
                 >
-                  <span><strong>{item.label}</strong><small>{item.detail}</small></span>
+                  <span>
+                    <strong><CompanionBilingualText parts={item.labelParts} settings={universalSettings} /></strong>
+                    <small><CompanionBilingualText parts={item.detailParts} settings={universalSettings} /></small>
+                  </span>
                   <span aria-hidden="true">↗</span>
                 </button>
               ))}

@@ -6,17 +6,27 @@ import type {
   JavaRuntimeCandidateSummary,
   JavaRuntimeDiscovery,
   JavaRuntimePickerKind,
-  PickerKind
+  PickerKind,
+  type PersonalVocabularyState
 } from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
 import {
   decorateDialogMessage,
   presentDesktopCopy,
+  presentDesktopCopyParts,
   presentDialogCopy,
   type DesktopPresentationKey,
 } from "../shared/desktop-presentation";
 import { createBoundedSearchMatcher } from "../shared/regex-search";
-import { DEFAULT_UNIVERSAL_SETTINGS, normalizeUniversalSettings, type UniversalSettingsV1 } from "../shared/universal-contracts";
+import { applyPersonalVocabularyReplacements } from "../shared/personal-vocabulary";
+import { projectPersonalVocabularyRecovery } from "../shared/personal-vocabulary-recovery";
+import { createVersionedDebouncedSave } from "../shared/versioned-debounced-save";
+import {
+  DEFAULT_UNIVERSAL_SETTINGS,
+  normalizeUniversalSettings,
+  type PersonalVocabularyEntryV1,
+  type UniversalSettingsV1,
+} from "../shared/universal-contracts";
 import {
   DEFAULT_SERVER_DRAFT,
   describeJavaRuntime,
@@ -73,6 +83,10 @@ const javaRuntimeSetupPlan = document.querySelector<HTMLElement>("#java-runtime-
 const javaRuntimeSetupPlanRoutes = document.querySelector<HTMLElement>("#java-runtime-setup-plan-routes");
 const universalSettingsState = document.querySelector<HTMLElement>("#universal-settings-state");
 const resetUniversalSettingsButton = document.querySelector<HTMLButtonElement>("#reset-universal-settings");
+const personalVocabularyStatus = document.querySelector<HTMLElement>("#personal-vocabulary-status");
+const choosePersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#choose-personal-vocabulary");
+const clearPersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#clear-personal-vocabulary");
+const retryPersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#retry-personal-vocabulary");
 const settingsSearch = document.querySelector<HTMLInputElement>("#settings-search");
 const settingsRegexToggle = document.querySelector<HTMLButtonElement>("#settings-regex-toggle");
 const settingsRegexBuilder = document.querySelector<HTMLElement>("#settings-regex-builder");
@@ -105,7 +119,7 @@ const notificationViewAllCount = document.querySelector<HTMLElement>("#notificat
 const notificationRecordList = document.querySelector<HTMLElement>("#notification-record-list");
 const notificationStatusMessage = document.querySelector<HTMLElement>("#notification-status-message");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !chooseJavaFolderButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !javaRuntimeSetupPlan || !javaRuntimeSetupPlanRoutes || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !chooseJavaFolderButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !javaRuntimeSetupPlan || !javaRuntimeSetupPlanRoutes || !universalSettingsState || !resetUniversalSettingsButton || !personalVocabularyStatus || !choosePersonalVocabularyButton || !clearPersonalVocabularyButton || !retryPersonalVocabularyButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -119,8 +133,9 @@ let pendingPlannerHandoff: PlannerHandoffPreview | undefined;
 let latestJavaRuntimeDiscovery: JavaRuntimeDiscovery | undefined;
 let selectedJavaCandidateId: string | null = null;
 let universalSettings: UniversalSettingsV1 = DEFAULT_UNIVERSAL_SETTINGS;
-let universalSaveTimer: number | undefined;
-let universalSaveVersion = 0;
+let personalVocabularyEntries: readonly PersonalVocabularyEntryV1[] = [];
+let personalVocabularyBusy = false;
+let personalVocabularyRecovery = false;
 let settingsRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
 let commandPaletteRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
 let commandPaletteBinding: AnchoredRegexBuilderBinding | undefined;
@@ -150,13 +165,16 @@ const tabCopy: Record<string, readonly [string, string]> = {
 };
 
 interface CommandPaletteCommand {
-  readonly id: "docs-search" | "docs-regex" | "settings-search" | "settings-regex";
+  readonly id: "docs-search" | "docs-regex" | "settings-search" | "settings-regex" | "personal-vocabulary-choose" | "personal-vocabulary-replace" | "personal-vocabulary-status" | "personal-vocabulary-clear" | "personal-vocabulary-retry";
   readonly label: string;
   readonly description: string;
   readonly tab: "docs" | "settings";
-  readonly searchId: "offline-docs-search" | "settings-search";
-  readonly regexToggleId: "offline-docs-regex-toggle" | "settings-regex-toggle";
-  readonly openRegex: boolean;
+  readonly searchId?: "offline-docs-search" | "settings-search";
+  readonly regexToggleId?: "offline-docs-regex-toggle" | "settings-regex-toggle";
+  readonly openRegex?: boolean;
+  readonly presentationLabelKey?: DesktopPresentationKey;
+  readonly presentationDescriptionKey?: DesktopPresentationKey;
+  readonly personalVocabularyAction?: "choose" | "status" | "clear" | "retry";
 }
 
 const commandPaletteCommands: readonly CommandPaletteCommand[] = [
@@ -168,6 +186,8 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
     searchId: "offline-docs-search",
     regexToggleId: "offline-docs-regex-toggle",
     openRegex: false,
+    presentationLabelKey: "palette.command.docsSearch",
+    presentationDescriptionKey: "palette.command.docsSearchDescription",
   },
   {
     id: "docs-regex",
@@ -177,6 +197,8 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
     searchId: "offline-docs-search",
     regexToggleId: "offline-docs-regex-toggle",
     openRegex: true,
+    presentationLabelKey: "palette.command.docsRegex",
+    presentationDescriptionKey: "palette.command.docsRegexDescription",
   },
   {
     id: "settings-search",
@@ -186,6 +208,8 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
     searchId: "settings-search",
     regexToggleId: "settings-regex-toggle",
     openRegex: false,
+    presentationLabelKey: "palette.command.settingsSearch",
+    presentationDescriptionKey: "palette.command.settingsSearchDescription",
   },
   {
     id: "settings-regex",
@@ -195,6 +219,53 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
     searchId: "settings-search",
     regexToggleId: "settings-regex-toggle",
     openRegex: true,
+    presentationLabelKey: "palette.command.settingsRegex",
+    presentationDescriptionKey: "palette.command.settingsRegexDescription",
+  },
+  {
+    id: "personal-vocabulary-choose",
+    label: "Choose local vocabulary JSON",
+    description: "Open Settings and focus the local JSON picker.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.choose",
+    presentationDescriptionKey: "settings.personalVocabulary.command.chooseDescription",
+    personalVocabularyAction: "choose",
+  },
+  {
+    id: "personal-vocabulary-replace",
+    label: "Replace local vocabulary JSON",
+    description: "Open Settings and focus the replace control without exposing the file path.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.replace",
+    presentationDescriptionKey: "settings.personalVocabulary.command.replaceDescription",
+    personalVocabularyAction: "choose",
+  },
+  {
+    id: "personal-vocabulary-status",
+    label: "Review local vocabulary status",
+    description: "Open Settings and focus the accessible local status.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.status",
+    presentationDescriptionKey: "settings.personalVocabulary.command.statusDescription",
+    personalVocabularyAction: "status",
+  },
+  {
+    id: "personal-vocabulary-clear",
+    label: "Clear local vocabulary cache",
+    description: "Open Settings and focus the clear control; it never runs from the palette.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.clear",
+    presentationDescriptionKey: "settings.personalVocabulary.command.clearDescription",
+    personalVocabularyAction: "clear",
+  },
+  {
+    id: "personal-vocabulary-retry",
+    label: "Retry local vocabulary cache cleanup",
+    description: "Open Settings and focus the retry control after a malformed-cache cleanup failure.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.retry",
+    presentationDescriptionKey: "settings.personalVocabulary.command.retryDescription",
+    personalVocabularyAction: "retry",
   },
 ];
 
@@ -276,8 +347,8 @@ function renderSnackbar(record: NotificationRecord): void {
 function showSnackbar(message: string, tone?: "warning" | "error" | "success" | "info"): void {
   const record = createNotificationRecord({
     tone: tone ?? notificationToneFor(message),
-    title: presentDesktopCopy("notification.title", universalSettings),
-    detail: decorateDialogMessage(message, universalSettings),
+    title: presentUserCopy("notification.title"),
+    detail: userCopy(decorateDialogMessage(message, effectivePresentationSettings())),
   });
   notificationCenter = {
     schemaVersion: 1,
@@ -455,41 +526,80 @@ function dismissSelectedNotifications(): void {
   persistNotificationCenter();
 }
 
+function commandPaletteTargetId(command: CommandPaletteCommand): string | undefined {
+  if (command.personalVocabularyAction === "status") return "personal-vocabulary-status";
+  if (command.personalVocabularyAction === "clear") return "clear-personal-vocabulary";
+  if (command.personalVocabularyAction === "retry") return "retry-personal-vocabulary";
+  if (command.personalVocabularyAction === "choose") return "choose-personal-vocabulary";
+  return command.searchId;
+}
+
+function commandPaletteCommandAvailable(command: CommandPaletteCommand): boolean {
+  if (universalSettings.schoolModeEnabled && command.personalVocabularyAction) return false;
+  const targetId = commandPaletteTargetId(command);
+  if (!targetId) return false;
+  const target = document.getElementById(targetId);
+  if (!(target instanceof HTMLElement) || !target.isConnected) return false;
+  for (let current: HTMLElement | null = target; current; current = current.parentElement) {
+    if (current.hidden || current.getAttribute("aria-hidden") === "true" || current.getAttribute("aria-disabled") === "true") return false;
+    if (current.hasAttribute("inert") || current.hasAttribute("disabled")) return false;
+    if (current instanceof HTMLButtonElement && current.disabled) return false;
+    if (current instanceof HTMLInputElement && current.disabled) return false;
+    if (current instanceof HTMLSelectElement && current.disabled) return false;
+    if (current instanceof HTMLTextAreaElement && current.disabled) return false;
+  }
+  const style = window.getComputedStyle(target);
+  return style.display !== "none" && style.visibility !== "hidden" && style.visibility !== "collapse";
+}
+
 function renderCommandPalette(): void {
   const matcher = createBoundedSearchMatcher(commandPaletteRegexState);
   commandPaletteResultList.replaceChildren();
   if (!matcher.ok) {
-    commandPaletteStatus.textContent = matcher.reason;
+    const message = presentUserCopy("palette.regex.invalid");
+    commandPaletteStatus.textContent = message;
     const empty = document.createElement("p");
     empty.className = "command-palette__empty";
-    empty.textContent = matcher.reason;
+    empty.textContent = message;
     commandPaletteResultList.append(empty);
     return;
   }
 
-  const matches = commandPaletteCommands.filter((command) => matcher.value(`${command.label} ${command.description}`));
-  commandPaletteStatus.textContent = `${matches.length} command${matches.length === 1 ? "" : "s"} available.`;
+  const availableCommands = commandPaletteCommands.filter(commandPaletteCommandAvailable);
+  const matches = availableCommands.filter((command) => {
+    const copy = commandPaletteCopy(command);
+    return matcher.value(`${copy.label} ${copy.description}`);
+  });
+  commandPaletteStatus.textContent = presentUserCopy("palette.status.available", { count: matches.length });
   if (matches.length === 0) {
     const empty = document.createElement("p");
     empty.className = "command-palette__empty";
-    empty.textContent = "No existing desktop search surface matches this query.";
+    empty.textContent = presentUserCopy("palette.status.empty");
     commandPaletteResultList.append(empty);
     return;
   }
   for (const command of matches) {
+    const copy = commandPaletteCopy(command);
     const item = document.createElement("button");
     item.type = "button";
     item.className = "command-palette__result";
     item.setAttribute("role", "option");
     item.dataset.commandPaletteId = command.id;
-    item.setAttribute("aria-label", `${command.label}. ${command.description}`);
+    item.setAttribute("aria-label", `${copy.label}. ${copy.description}`);
     const label = document.createElement("strong");
     const description = document.createElement("span");
-    label.textContent = command.label;
-    description.textContent = command.description;
+    label.textContent = copy.label;
+    description.textContent = copy.description;
     item.append(label, description);
     commandPaletteResultList.append(item);
   }
+}
+
+function commandPaletteCopy(command: CommandPaletteCommand): { readonly label: string; readonly description: string } {
+  return {
+    label: command.presentationLabelKey ? presentUserCopy(command.presentationLabelKey) : userCopy(command.label),
+    description: command.presentationDescriptionKey ? presentUserCopy(command.presentationDescriptionKey) : userCopy(command.description),
+  };
 }
 
 function closeCommandPalette(restoreFocus = true): void {
@@ -520,13 +630,32 @@ function toggleCommandPalette(): void {
 }
 
 function executeCommandPaletteCommand(command: CommandPaletteCommand): void {
+  if (!commandPaletteCommandAvailable(command)) {
+    commandPaletteStatus.textContent = presentUserCopy("palette.status.unavailable");
+    renderCommandPalette();
+    return;
+  }
   closeCommandPalette(false);
   activateTab(command.tab);
   window.requestAnimationFrame(() => {
+    if (!commandPaletteCommandAvailable(command)) {
+      openCommandPalette();
+      commandPaletteStatus.textContent = presentUserCopy("palette.status.unavailable");
+      renderCommandPalette();
+      return;
+    }
+    if (command.personalVocabularyAction) {
+      const targetId = commandPaletteTargetId(command);
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (target instanceof HTMLElement) target.focus();
+      return;
+    }
+    if (!command.searchId) return;
     const search = document.getElementById(command.searchId);
     if (!(search instanceof HTMLInputElement)) return;
     search.focus();
-    if (command.openRegex) document.getElementById(command.regexToggleId)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    if (command.openRegex && command.regexToggleId) document.getElementById(command.regexToggleId)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
 }
 
@@ -538,20 +667,97 @@ function settingsControls(): Array<HTMLInputElement | HTMLSelectElement> {
   return Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-universal-setting]"));
 }
 
+function effectivePresentationSettings(): UniversalSettingsV1 {
+  if (!universalSettings.schoolModeEnabled) return universalSettings;
+  return {
+    ...universalSettings,
+    languageMode: "english",
+    funnyLevelEnglish: 1,
+    funnyLevelCantonese: 1,
+    showEmojisInDialogs: false,
+  };
+}
+
+function activePersonalVocabularyEntries(): readonly PersonalVocabularyEntryV1[] {
+  return universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries;
+}
+
+function userCopy(text: string): string {
+  return applyPersonalVocabularyReplacements(text, activePersonalVocabularyEntries(), { boundary: "ui" });
+}
+
+function presentUserCopyParts(key: DesktopPresentationKey): {
+  readonly languageMode: UniversalSettingsV1["languageMode"];
+  readonly english: string;
+  readonly cantonese: string;
+} {
+  const parts = presentDesktopCopyParts(key, effectivePresentationSettings());
+  return {
+    languageMode: parts.languageMode,
+    english: userCopy(parts.english),
+    cantonese: userCopy(parts.cantonese),
+  };
+}
+
+function presentUserCopy(key: DesktopPresentationKey, values: Readonly<Record<string, string | number>> = {}): string {
+  let copy = presentDesktopCopy(key, effectivePresentationSettings());
+  for (const [name, value] of Object.entries(values)) copy = copy.replaceAll(`{${name}}`, String(value));
+  return userCopy(copy);
+}
+
+function renderPersonalVocabularyControl(): void {
+  const status = universalSettings.personalVocabulary.status;
+  const count = universalSettings.personalVocabulary.entryCount;
+  const statusKey = status === "loaded"
+    ? "settings.personalVocabulary.status.loaded"
+    : "settings.personalVocabulary.status.empty";
+  const statusText = status === "loaded"
+    ? `${presentUserCopy(statusKey)} ${count} ${presentUserCopy("settings.personalVocabulary.entryCount")}`
+    : presentUserCopy(statusKey);
+  personalVocabularyStatus.textContent = statusText;
+  personalVocabularyStatus.setAttribute("aria-label", statusText);
+  choosePersonalVocabularyButton.disabled = personalVocabularyBusy;
+  choosePersonalVocabularyButton.textContent = presentUserCopy(status === "loaded"
+    ? "settings.personalVocabulary.replace"
+    : "settings.personalVocabulary.choose");
+  choosePersonalVocabularyButton.setAttribute("aria-label", choosePersonalVocabularyButton.textContent);
+  clearPersonalVocabularyButton.disabled = personalVocabularyBusy || status !== "loaded";
+  clearPersonalVocabularyButton.textContent = presentUserCopy("settings.personalVocabulary.clear");
+  clearPersonalVocabularyButton.setAttribute("aria-label", clearPersonalVocabularyButton.textContent);
+  retryPersonalVocabularyButton.disabled = personalVocabularyBusy || !personalVocabularyRecovery;
+  retryPersonalVocabularyButton.textContent = presentUserCopy("settings.personalVocabulary.retry");
+  retryPersonalVocabularyButton.setAttribute("aria-label", retryPersonalVocabularyButton.textContent);
+}
+
 function applyDesktopPresentation(): void {
-  document.documentElement.lang = universalSettings.languageMode === "cantonese" ? "zh-Hant-HK" : "en";
-  document.documentElement.dataset.languageMode = universalSettings.languageMode;
+  const settings = effectivePresentationSettings();
+  document.documentElement.lang = settings.languageMode === "cantonese"
+    ? "zh-Hant-HK"
+    : settings.languageMode === "bilingual"
+      ? "mul"
+      : "en";
+  document.documentElement.dataset.languageMode = settings.languageMode;
   for (const element of document.querySelectorAll<HTMLElement>("[data-presentation-key]")) {
     const key = element.dataset.presentationKey as DesktopPresentationKey | undefined;
     if (!key) continue;
-    const copy = presentDesktopCopy(key, universalSettings);
     const attribute = element.dataset.presentationAttribute;
+    const parts = presentUserCopyParts(key);
+    const copy = parts.languageMode === "cantonese" ? parts.cantonese : parts.english;
+    const bilingualCopy = `${userCopy("English")}: ${parts.english} · ${userCopy("Cantonese")}: ${parts.cantonese}`;
     if (attribute === "placeholder") {
-      (element as HTMLInputElement).placeholder = copy;
+      (element as HTMLInputElement).placeholder = parts.languageMode === "bilingual" ? bilingualCopy : copy;
     } else if (attribute === "aria-label") {
-      element.setAttribute("aria-label", copy);
+      element.setAttribute("aria-label", parts.languageMode === "bilingual" ? bilingualCopy : copy);
     } else if (attribute === "title") {
-      element.setAttribute("title", copy);
+      element.setAttribute("title", parts.languageMode === "bilingual" ? bilingualCopy : copy);
+    } else if (parts.languageMode === "bilingual" && !["OPTION", "SELECT", "INPUT", "TEXTAREA"].includes(element.tagName)) {
+      const english = document.createElement("span");
+      english.lang = "en";
+      english.textContent = `${userCopy("English")}: ${parts.english}`;
+      const cantonese = document.createElement("span");
+      cantonese.lang = "zh-Hant-HK";
+      cantonese.textContent = `${userCopy("Cantonese")}: ${parts.cantonese}`;
+      element.replaceChildren(english, document.createTextNode(" · "), cantonese);
     } else {
       element.textContent = copy;
     }
@@ -561,35 +767,37 @@ function applyDesktopPresentation(): void {
     if (!key) continue;
     const labelKey = key === "funnyLevelEnglish" ? "settings.englishFunny.title" : "settings.cantoneseFunny.title";
     const value = Number(control.value);
-    control.setAttribute("aria-label", presentDesktopCopy(labelKey, universalSettings));
+    control.setAttribute("aria-label", presentUserCopy(labelKey));
     control.setAttribute("aria-valuenow", String(value));
-    control.setAttribute("aria-valuetext", `${presentDesktopCopy(labelKey, universalSettings)}: ${value} / 5`);
+    control.setAttribute("aria-valuetext", `${presentUserCopy(labelKey)}: ${value} / 5`);
   }
+  renderPersonalVocabularyControl();
   renderSettingsSearch();
+  renderCommandPalette();
 }
 
 function writeUniversalSettingsStatus(key: DesktopPresentationKey): void {
-  universalSettingsState.textContent = presentDialogCopy(key, universalSettings);
-  universalSettingsState.setAttribute("aria-label", presentDesktopCopy(key, universalSettings));
+  universalSettingsState.textContent = userCopy(presentDialogCopy(key, effectivePresentationSettings()));
+  universalSettingsState.setAttribute("aria-label", presentUserCopy(key));
 }
 
 function renderSettingsSearch(): void {
   const matcher = createBoundedSearchMatcher(settingsRegexState);
   if (!matcher.ok) {
-    settingsRegexStatus.textContent = presentDesktopCopy("settings.regex.invalid", universalSettings);
+    settingsRegexStatus.textContent = presentUserCopy("settings.regex.invalid");
   }
   for (const card of document.querySelectorAll<HTMLElement>("[data-settings-item]")) {
     const label = card.dataset.settingsLabel ?? "";
     const matches = matcher.ok && matcher.value(`${label} ${card.textContent ?? ""}`);
-    const hiddenByFocusMode = universalSettings.schoolModeEnabled && ["Language mode", "English funny level", "Cantonese funny level", "Emoji dialogs"].includes(label);
+    const hiddenByFocusMode = universalSettings.schoolModeEnabled && card.dataset.schoolSuppressible === "true";
     card.hidden = hiddenByFocusMode || !matches;
   }
   if (matcher.ok) {
     settingsRegexStatus.textContent = settingsRegexState.mode === "regex"
       ? settingsRegexState.pattern.length === 0
-        ? presentDesktopCopy("settings.regex.ready", universalSettings)
-        : presentDesktopCopy("settings.regex.running", universalSettings)
-      : presentDesktopCopy("settings.regex.plainStatus", universalSettings);
+        ? presentUserCopy("settings.regex.ready")
+        : presentUserCopy("settings.regex.running")
+      : presentUserCopy("settings.regex.plainStatus");
   }
 }
 
@@ -612,29 +820,29 @@ function renderUniversalSettings(): void {
   }
   const title = document.querySelector<HTMLElement>(".titlebar__copy strong");
   const brand = document.querySelector<HTMLElement>(".titlebar__brand");
-  if (title) title.textContent = universalSettings.appDisplayName;
-  if (brand) brand.setAttribute("aria-label", universalSettings.appDisplayName);
+  if (title) title.textContent = userCopy(universalSettings.appDisplayName);
+  if (brand) brand.setAttribute("aria-label", userCopy(universalSettings.appDisplayName));
   document.documentElement.dataset.theme = universalSettings.theme;
   document.documentElement.dataset.density = universalSettings.density;
   applyDesktopPresentation();
 }
 
+const universalSettingsSave = createVersionedDebouncedSave<UniversalSettingsV1>(
+  (value) => window.commandCenter.settings.save(value),
+  (saved) => {
+    universalSettings = saved;
+    renderUniversalSettings();
+    writeUniversalSettingsStatus("settings.status.saved");
+  },
+  () => {
+    writeUniversalSettingsStatus("settings.status.saveFailed");
+    showSnackbar(presentDesktopCopy("settings.snackbar.saveFailed", effectivePresentationSettings()), "warning");
+  },
+);
+
 function scheduleUniversalSettingsSave(): void {
-  if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
   writeUniversalSettingsStatus("settings.status.pending");
-  universalSaveTimer = window.setTimeout(() => {
-    universalSaveTimer = undefined;
-    const requestedVersion = ++universalSaveVersion;
-    void window.commandCenter.settings.save(universalSettings).then((saved) => {
-      if (requestedVersion !== universalSaveVersion) return;
-      universalSettings = saved;
-      renderUniversalSettings();
-      writeUniversalSettingsStatus("settings.status.saved");
-    }).catch(() => {
-      writeUniversalSettingsStatus("settings.status.saveFailed");
-      showSnackbar(presentDesktopCopy("settings.snackbar.saveFailed", universalSettings), "warning");
-    });
-  }, 350);
+  universalSettingsSave.schedule(universalSettings);
 }
 
 function handleUniversalSetting(control: HTMLInputElement | HTMLSelectElement): void {
@@ -651,18 +859,106 @@ function handleUniversalSetting(control: HTMLInputElement | HTMLSelectElement): 
 }
 
 function resetUniversalSettings(): void {
-  universalSaveVersion += 1;
-  if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
-  universalSaveTimer = undefined;
-  universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
+  universalSettingsSave.invalidate();
+  universalSettings = {
+    ...DEFAULT_UNIVERSAL_SETTINGS,
+    personalVocabulary: universalSettings.personalVocabulary,
+  };
   renderUniversalSettings();
   void window.commandCenter.settings.save(universalSettings).then(() => {
     writeUniversalSettingsStatus("settings.status.resetSaved");
-    showSnackbar(presentDesktopCopy("settings.snackbar.reset", universalSettings), "success");
+    showSnackbar(presentDesktopCopy("settings.snackbar.reset", effectivePresentationSettings()), "success");
   }).catch(() => {
     writeUniversalSettingsStatus("settings.status.resetFailed");
-    showSnackbar(presentDesktopCopy("settings.snackbar.resetFailed", universalSettings), "warning");
+    showSnackbar(presentDesktopCopy("settings.snackbar.resetFailed", effectivePresentationSettings()), "warning");
   });
+}
+
+function applyPersonalVocabularyState(state: PersonalVocabularyState): void {
+  const projection = projectPersonalVocabularyRecovery(state);
+  personalVocabularyEntries = projection.retryAvailable ? [] : state.entries;
+  personalVocabularyRecovery = projection.retryAvailable;
+  universalSettings = normalizeUniversalSettings({
+    ...universalSettings,
+    personalVocabulary: {
+      status: projection.status,
+      entryCount: projection.entryCount,
+    },
+  });
+  renderUniversalSettings();
+}
+
+async function restorePersonalVocabulary(announceSuccess = false): Promise<void> {
+  try {
+    const previous = universalSettings.personalVocabulary;
+    const state = await window.commandCenter.personalVocabulary.load();
+    applyPersonalVocabularyState(state);
+    if (state.recovery === "malformed-cache-removal-failed") {
+      scheduleUniversalSettingsSave();
+      showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cacheRemovalFailed", effectivePresentationSettings()), "warning");
+      return;
+    }
+    if (previous.status !== state.status || previous.entryCount !== state.entryCount) {
+      scheduleUniversalSettingsSave();
+    }
+    if (announceSuccess && state.status === "empty") {
+      showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cleared", effectivePresentationSettings()), "success");
+    }
+  } catch {
+    // A transient read or permission failure must not erase the persisted
+    // status or the last in-memory vocabulary. Corruption and a missing cache
+    // are already normalized to the explicit empty state by the main process.
+    renderUniversalSettings();
+    showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.loadFailed", effectivePresentationSettings()), "warning");
+  }
+}
+
+async function retryPersonalVocabulary(): Promise<void> {
+  if (personalVocabularyBusy || !personalVocabularyRecovery) return;
+  personalVocabularyBusy = true;
+  renderPersonalVocabularyControl();
+  try {
+    await restorePersonalVocabulary(true);
+  } finally {
+    personalVocabularyBusy = false;
+    renderPersonalVocabularyControl();
+  }
+}
+
+async function choosePersonalVocabulary(): Promise<void> {
+  if (personalVocabularyBusy) return;
+  personalVocabularyBusy = true;
+  renderPersonalVocabularyControl();
+  try {
+    const languageMode = universalSettings.schoolModeEnabled ? "english" : universalSettings.languageMode;
+    const state = await window.commandCenter.personalVocabulary.choose(languageMode);
+    if (!state) return;
+    applyPersonalVocabularyState(state);
+    scheduleUniversalSettingsSave();
+    showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.loaded", effectivePresentationSettings()), "success");
+  } catch {
+    showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.rejected", effectivePresentationSettings()), "warning");
+  } finally {
+    personalVocabularyBusy = false;
+    renderPersonalVocabularyControl();
+  }
+}
+
+async function clearPersonalVocabulary(): Promise<void> {
+  if (personalVocabularyBusy || universalSettings.personalVocabulary.status !== "loaded") return;
+  personalVocabularyBusy = true;
+  renderPersonalVocabularyControl();
+  try {
+    const state = await window.commandCenter.personalVocabulary.clear();
+    applyPersonalVocabularyState(state);
+    scheduleUniversalSettingsSave();
+    showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cleared", effectivePresentationSettings()), "success");
+  } catch {
+    showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.clearFailed", effectivePresentationSettings()), "warning");
+  } finally {
+    personalVocabularyBusy = false;
+    renderPersonalVocabularyControl();
+  }
 }
 
 function invalidatePendingSave(): void {
@@ -1120,8 +1416,8 @@ function activateTab(nextTab: string, focus = false): void {
     panel.classList.toggle("is-active", selected);
     panel.hidden = !selected;
   }
-  workspaceTitle.textContent = copy[0];
-  workspaceSubtitle.textContent = copy[1];
+  workspaceTitle.textContent = userCopy(copy[0]);
+  workspaceSubtitle.textContent = userCopy(copy[1]);
 }
 
 function draftFromControl(control: HTMLInputElement | HTMLSelectElement): ServerDraft {
@@ -1217,7 +1513,7 @@ function renderCatalog(catalog: CliCatalogProjection): void {
 }
 
 function bindInteraction(): void {
-  bindOfflineDocumentation();
+  bindOfflineDocumentation(userCopy);
   const settingsBinding = bindAnchoredRegexBuilder({
     id: "settings",
     searchInput: settingsSearch,
@@ -1226,6 +1522,11 @@ function bindInteraction(): void {
     pattern: settingsRegexPattern,
     ignoreCase: settingsRegexIgnoreCase,
     status: settingsRegexStatus,
+    getCopy: () => ({
+      plainStatus: presentUserCopy("settings.regex.plainStatus"),
+      ready: presentUserCopy("settings.regex.ready"),
+      running: presentUserCopy("settings.regex.running"),
+    }),
     onStateChange: (state) => {
       settingsRegexState = state;
       renderSettingsSearch();
@@ -1240,6 +1541,11 @@ function bindInteraction(): void {
     pattern: commandPaletteRegexPattern,
     ignoreCase: commandPaletteRegexIgnoreCase,
     status: commandPaletteRegexStatus,
+    getCopy: () => ({
+      plainStatus: presentUserCopy("palette.regex.plainStatus"),
+      ready: presentUserCopy("palette.regex.ready"),
+      running: presentUserCopy("palette.regex.running"),
+    }),
     onStateChange: (state) => {
       commandPaletteRegexState = state;
       renderCommandPalette();
@@ -1254,6 +1560,11 @@ function bindInteraction(): void {
     pattern: notificationRegexPattern,
     ignoreCase: notificationRegexIgnoreCase,
     status: notificationRegexStatus,
+    getCopy: () => ({
+      plainStatus: presentUserCopy("settings.regex.plainStatus"),
+      ready: presentUserCopy("settings.regex.ready"),
+      running: presentUserCopy("settings.regex.running"),
+    }),
     onStateChange: (state) => {
       notificationRegexState = state;
       notificationStatus = "";
@@ -1369,6 +1680,21 @@ function bindInteraction(): void {
     const resetUniversal = target.closest<HTMLButtonElement>("#reset-universal-settings");
     if (resetUniversal) {
       resetUniversalSettings();
+      return;
+    }
+    const choosePersonal = target.closest<HTMLButtonElement>("#choose-personal-vocabulary");
+    if (choosePersonal) {
+      void choosePersonalVocabulary();
+      return;
+    }
+    const clearPersonal = target.closest<HTMLButtonElement>("#clear-personal-vocabulary");
+    if (clearPersonal) {
+      void clearPersonalVocabulary();
+      return;
+    }
+    const retryPersonal = target.closest<HTMLButtonElement>("#retry-personal-vocabulary");
+    if (retryPersonal) {
+      void retryPersonalVocabulary();
       return;
     }
     const chooseHandoff = target.closest<HTMLButtonElement>("#choose-planner-handoff");
@@ -1508,14 +1834,16 @@ async function start(): Promise<void> {
   bindInteraction();
   try {
     universalSettings = await window.commandCenter.settings.load();
+    universalSettings = normalizeUniversalSettings(universalSettings);
     renderUniversalSettings();
     writeUniversalSettingsStatus("startup.settingsReady");
   } catch {
     universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
     renderUniversalSettings();
     writeUniversalSettingsStatus("startup.settingsDefaults");
-    showSnackbar(presentDesktopCopy("startup.settingsDefaults", universalSettings), "warning");
+    showSnackbar(presentDesktopCopy("startup.settingsDefaults", effectivePresentationSettings()), "warning");
   }
+  await restorePersonalVocabulary();
   resetJavaRuntimeGuidance("No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.");
   try {
     draft = await window.commandCenter.draft.load();

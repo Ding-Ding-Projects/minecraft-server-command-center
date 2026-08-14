@@ -4,6 +4,16 @@
 
 ### Changed
 
+- Hardened the personal-vocabulary boundary against concurrent local changes.
+  Desktop cache load, replace, and clear operations now serialize per
+  application-data directory; malformed-cache cleanup compares the observed
+  bytes before deletion and re-reads afterward, so a valid replacement written
+  during recovery survives. Desktop and companion settings expose a direct
+  retry action when cleanup cannot complete. Versioned debounced settings saves
+  suppress both stale successes and stale failures, and the protected path
+  scanner preserves unquoted paths containing comma or semicolon characters.
+  Focused race, desktop, companion-boundary, build, and site-build checks cover
+  the change, including executable negative regressions.
 - Added a follow-up negative regression for the universal-contract inventory
   guard's production reparse wiring. The exact
   `assertNoReparseComponents(relativePath, context);` call inside

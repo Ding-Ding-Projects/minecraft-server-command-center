@@ -1,12 +1,19 @@
 import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
 import { join } from "node:path";
 import type { JavaRuntimePickerKind, PickerKind } from "../shared/desktop-api";
+import { presentDesktopCopy } from "../shared/desktop-presentation";
+import type { UniversalLanguageMode } from "../shared/universal-contracts";
 import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
 import { loadUniversalSettings, saveUniversalSettings } from "./universal-settings-store";
 import { JavaRuntimeController } from "./java-runtime-controller";
 import { getUpdateBoundary } from "./update-boundary";
+import {
+  clearPersonalVocabulary,
+  loadPersonalVocabulary,
+  replacePersonalVocabulary,
+} from "./personal-vocabulary-store";
 import {
   applyPlannerHandoffToDraft,
   previewPlannerHandoff,
@@ -67,6 +74,29 @@ async function choosePlannerHandoff() {
     pendingPlannerHandoff = undefined;
     throw new Error("The selected JSON file is not a valid non-secret planner handoff v1.");
   }
+}
+
+function normalizedLanguageMode(value: unknown): UniversalLanguageMode {
+  return value === "cantonese" || value === "bilingual" ? value : "english";
+}
+
+async function choosePersonalVocabulary(languageMode: UniversalLanguageMode = "english") {
+  const persistedSettings = await loadUniversalSettings(app.getPath("userData"));
+  const pickerSettings = {
+    languageMode: normalizedLanguageMode(languageMode),
+    funnyLevelEnglish: persistedSettings.funnyLevelEnglish,
+    funnyLevelCantonese: persistedSettings.funnyLevelCantonese,
+  } as const;
+  const result = await dialog.showOpenDialog(requireWindow(), {
+    title: presentDesktopCopy("settings.personalVocabulary.picker.title", pickerSettings),
+    properties: ["openFile"],
+    filters: [{ name: presentDesktopCopy("settings.personalVocabulary.picker.filter", pickerSettings), extensions: ["json"] }]
+  });
+  if (result.canceled) return null;
+
+  const selectedPath = result.filePaths[0];
+  if (!selectedPath) return null;
+  return replacePersonalVocabulary(app.getPath("userData"), selectedPath);
 }
 
 function normalizedJavaRuntimePickerKind(value: unknown): JavaRuntimePickerKind {
@@ -135,6 +165,9 @@ function registerIpc(): void {
     pendingPlannerHandoff = undefined;
   });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
+  ipcMain.handle("personal-vocabulary:load", () => loadPersonalVocabulary(app.getPath("userData")));
+  ipcMain.handle("personal-vocabulary:choose", (_event, languageMode: unknown) => choosePersonalVocabulary(normalizedLanguageMode(languageMode)));
+  ipcMain.handle("personal-vocabulary:clear", () => clearPersonalVocabulary(app.getPath("userData")));
   ipcMain.handle("runtime:discover", () => javaRuntimeController.discover());
   ipcMain.handle("runtime:choose", (_event, kind: unknown) => chooseJavaRuntime(normalizedJavaRuntimePickerKind(kind)));
   ipcMain.handle("runtime:select", (_event, candidateId: unknown) => javaRuntimeController.select(candidateId));

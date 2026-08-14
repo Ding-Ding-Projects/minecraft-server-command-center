@@ -79,6 +79,14 @@ server action.
   The payload-free negative regression and renderer/main builds remain source
   and build evidence only; packaged runtime interaction and captures remain
   unverified.
+- Hardened the personal-vocabulary boundary for local concurrency: desktop
+  cache operations serialize per application-data directory, malformed-cache
+  cleanup is conditional on the observed bytes and followed by a re-read,
+  desktop and companion surfaces expose retry, stale settings-save successes
+  and failures are ignored, and unquoted paths with comma or semicolon
+  characters remain protected. Race, desktop, companion-boundary, universal,
+  search, presentation, documentation, root-build, and site-build checks pass;
+  packaged runtime interaction and captures remain unverified.
 
 ## Next implementation slices
 

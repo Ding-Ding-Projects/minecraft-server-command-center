@@ -23,13 +23,14 @@ const requiredSourceMarkers = [
 
 function assertSourceContract(value) {
   for (const marker of requiredSourceMarkers) {
-    assert.ok(value.includes(marker), `missing universal contract marker: ${marker}`);
+    assert.equal(value.split(marker).length - 1, 1, `universal contract marker must have one exact boundary: ${marker}`);
   }
 }
 
 assertSourceContract(source);
 for (const marker of requiredSourceMarkers) {
-  const removed = source.replace(marker, "");
+  const index = source.indexOf(marker);
+  const removed = source.slice(0, index) + source.slice(index + marker.length);
   assert.throws(() => assertSourceContract(removed), `negative regression stayed green after removing ${marker}`);
 }
 
@@ -44,12 +45,19 @@ const validResult = parsePersonalVocabularyJson(valid);
 assert.equal(validResult.ok, true);
 if (validResult.ok) assert.equal(validResult.value.entries.length, 2);
 assert.equal(parsePersonalVocabularyJson(JSON.stringify({ schemaVersion: 1, entries: [{ source: "removable label", replacement: "" }] })).ok, true);
+assert.equal(parsePersonalVocabularyJson(JSON.stringify({ schemaVersion: 1, entries: [{ source: "café", replacement: "你好" }] })).ok, true, "bounded multibyte strings must remain valid");
 
 const rejectedInputs = [
   JSON.stringify({ schemaVersion: 1, entries: [{ source: "source label", replacement: "replacement label", extra: true }] }),
   JSON.stringify({ schemaVersion: 2, entries: [] }),
   '{"schemaVersion":1,"entries":[],"entries":[]}',
   '{"schemaVersion":1,"entries":[{"__proto__":"replacement label","source":"source label","replacement":"replacement label"}]}',
+  '{"schemaVersion":1,"entries":[],"nested":{"duplicate":1,"duplicate":2}}',
+  '{"schemaVersion":1,"entries":[],"nested":{"constructor":{"safe":true}}}',
+  JSON.stringify({ schemaVersion: 1, entries: Array.from({ length: 129 }, (_, index) => ({ source: `source-${index}`, replacement: `replacement-${index}` })) }),
+  JSON.stringify({ schemaVersion: 1, entries: [{ source: "x".repeat(161), replacement: "replacement" }] }),
+  JSON.stringify({ schemaVersion: 1, entries: [], nested: { level1: { level2: { level3: { level4: { level5: true } } } } } }),
+  "é".repeat(Math.ceil(65_536 / 2) + 1),
   JSON.stringify({ schemaVersion: 1, entries: [{ source: "source label", replacement: "replacement label" }], unexpected: true }),
   "{" + "x".repeat(70_000) + "}",
 ];

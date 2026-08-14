@@ -42,8 +42,40 @@ The companion and desktop also contain a partial universal-settings
 foundation. Read `docs/reference/universal-settings.md` before extending it.
 The foundation is bounded and local-only: it does not imply cloud sync,
 credential storage, server access, or complete localization. The companion
-personal-vocabulary loader validates a private file but does not yet replace
-text across every surface, and the desktop does not yet expose that picker.
+personal-vocabulary loader validates a private file and applies it only at the
+documented user-facing boundary. The desktop now exposes its local picker,
+replace, clear, and malformed-cache retry controls. Full app-wide localization,
+credential-factor behavior, and packaged interaction remain unverified.
+
+## Personal-vocabulary recovery boundary
+
+The current source hardens the local personal-vocabulary cache boundary on both
+surfaces. Desktop load, replace, and clear operations serialize per
+application-data directory. Malformed-cache recovery records a bounded byte
+snapshot, deletes only when the cache is unchanged, and re-reads after cleanup;
+a valid replacement written during recovery therefore survives. A failed
+cleanup returns an explicit empty state with a retry action instead of leaving a
+disabled clear control as the only route. The companion site exposes the same
+retry state through browser-local storage.
+
+The settings save path uses versioned debouncing and ignores both stale success
+and stale failure results. The protected-token scanner also preserves unquoted
+paths whose names contain comma or semicolon characters while still recognizing
+adjacent UI text. The focused evidence is:
+
+- `npm run test:personal-vocabulary-races` — passed, including stale-success,
+  stale-failure, recovery-projection, and executable negative regressions;
+- `npm run test:desktop-personal-vocabulary` — passed with 74 exact negative
+  regressions and a replacement-during-cleanup probe;
+- `npm run test:personal-vocabulary` — passed, including the comma/semicolon
+  path boundary;
+- `npm run build` — passed for the desktop main process, renderer, and icon;
+- `npm --prefix site run build` — passed for the static companion build; and
+- `git diff --check` plus the focused syntax checks — passed.
+
+Packaged runtime interaction, accessibility interaction, and real capture
+evidence remain unverified because the approved headless route is unavailable
+in this session.
 
 Read `docs/reference/notification-centre.md` before extending either review
 surface. The desktop article is already registered in
@@ -53,25 +85,26 @@ interaction or capture evidence.
 
 ## Current release proof
 
-The release audit for commit `052144ce44c7daf068170375d448b2da001a052a`
+The release audit for commit `4dfc6b7837c38a37f411ea4c8d2041b025db09d1`
 verified GitHub Actions run
-[`31792576349`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31792576349)
-as successful and published release `v0.1.42`.
+[`31822353967`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31822353967)
+as successful and published release `v0.1.48`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.42-full.nupkg`. The published
+`minecraft-server-command-center-0.1.48-full.nupkg`. The published
 `Setup.exe` URL is
-<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.42/Setup.exe>
-and its exact published size is `140395520` bytes. The release timing is
-`00:03:53`, the dim-sum code name is `Steamed Beef Balls · 山竹牛肉`, and the
+<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.48/Setup.exe>
+and its exact published size is `140411392` bytes. The release timing is
+`00:02:42`, the dim-sum code name is `Steamed Chicken Feet in Black Bean Sauce · 豉汁蒸鳳爪`, and the
 assets are unsigned; no signing material is used.
 
-The published line-count table reports 61 own-source files / 19749 total lines /
-18256 non-blank, 0 test files / 0 / 0, 47 styles-or-markup files / 7329 / 6103,
-1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its project
-total is 110 files / 27132 lines / 24403 non-blank; its grand total is 111 /
-27137 / 24407; and its attribution total is 111 / 27137 / 24407. One package-
-manager lockfile is excluded.
+The published line-count table reports 65 own-source files / 21766 total lines /
+20135 non-blank, 0 test files / 0 / 0, 48 styles-or-markup files / 7830 /
+6549, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
+project total is 115 files / 29650 lines / 26728 non-blank; its grand total is
+116 / 29655 / 26732; and its attribution total is 116 / 29655 / 26732. One
+package-manager lockfile is excluded. The public catalog photo is linked in the
+release notes rather than copied into the consumer release.
 
 The release workflow does not run automated tests or lint. This Pages source
 lane ran the companion-site build, lint, type-check, focused changelog guard,

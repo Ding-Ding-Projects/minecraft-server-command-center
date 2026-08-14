@@ -7,6 +7,12 @@ export interface RegexBuilderState {
   readonly flags: string;
 }
 
+export interface RegexBuilderCopy {
+  readonly plainStatus: string;
+  readonly ready: string;
+  readonly running: string;
+}
+
 export interface AnchoredRegexBuilderOptions {
   readonly id: string;
   readonly searchInput: HTMLInputElement;
@@ -15,6 +21,7 @@ export interface AnchoredRegexBuilderOptions {
   readonly pattern: HTMLInputElement;
   readonly ignoreCase: HTMLInputElement;
   readonly status: HTMLElement;
+  readonly getCopy?: () => RegexBuilderCopy;
   readonly onStateChange: (state: RegexBuilderState) => void;
 }
 
@@ -27,11 +34,19 @@ function boundedValue(value: string): string {
   return value.slice(0, REGEX_SEARCH_LIMITS.maxPatternCharacters);
 }
 
+const DEFAULT_COPY: RegexBuilderCopy = {
+  plainStatus: "Plain text search is active. Regex is an explicit local opt-in.",
+  ready: "Regex mode is ready. Add a bounded pattern or choose a token.",
+  running: "Regex mode is active. Evaluation stays local and bounded.",
+};
+
 export function bindAnchoredRegexBuilder(
   options: AnchoredRegexBuilderOptions,
 ): AnchoredRegexBuilderBinding {
   let regexMode = false;
   options.builder.dataset.regexBuilderSurface = options.id;
+
+  const copy = (): RegexBuilderCopy => options.getCopy?.() ?? DEFAULT_COPY;
 
   const getState = (): RegexBuilderState => ({
     mode: regexMode ? "regex" : "plain",
@@ -40,7 +55,20 @@ export function bindAnchoredRegexBuilder(
     flags: options.ignoreCase.checked ? "i" : "",
   });
 
-  const notify = (): void => options.onStateChange(getState());
+  const updateStatus = (state: RegexBuilderState): void => {
+    const currentCopy = copy();
+    options.status.textContent = state.mode === "plain"
+      ? currentCopy.plainStatus
+      : state.pattern.length === 0
+        ? currentCopy.ready
+        : currentCopy.running;
+  };
+
+  const notify = (): void => {
+    const state = getState();
+    updateStatus(state);
+    options.onStateChange(state);
+  };
 
   const setRegexMode = (enabled: boolean, focus = true): void => {
     const wasRegexMode = regexMode;
@@ -51,12 +79,8 @@ export function bindAnchoredRegexBuilder(
     options.toggle.setAttribute("aria-expanded", String(regexMode));
     options.builder.hidden = !regexMode;
     if (regexMode) {
-      options.status.textContent = options.pattern.value.length === 0
-        ? "Regex mode is ready. Add a bounded pattern or choose a token."
-        : "Regex mode is active. Evaluation stays local and bounded.";
       if (focus) options.pattern.focus();
     } else {
-      options.status.textContent = "Plain text search is active. Regex is an explicit local opt-in.";
       if (focus) options.searchInput.focus();
     }
     notify();
@@ -96,6 +120,6 @@ export function bindAnchoredRegexBuilder(
 
   options.toggle.setAttribute("aria-expanded", "false");
   options.builder.hidden = true;
-  options.status.textContent = "Plain text search is active. Regex is an explicit local opt-in.";
+  options.status.textContent = copy().plainStatus;
   return { getState, setRegexMode };
 }
