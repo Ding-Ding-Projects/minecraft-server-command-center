@@ -20,12 +20,15 @@ evidence of installation.
 - [Verified installer handoff](verified-installer-handoff.md) — embedded
   version-pinned release metadata, direct asset-link behavior, unsigned warning,
   and update boundary.
+- [Notification centre](../reference/notification-centre.md) — browser-local non-blocking
+  notice review, explicit selection scopes, inverse selection, and bulk
+  dismissal for dismissible records.
 
 ## Canonical navigation destinations
 
 The companion documentation uses these exact destination names: **Overview**,
 **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**, **Safety**,
-**Docs**, and **Release status**. They are planning and documentation labels,
+**Docs**, **Notification centre**, and **Release status**. They are planning and documentation labels,
 not claims of a live server connection, external service, transfer completion,
 installation, or Minecraft server operation. **Release status** can display a
 separately verified, hard-coded version-pinned release record.

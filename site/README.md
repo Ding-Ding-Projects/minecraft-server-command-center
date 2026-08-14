@@ -85,9 +85,9 @@ runtime behavior, or a published artifact.
 
 ## Continue safely
 
-Keep the eight public destinations consistent with the parent documentation:
+Keep the nine public destinations consistent with the parent documentation:
 **Overview**, **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**,
-**Safety**, **Docs**, and **Release status**. Read `../docs/site/` before
+**Safety**, **Docs**, **Notification centre**, and **Release status**. Read `../docs/site/` before
 changing planner behavior, preserve the source-only boundary, and update the
 public documentation alongside any user-visible change. The Release status
 destination is a direct version-pinned-link handoff, not a release feed or update

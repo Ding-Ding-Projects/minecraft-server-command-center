@@ -15,9 +15,16 @@ external-service integration, live server connection, or server-process action.
 
 The companion site is a browser-local planning and documentation surface. Its
 source documents the exact destinations Overview, Configure, Paper CLI, Spigot
-setup, Runtime, Safety, Docs, and Release status. It must not retain secrets,
+setup, Runtime, Safety, Docs, Notification centre, and Release status. It must
+not retain secrets,
 private server data, file contents, logs, player data, or browser information
 outside its bounded non-secret planner contract.
+
+The Notification centre is a browser-local foundation for the existing
+non-blocking toast path. It retains bounded active and dismissed records,
+supports current-view or every-match selection, inverse selection, and bulk
+dismissal for active dismissible records. It does not send notices remotely,
+delete review records, or provide a desktop notification centre.
 
 The Home and Release status destinations can hand a person to one verified,
 published, version-pinned Windows `Setup.exe` asset. Its record is embedded in source with the
