@@ -52,7 +52,7 @@ root-relative `/og.png` path that would point outside this project.
 
 No remote image, CDN, request header, analytics script, token, or hosted
 configuration is added by the static export route. The static page may contain
-the documented user-activated immutable GitHub Release and installer-asset
+the documented user-activated version-pinned GitHub Release and installer-asset
 anchors from [Verified installer handoff](verified-installer-handoff.md); those
 links do not make a client-side request until the person activates one.
 

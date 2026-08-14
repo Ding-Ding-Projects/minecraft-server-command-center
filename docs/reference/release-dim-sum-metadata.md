@@ -10,7 +10,7 @@ catalog-order dish with a published PNG asset and an unused `Dim sum code
 name:` release-note value is selected.
 
 The published release notes record the exact English and Traditional Chinese
-dish names plus the immutable public GitHub Release asset URL. The code name
+dish names plus the version-pinned public GitHub Release asset URL. The code name
 is a label beside the version; it does not replace the version number.
 
 ## Reservation and fallback

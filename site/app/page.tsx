@@ -105,14 +105,14 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.24",
-  sourceCommit: "4ab99ec34a4fc340e216ef9a4822c98031647cd7",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.24",
+  releaseTag: "v0.1.30",
+  sourceCommit: "ffe3c43df50c29d254526d616db5150325179af2",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.30",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.24/Setup.exe",
-  assetSizeBytes: 115054592,
-  releasePublishedAt: "2026-08-13T18:07:19Z",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.30/Setup.exe",
+  assetSizeBytes: 115077120,
+  releasePublishedAt: "2026-08-14T04:47:01Z",
   unsigned: true,
 };
 
@@ -167,7 +167,7 @@ const PAGE_DEFINITIONS: Array<{
   {
     id: "release-status",
     label: "Release status",
-    eyebrow: "Immutable installer handoff",
+    eyebrow: "Version-pinned installer handoff",
     description: "Review the embedded release record and open its exact Windows installer asset.",
   },
 ];
@@ -219,7 +219,7 @@ const DOC_ITEMS = [
   },
   {
     title: "Installer handoff",
-    text: "The release page embeds one verified immutable Setup.exe link. The browser does not look up releases, start a background transfer, or report installation completion.",
+    text: "The release page embeds one verified version-pinned Setup.exe link. The browser does not look up releases, start a background transfer, or report installation completion.",
   },
 ];
 
@@ -1344,7 +1344,7 @@ export default function Home() {
       <PageHeading page={selectedPage} />
       <section className="release-card">
         <div>
-          <p className="eyebrow">Verified immutable release record</p>
+          <p className="eyebrow">Verified version-pinned release record</p>
           <h2>Download the Windows installer for {VERIFIED_INSTALLER.releaseTag}</h2>
           <p className="body-copy" id="verified-installer-release-summary">
             This button targets the exact <code>{VERIFIED_INSTALLER.assetName}</code> asset attached to the published

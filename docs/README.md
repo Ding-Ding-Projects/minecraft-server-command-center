@@ -5,7 +5,7 @@ This documentation describes the desktop-foundation branch of Minecraft Server C
 ## Categories
 
 - [Companion site](site/README.md) — browser-local planning, the non-secret
-  Planner Handoff v1 specification, static export, and immutable installer
+  Planner Handoff v1 specification, static export, and version-pinned installer
   handoff boundaries.
 - [Architecture](architecture/README.md) — process boundaries, typed draft ownership, and command-preview data flow.
 - [Runtime reference](reference/README.md) — bounded Java runtime discovery, opaque candidate ownership, version probing, and Paper/Spigot compatibility limits.

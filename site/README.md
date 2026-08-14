@@ -3,7 +3,7 @@
 This is the Vinext **source** for the browser-local companion planner. It
 supports planning and documentation for Minecraft Server Command Center. It is
 not an installer manager or a live server-management service; its release
-surface can only hand a person to one embedded, immutable installer asset.
+surface can only hand a person to one embedded, version-pinned installer asset.
 
 ## Scope boundary
 
@@ -14,7 +14,7 @@ surface can only hand a person to one embedded, immutable installer asset.
   Minecraft server from the companion planner.
 - Do not add external APIs, authentication, cloud synchronization, telemetry,
   analytics, remote assets, remote fonts, or third-party services. The narrow
-  exception is a person-activated immutable GitHub Release or asset anchor;
+  exception is a person-activated version-pinned GitHub Release or asset anchor;
   client code must not fetch or discover release data.
 - Use local checked-in assets only. `public/og.png` is the approved local social
   preview asset; do not generate, fetch, or replace it as an incidental change.
@@ -61,7 +61,7 @@ headers.
 ## Verified installer handoff
 
 The Home and **Release status** destinations consume a typed in-source manifest
-for one verified immutable Windows `Setup.exe` release asset. The site renders
+for one verified version-pinned Windows `Setup.exe` release asset. The site renders
 the exact tag, source commit, published size, unsigned warning, release URL,
 and asset URL. It never uses a moving `latest` link, requests release data,
 starts a background transfer, or claims that a transfer or installation
@@ -90,5 +90,5 @@ Keep the eight public destinations consistent with the parent documentation:
 **Safety**, **Docs**, and **Release status**. Read `../docs/site/` before
 changing planner behavior, preserve the source-only boundary, and update the
 public documentation alongside any user-visible change. The Release status
-destination is a direct immutable-link handoff, not a release feed or update
+destination is a direct version-pinned-link handoff, not a release feed or update
 service.

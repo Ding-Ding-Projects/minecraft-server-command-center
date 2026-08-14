@@ -7,7 +7,7 @@ The repository currently records two implementation foundations:
 - a browser-local companion-site planner under `site/`; and
 - a Windows desktop configuration foundation under `src/`.
 
-A static companion publication and immutable GitHub Release asset record are
+A static companion publication and published, version-pinned GitHub Release asset record are
 available separately. Neither record proves local installer operation,
 external-service integration, live server connection, or server-process action.
 
@@ -20,13 +20,31 @@ private server data, file contents, logs, player data, or browser information
 outside its bounded non-secret planner contract.
 
 The Home and Release status destinations can hand a person to one verified,
-immutable Windows `Setup.exe` asset. Its record is embedded in source with the
+published, version-pinned Windows `Setup.exe` asset. Its record is embedded in source with the
 exact tag, source commit, asset URL, published size, release URL, and unsigned
 warning. It does not fetch a release feed, start or observe a transfer, or
 claim installation, update, application, or server completion.
 
 Read `docs/site/README.md` and
 `docs/site/configuration-planner.md` before changing companion behavior.
+
+## Current release proof
+
+The release audit for commit `ffe3c43df50c29d254526d616db5150325179af2`
+verified GitHub Actions run
+[`31770796058`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31770796058)
+as successful and published release `v0.1.30`.
+
+The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
+`minecraft-server-command-center-0.1.30-full.nupkg`. The published asset URLs
+responded with HTTP 200 and the release notes contain workflow timing, the
+committed line-count table, and the linked public dim-sum catalog metadata.
+The assets are unsigned; no signing material is used.
+
+The release workflow does not run automated tests or lint. The local audit did
+run `build.bat /s`, `build-installer.bat /s`, the companion-site build and Pages
+staging commands, and companion-site lint. It did not exercise the packaged
+desktop UI, installer execution, accessibility interaction, or real captures.
 
 ## Planner Handoff v1 record
 
@@ -115,12 +133,14 @@ requirements to Spigot.
 
 ## Verification boundary
 
-No local lint, automated test, browser/desktop interaction, accessibility audit,
-installer execution, update operation, or server-process action is claimed by
-this handoff. The supported build and package route is reported with the exact
-candidate artifact when that lane completes. The embedded installer fields originate from
-a separately verified published release record; source paths and scripts do not
-prove anything beyond that bounded record.
+The current release audit claims local build, unsigned package, companion-site
+build, Pages staging, companion-site lint, GitHub Actions, and published-release
+evidence as recorded above. It does not claim automated desktop tests, browser or
+desktop interaction, accessibility interaction, installer execution, update
+operation, server-process action, or real capture evidence. The embedded
+installer fields originate from the separately verified published release
+record; source paths and scripts do not prove anything beyond that bounded
+record.
 
 ## Safe continuation
 

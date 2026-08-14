@@ -10,7 +10,7 @@ foundations:
 
 Neither planner nor desktop runtime claims a live server connection or
 server-process action. The companion site can display one separately verified,
-immutable published-installer handoff; that static record is not evidence of a
+published, version-pinned installer handoff; that static record is not evidence of a
 local download, installation, update, or runtime action.
 
 ## Current boundaries
@@ -54,7 +54,7 @@ The browser-local companion uses these planning destinations:
 - **Runtime** — version, Java requirement, and resource planning.
 - **Safety** — consequential-operation and desktop-boundary explanations.
 - **Docs** — local companion documentation.
-- **Release status** — a source-embedded immutable release record with a
+- **Release status** — a source-embedded version-pinned release record with a
   direct Windows installer handoff, explicit unsigned warning, and no browser
   release lookup or download-completion claim.
 
@@ -99,7 +99,7 @@ unsigned. A generated application icon is created from the committed SVG
 master during the build path; packaged icon rendering remains unverified.
 
 The companion's Home and Release status destinations can link directly to one
-verified immutable `Setup.exe` asset. The record includes the exact release
+verified published `Setup.exe` asset. The record includes the exact release
 tag, source commit, published size, release URL, and unsigned warning; it does
 not use a `latest` URL, request release data in the browser, start a background
 transfer, or claim that an installer completed. See
@@ -112,12 +112,13 @@ download, staging, restart, rollback, or unsaved-work recovery implementation.
 ## Evidence status
 
 The planner and desktop sources remain distinct from runtime evidence. This
-record does not claim a successful local test, browser or desktop interaction,
+record does not claim automated desktop tests, browser or desktop interaction,
 accessibility review, local installer operation, automatic-update behavior, or
-server-process action. A separately verified immutable release asset can be
-described by the companion's static handoff without turning those boundaries
-into completed evidence. Read the relevant handoff and completeness inventory
-before calling a surface verified.
+server-process action. The 2026-08-14 release audit did verify the root build,
+unsigned Squirrel.Windows package, companion-site build and lint, Pages staging,
+GitHub Actions run `31770796058`, and published release `v0.1.30` for commit
+`ffe3c43df50c29d254526d616db5150325179af2`. Read the relevant handoff and
+completeness inventory before calling a surface fully verified.
 
 The Planner Handoff v1 record and Java runtime guidance remain source-design
 implementation records only. They do not claim that JSON export/import, native

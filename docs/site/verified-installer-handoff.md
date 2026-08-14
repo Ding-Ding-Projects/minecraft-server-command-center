@@ -4,7 +4,7 @@
 
 The companion site's **Release status** destination can offer one direct,
 user-activated handoff to a published Windows installer. It is a static link
-to one immutable GitHub Release asset, not a release feed, update service, or
+to one published, version-pinned GitHub Release asset, not a release feed, update service, or
 background download manager.
 
 ## Embedded release record
@@ -14,12 +14,12 @@ does not need to discover or request release information:
 
 | Field | Embedded value |
 | --- | --- |
-| Release tag | `v0.1.24` |
-| Source commit | `4ab99ec34a4fc340e216ef9a4822c98031647cd7` |
-| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.24> |
+| Release tag | `v0.1.30` |
+| Source commit | `ffe3c43df50c29d254526d616db5150325179af2` |
+| Release record | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.30> |
 | Installer asset | `Setup.exe` |
-| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.24/Setup.exe> |
-| Published asset size | `115054592` bytes |
+| Exact asset URL | <https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.30/Setup.exe> |
+| Published asset size | `115077120` bytes |
 | Signing state | Unsigned |
 
 The source uses these fields only for visible copy and ordinary anchor targets.
@@ -32,7 +32,7 @@ person activates one of the explicit links.
 - Home and **Release status** each provide a clearly labelled direct
   `Setup.exe` link.
 - The release card shows the exact tag, source commit, asset name, published
-  size, and a separate link to the immutable release record.
+  size, and a separate link to the published release record.
 - The unsigned state is explicit: the installer can trigger an
   unknown-publisher or SmartScreen warning.
 - The site never claims that a transfer, installation, update, application

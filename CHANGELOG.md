@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.30 — 2026-08-14
+
+### Changed
+
+- Corrected companion-site lint findings around deferred browser-storage
+  restoration, checkbox naming, overlay dismissal, and an unused helper.
+- Refreshed the embedded installer handoff to the published `v0.1.30`
+  `Setup.exe` asset for commit `ffe3c43df50c29d254526d616db5150325179af2`.
+
+### Verification
+
+- Local `build.bat /s`, `build-installer.bat /s`, companion-site build, Pages
+  staging, and companion-site lint completed. GitHub Actions run
+  `31770796058` published the unsigned Squirrel.Windows artifacts. No automated
+  desktop tests, runtime interaction, or captures were run.
+
 ## Unreleased
 
 ### Added
@@ -28,7 +44,7 @@
 - Future release notes generate their project line-count and surviving-line attribution table from the committed release metadata command.
 - Release notes now resolve a next-unused public dim sum code name and link the published catalog photo when bounded metadata is available; they state an honest omission when it is not, without copying an image into this project.
 - Release timing now derives its start from the earliest actual GitHub Actions job for the current attempt and labels release-publication completion separately from terminal workflow completion.
-- The companion site's Home and Release status destinations now use an embedded immutable installer manifest with the exact release tag, source commit, `Setup.exe` asset URL, published size, release record, and unsigned warning. They do not use a latest-release URL, browser release lookup, background transfer, or completion claim.
+- The companion site's Home and Release status destinations now use an embedded version-pinned installer manifest with the exact release tag, source commit, `Setup.exe` asset URL, published size, release record, and unsigned warning. They do not use a latest-release URL, browser release lookup, background transfer, or completion claim.
 - GitHub Pages publication now stages the static root document and the project-prefixed `_next` assets into the same publish root, adds `.nojekyll`, and checks every emitted project-prefixed asset reference before publication so the deployed companion keeps its styles and scripts.
 
 - The handoff record now states explicit exclusions for paths, URLs,

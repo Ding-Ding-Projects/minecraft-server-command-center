@@ -4,7 +4,7 @@
 
 Minecraft Server Command Center contains browser-local companion-site and
 desktop-foundation work, a published static companion surface, and a verified
-immutable release-asset record. Those publication records do not prove local
+version-pinned release-asset record. Those publication records do not prove local
 installer operation, server integration, external-service connection, or live
 server action.
 
@@ -21,7 +21,7 @@ server action.
   installer boundary, and automatic-update-unavailable state.
 - Added categorized desktop records, a hand-written completeness inventory, and
   sanitized contributor guidance.
-- Added a static immutable installer handoff that records one verified Windows
+- Added a static version-pinned installer handoff that records one verified Windows
   `Setup.exe` asset without a browser release lookup, background transfer, or
   installation-completion claim.
 
