@@ -1,6 +1,6 @@
 import type { ServerDraft } from "./server-draft";
 import type { PlannerHandoffPreview } from "./planner-handoff";
-import type { UniversalSettingsV1 } from "./universal-contracts";
+import type { PersonalVocabularyEntryV1, UniversalSettingsV1 } from "./universal-contracts";
 
 export type PickerKind = "folder" | "jar" | "config";
 export type JavaRuntimePickerKind = "executable" | "folder";
@@ -34,6 +34,12 @@ export interface UpdateBoundary {
   readonly state: "unavailable";
   readonly message: string;
   readonly reason: string;
+}
+
+export interface PersonalVocabularyState {
+  readonly status: "empty" | "loaded";
+  readonly entryCount: number;
+  readonly entries: readonly PersonalVocabularyEntryV1[];
 }
 
 export interface JavaRuntimeCandidateSummary {
@@ -147,6 +153,11 @@ export interface DesktopApi {
   };
   readonly picker: {
     select(kind: PickerKind): Promise<string | null>;
+  };
+  readonly personalVocabulary: {
+    load(): Promise<PersonalVocabularyState>;
+    choose(): Promise<PersonalVocabularyState | null>;
+    clear(): Promise<PersonalVocabularyState>;
   };
   readonly runtime: {
     discover(): Promise<JavaRuntimeDiscovery>;

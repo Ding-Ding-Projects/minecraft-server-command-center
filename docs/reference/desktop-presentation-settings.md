@@ -8,7 +8,9 @@ bilingual language modes; independent English and Cantonese funny-level
 sliders from 1 through 5; and a persisted dialog/message-box emoji toggle.
 This slice changes desktop copy and its controls only. It does not add School
 mode, narration, tabs, locks, file conversion, Ollama management, or companion
-site behavior.
+site behavior. The related desktop personal-vocabulary control is documented
+in [Universal settings](universal-settings.md) and is limited to local JSON
+selection, validation, cache replacement, and clear behavior.
 
 ## Behavior
 
@@ -65,12 +67,27 @@ does not alter control names. The settings grid collapses to one column and
 stacks search/actions at narrow widths; the anchored regex builder remains
 bounded and scrollable.
 
+## Related local vocabulary control
+
+The settings surface includes a keyboard- and screen-reader-operable native
+JSON picker for a local personal-vocabulary file. Its status, entry count,
+replace action, and clear action are localized through the same presentation
+contract. The complete file is validated before an atomic cache replacement;
+an invalid file leaves the prior valid cache and wording active, while clear
+purges the cache and restores the original shipped wording. The settings
+search and command palette focus these controls without exposing source paths
+or file contents. The persisted settings record carries status and count only.
+
+This related control is a local-only source slice. It does not claim packaged
+runtime interaction, screen-reader interaction, or real capture evidence.
+
 ## Verification
 
 The focused payload-free check is:
 
 ```text
 npm run test:desktop-presentation-settings
+npm run test:desktop-personal-vocabulary
 ```
 
 It exercises all three language modes, independent funny-level changes,

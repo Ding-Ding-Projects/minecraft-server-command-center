@@ -18,7 +18,7 @@ const requiredMarkers = [
   ["src/renderer/main.ts", "function applyDesktopPresentation(): void {"],
   ["src/renderer/main.ts", "applyDesktopPresentation();"],
   ["src/renderer/main.ts", "writeUniversalSettingsStatus(\"settings.status.pending\");"],
-  ["src/renderer/main.ts", "title: presentDesktopCopy(\"notification.title\", universalSettings),"],
+  ["src/renderer/main.ts", "title: presentUserCopy(\"notification.title\"),"],
   ["src/renderer/index.html", "<h3 data-presentation-key=\"settings.language.title\">"],
   ["src/renderer/index.html", "data-presentation-key=\"settings.language.option.english\""],
   ["src/renderer/index.html", "data-presentation-key=\"settings.language.option.cantonese\""],

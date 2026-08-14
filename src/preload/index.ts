@@ -18,6 +18,11 @@ const desktopApi: DesktopApi = {
   picker: {
     select: (kind: PickerKind) => ipcRenderer.invoke("picker:select", kind)
   },
+  personalVocabulary: {
+    load: () => ipcRenderer.invoke("personal-vocabulary:load"),
+    choose: () => ipcRenderer.invoke("personal-vocabulary:choose"),
+    clear: () => ipcRenderer.invoke("personal-vocabulary:clear")
+  },
   runtime: {
     discover: () => ipcRenderer.invoke("runtime:discover"),
     choose: (kind?: JavaRuntimePickerKind) => ipcRenderer.invoke("runtime:choose", kind ?? "executable"),

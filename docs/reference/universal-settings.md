@@ -95,9 +95,38 @@ The companion surface applies a validated entry set through its private
 user-facing text boundary. Replacement is one-pass over the original copy, so
 replacement output is not fed back through another entry. The boundary also
 leaves code-like elements and protected URLs, paths, identifiers, commands,
-and factual external values unchanged. The desktop surface does not yet expose
-the file picker. Complete app-wide localization and desktop application remain
-explicit implementation items, not implied by this companion-only slice.
+and factual external values unchanged. The desktop settings surface now
+exposes the same contract through a native JSON picker, a typed main/preload
+bridge, and a main-process cache at `personal-vocabulary.v1.json` under
+Electron's `userData` directory.
+
+## Desktop local file control
+
+The desktop picker never sends a source path to the renderer. The main process
+reads the selected file through a bounded byte reader, decodes it as strict
+UTF-8, validates the complete payload with `parsePersonalVocabularyJson`, and
+only then atomically replaces the cache. The renderer receives the validated
+entry set for the active private text boundary plus status and count; the
+persisted universal-settings record stores status and count only. A cancelled
+selection leaves the active state unchanged.
+
+An invalid, unreadable, over-limit, or unsupported file is rejected before any
+cache replacement, so the last valid cache and displayed wording remain active.
+Cache restoration revalidates the complete bytes on every load and removes a
+corrupt or unsupported cache before returning the empty state. Clear removes
+the cache and restores the original shipped wording immediately. Cache writes
+use a same-directory temporary file and atomic rename, with restrictive local
+file permissions. File contents, source paths, and raw bytes are not logged,
+exported, placed in settings JSON, or sent over a network.
+
+The settings search and `Ctrl+Shift+F` command palette index the upload,
+replace, status, and clear controls. Palette results focus the exact control;
+clearing still requires the explicit settings action. School mode omits the
+personal-vocabulary card and its palette commands together with the other
+language and personalization controls.
+
+Complete app-wide localization and desktop application remain explicit
+implementation items, not implied by this bounded desktop slice.
 
 Selecting a new file validates the complete payload before the cache or active
 entry set changes. A read, validation, or local-storage failure leaves the
@@ -150,6 +179,17 @@ The focused source contract check is:
 ```text
 npm run test:universal-contracts
 ```
+
+The desktop local-file slice additionally uses:
+
+```text
+npm run test:desktop-personal-vocabulary
+```
+
+That payload-free check covers the native bridge registrations, bounded
+atomic cache, valid replacement, invalid and oversized replacement rollback,
+corrupt-cache fail-closed loading, clear/reset behavior, no-network source
+boundary, and exact negative regressions.
 
 The desktop search foundation additionally uses:
 

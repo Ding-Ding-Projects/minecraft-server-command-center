@@ -32,6 +32,14 @@ accessible names. Its focused payload-free check is
 `npm run test:desktop-presentation-settings`. This remains source and focused
 build evidence, not packaged-runtime or capture evidence.
 
+The desktop settings surface also provides a local personal-vocabulary JSON
+control. The native picker validates the complete bounded payload before an
+atomic cache replacement, keeps source paths and file contents out of the
+settings record, and restores the original shipped wording when the cache is
+cleared or fails validation. Its focused payload-free check is
+`npm run test:desktop-personal-vocabulary`; packaged-runtime interaction and
+captures remain unverified.
+
 ## Current boundaries
 
 The companion site is a browser-local planning and documentation surface. It

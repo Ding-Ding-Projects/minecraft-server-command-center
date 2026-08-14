@@ -17,6 +17,7 @@
     "test:desktop-notification-center": "node --experimental-strip-types scripts/test-desktop-notification-center.mjs",
     "test:java-runtime-guidance": "node --experimental-strip-types scripts/test-java-runtime-guidance.mjs",
     "test:desktop-presentation-settings": "node --experimental-strip-types scripts/test-desktop-presentation-settings.mjs",
+    "test:desktop-personal-vocabulary": "node --experimental-strip-types scripts/test-desktop-personal-vocabulary.mjs",
     "test:planner-handoff": "node node_modules/jiti/lib/jiti-cli.mjs scripts/test-planner-handoff.mjs",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
     "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",

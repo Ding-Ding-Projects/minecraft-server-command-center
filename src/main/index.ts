@@ -8,6 +8,11 @@ import { loadUniversalSettings, saveUniversalSettings } from "./universal-settin
 import { JavaRuntimeController } from "./java-runtime-controller";
 import { getUpdateBoundary } from "./update-boundary";
 import {
+  clearPersonalVocabulary,
+  loadPersonalVocabulary,
+  replacePersonalVocabulary,
+} from "./personal-vocabulary-store";
+import {
   applyPlannerHandoffToDraft,
   previewPlannerHandoff,
   type PlannerHandoffV1
@@ -67,6 +72,19 @@ async function choosePlannerHandoff() {
     pendingPlannerHandoff = undefined;
     throw new Error("The selected JSON file is not a valid non-secret planner handoff v1.");
   }
+}
+
+async function choosePersonalVocabulary() {
+  const result = await dialog.showOpenDialog(requireWindow(), {
+    title: "Choose local personal vocabulary JSON",
+    properties: ["openFile"],
+    filters: [{ name: "Personal vocabulary JSON", extensions: ["json"] }]
+  });
+  if (result.canceled) return null;
+
+  const selectedPath = result.filePaths[0];
+  if (!selectedPath) return null;
+  return replacePersonalVocabulary(app.getPath("userData"), selectedPath);
 }
 
 function normalizedJavaRuntimePickerKind(value: unknown): JavaRuntimePickerKind {
@@ -135,6 +153,9 @@ function registerIpc(): void {
     pendingPlannerHandoff = undefined;
   });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
+  ipcMain.handle("personal-vocabulary:load", () => loadPersonalVocabulary(app.getPath("userData")));
+  ipcMain.handle("personal-vocabulary:choose", () => choosePersonalVocabulary());
+  ipcMain.handle("personal-vocabulary:clear", () => clearPersonalVocabulary(app.getPath("userData")));
   ipcMain.handle("runtime:discover", () => javaRuntimeController.discover());
   ipcMain.handle("runtime:choose", (_event, kind: unknown) => chooseJavaRuntime(normalizedJavaRuntimePickerKind(kind)));
   ipcMain.handle("runtime:select", (_event, candidateId: unknown) => javaRuntimeController.select(candidateId));

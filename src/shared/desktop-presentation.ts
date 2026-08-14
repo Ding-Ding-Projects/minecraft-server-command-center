@@ -50,6 +50,29 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.school.title",
   "settings.school.description",
   "settings.school.toggle",
+  "settings.personalVocabulary.eyebrow",
+  "settings.personalVocabulary.title",
+  "settings.personalVocabulary.description",
+  "settings.personalVocabulary.privacy",
+  "settings.personalVocabulary.status.empty",
+  "settings.personalVocabulary.status.loaded",
+  "settings.personalVocabulary.entryCount",
+  "settings.personalVocabulary.choose",
+  "settings.personalVocabulary.replace",
+  "settings.personalVocabulary.clear",
+  "settings.personalVocabulary.notice.loaded",
+  "settings.personalVocabulary.notice.rejected",
+  "settings.personalVocabulary.notice.cleared",
+  "settings.personalVocabulary.notice.clearFailed",
+  "settings.personalVocabulary.notice.loadFailed",
+  "settings.personalVocabulary.command.choose",
+  "settings.personalVocabulary.command.chooseDescription",
+  "settings.personalVocabulary.command.replace",
+  "settings.personalVocabulary.command.replaceDescription",
+  "settings.personalVocabulary.command.status",
+  "settings.personalVocabulary.command.statusDescription",
+  "settings.personalVocabulary.command.clear",
+  "settings.personalVocabulary.command.clearDescription",
   "settings.appearance.title",
   "settings.appearance.description",
   "settings.appearance.theme",
@@ -249,6 +272,103 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     english: ["Enable focus mode", "Enable focus mode", "Enable the focus setting", "Enable the focus setting", "Enable the focus setting; the label remains yours to rename"],
     cantonese: ["啟用專注模式", "啟用專注模式", "啟用專注設定", "啟用專注設定", "啟用專注設定；個名由你改"],
   },
+  "settings.personalVocabulary.eyebrow": {
+    english: ["Private local vocabulary", "Private local vocabulary", "Private local vocabulary, kept on this computer", "Private local vocabulary, no server detour", "Private local vocabulary, the server did not get an invitation"],
+    cantonese: ["本機私人詞彙", "本機私人詞彙", "本機私人詞彙，留喺呢部電腦", "本機私人詞彙，唔繞去伺服器", "本機私人詞彙，伺服器今次冇收到請柬"],
+  },
+  "settings.personalVocabulary.title": {
+    english: ["Upload a local JSON vocabulary file", "Upload a local JSON vocabulary file", "Upload a local JSON vocabulary file for this desktop", "Upload a local JSON vocabulary file; validation comes first", "Upload a local JSON vocabulary file; the bytes must pass the bouncer"],
+    cantonese: ["上載本機 JSON 詞彙檔案", "上載本機 JSON 詞彙檔案", "為呢個桌面上載本機 JSON 詞彙檔案", "上載本機 JSON 詞彙檔案；先驗證先改字", "上載本機 JSON 詞彙檔案；啲 bytes 要先過門口"],
+  },
+  "settings.personalVocabulary.description": {
+    english: ["Choose a bounded JSON file. It is validated locally before the cache or displayed wording changes.", "Choose a bounded JSON file. Local validation happens before the cache or displayed wording changes.", "Choose a bounded JSON file; invalid input leaves the current wording alone.", "Choose a bounded JSON file; the whole payload must pass before any wording changes.", "Choose a bounded JSON file; the whole payload gets checked before the wording puts on a new hat."],
+    cantonese: ["揀一份有界 JSON 檔案；本機驗證完成前，快取同顯示文字都唔會改。", "揀一份有界 JSON 檔案；本機驗證會先行，快取同顯示文字保持原樣。", "揀一份有界 JSON 檔案；輸入無效就保留目前文字。", "揀一份有界 JSON 檔案；完整 payload 通過前，任何文字都唔會改。", "揀一份有界 JSON 檔案；完整 payload 要先驗身，文字先至可以換新帽。"],
+  },
+  "settings.personalVocabulary.privacy": {
+    english: ["File bytes, paths, and entries stay in the local cache; this settings record stores status and count only.", "File bytes, paths, and entries stay local; the settings record keeps status and count only.", "The cache stays local, while settings keep only its status and count.", "The app does not send the file, path, or entries anywhere; this record keeps status and count only.", "The file stays home, the path stays quiet, and this record keeps only status and count."],
+    cantonese: ["檔案 bytes、路徑同項目留喺本機快取；呢份設定記錄只保存狀態同數量。", "檔案 bytes、路徑同項目只留本機；設定記錄只保留狀態同數量。", "快取留喺本機，設定記錄只保留狀態同數量。", "程式唔會將檔案、路徑或項目送去任何地方；呢份記錄只保留狀態同數量。", "檔案留屋企、路徑保持安靜，呢份記錄只帶住狀態同數量。"],
+  },
+  "settings.personalVocabulary.status.empty": {
+    english: ["No local vocabulary file is active.", "No local vocabulary file is active.", "No local vocabulary file is active yet.", "No local vocabulary file is active; original shipped wording remains.", "No local vocabulary file is active; the original wording is still wearing its first-day outfit."],
+    cantonese: ["未有本機詞彙檔案啟用。", "未有本機詞彙檔案啟用。", "暫時未有本機詞彙檔案啟用。", "未有本機詞彙檔案啟用；原本出廠文字保持原樣。", "未有本機詞彙檔案啟用；原本文字仲著住出廠第一日套衫。"],
+  },
+  "settings.personalVocabulary.status.loaded": {
+    english: ["A validated local vocabulary file is active.", "A validated local vocabulary file is active.", "A validated local vocabulary file is active locally.", "A validated local vocabulary file is active; wording changes stay local.", "A validated local vocabulary file is active; the wording has received its tiny local makeover."],
+    cantonese: ["已啟用通過驗證嘅本機詞彙檔案。", "已啟用通過驗證嘅本機詞彙檔案。", "已喺本機啟用通過驗證嘅詞彙檔案。", "已啟用通過驗證嘅本機詞彙檔案；文字變更只留本機。", "已啟用通過驗證嘅本機詞彙檔案；文字換咗件細細件本機外套。"],
+  },
+  "settings.personalVocabulary.entryCount": {
+    english: ["entries loaded", "entries loaded", "entries loaded locally", "entries loaded locally", "entries loaded locally, all accounted for"],
+    cantonese: ["個項目已載入", "個項目已載入", "個項目已喺本機載入", "個項目已喺本機載入，數量清楚", "個項目已喺本機載入，粒粒有數"],
+  },
+  "settings.personalVocabulary.choose": {
+    english: ["Choose local JSON file", "Choose local JSON file", "Choose a local JSON file", "Choose a local JSON file to validate", "Choose a local JSON file; let the validator have a look"],
+    cantonese: ["揀本機 JSON 檔案", "揀本機 JSON 檔案", "揀一份本機 JSON 檔案", "揀一份本機 JSON 檔案去驗證", "揀一份本機 JSON 檔案，等驗證員望一望"],
+  },
+  "settings.personalVocabulary.replace": {
+    english: ["Replace local JSON file", "Replace local JSON file", "Replace the local JSON file", "Replace the local JSON file after validation", "Replace the local JSON file; the old cache gets a tidy handover"],
+    cantonese: ["更換本機 JSON 檔案", "更換本機 JSON 檔案", "更換本機 JSON 檔案", "驗證後更換本機 JSON 檔案", "更換本機 JSON 檔案；舊快取有交接，唔會突然失蹤"],
+  },
+  "settings.personalVocabulary.clear": {
+    english: ["Clear local vocabulary", "Clear local vocabulary", "Clear the local vocabulary cache", "Clear the local vocabulary cache and restore original wording", "Clear the local vocabulary cache; the original wording gets its encore"],
+    cantonese: ["清除本機詞彙", "清除本機詞彙", "清除本機詞彙快取", "清除本機詞彙快取並恢復原本文字", "清除本機詞彙快取；原本文字返場 encore"],
+  },
+  "settings.personalVocabulary.notice.loaded": {
+    english: ["The complete bounded JSON file passed local validation and is now active. Displayed wording changed only after validation.", "The complete bounded JSON file passed local validation and is now active. Wording changed only after validation.", "The bounded JSON file passed locally and is now active; invalid input could not sneak through.", "The complete bounded JSON file passed local validation and is active; displayed wording changed only after the full check.", "The complete bounded JSON file passed local validation and is active; the wording waited politely until the whole check finished."],
+    cantonese: ["完整有界 JSON 檔案通過本機驗證，現在已啟用。顯示文字只喺驗證後改變。", "完整有界 JSON 檔案通過本機驗證，現在已啟用。文字只喺驗證後改變。", "有界 JSON 檔案通過本機驗證並已啟用；無效輸入冇機會偷偷入場。", "完整有界 JSON 檔案通過本機驗證並已啟用；顯示文字等完整檢查後先改。", "完整有界 JSON 檔案通過本機驗證並已啟用；文字好有禮貌咁等完整檢查做完先換衫。"],
+    dialogEmoji: "✅",
+  },
+  "settings.personalVocabulary.notice.rejected": {
+    english: ["The selected file was not applied. It did not satisfy the bounded v1 JSON contract, so the previous cache and wording remain active.", "The selected file was not applied. It did not satisfy the bounded v1 JSON contract, so the previous cache and wording remain active.", "The selected file stayed out: the bounded v1 JSON contract was not satisfied, so nothing partially applied.", "The selected file was rejected before application; the previous cache and wording remain active.", "The selected file was rejected before application; the old cache keeps the wording from doing a surprise costume change."],
+    cantonese: ["所選檔案未有套用。佢唔符合有界 v1 JSON 合約，所以之前嘅快取同文字仍然啟用。", "所選檔案未有套用。佢唔符合有界 v1 JSON 合約，所以之前嘅快取同文字保持原樣。", "所選檔案留喺門外：未符合有界 v1 JSON 合約，冇任何部分會偷偷套用。", "所選檔案喺套用前已拒絕；之前嘅快取同文字仍然啟用。", "所選檔案喺套用前已拒絕；舊快取幫文字避過一場突然換衫。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.notice.cleared": {
+    english: ["The local vocabulary cache was removed. Original shipped wording is active again.", "The local vocabulary cache was removed. Original shipped wording is active again.", "The local vocabulary cache was removed; original wording is back.", "The local vocabulary cache was removed and original shipped wording is active again.", "The local vocabulary cache was removed; original shipped wording has returned for its encore."],
+    cantonese: ["本機詞彙快取已移除。原本出廠文字再次啟用。", "本機詞彙快取已移除。原本出廠文字再次啟用。", "本機詞彙快取已移除；原本文字返嚟喇。", "本機詞彙快取已移除，原本出廠文字再次啟用。", "本機詞彙快取已移除；原本出廠文字返場 encore。"],
+    dialogEmoji: "🔄",
+  },
+  "settings.personalVocabulary.notice.clearFailed": {
+    english: ["The local vocabulary cache could not be removed. The active cache and wording remain unchanged.", "The local vocabulary cache could not be removed. The active cache and wording remain unchanged.", "The local vocabulary cache could not be removed; the active wording stays put.", "The local vocabulary cache could not be removed, so the active cache and wording remain unchanged.", "The local vocabulary cache could not be removed; the cache declined its tidy exit and the wording stays put."],
+    cantonese: ["本機詞彙快取未能移除。啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除。啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除；目前文字留返原位。", "本機詞彙快取未能移除，所以啟用中嘅快取同文字保持不變。", "本機詞彙快取未能移除；快取唔肯整齊退場，文字照樣留位。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.notice.loadFailed": {
+    english: ["The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored; original wording remains active.", "The local vocabulary cache could not be restored, so original shipped wording remains active.", "The local vocabulary cache could not be restored; original shipped wording keeps the microphone."],
+    cantonese: ["本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本文字保持啟用。", "本機詞彙快取未能恢復，所以原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本出廠文字繼續拎住咪高峰。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.command.choose": {
+    english: ["Choose local vocabulary JSON", "Choose local vocabulary JSON", "Choose local vocabulary JSON", "Choose local vocabulary JSON file", "Choose local vocabulary JSON; the validator is ready"],
+    cantonese: ["揀本機詞彙 JSON", "揀本機詞彙 JSON", "揀本機詞彙 JSON", "揀本機詞彙 JSON 檔案", "揀本機詞彙 JSON；驗證員準備好喇"],
+  },
+  "settings.personalVocabulary.command.chooseDescription": {
+    english: ["Open Settings and focus the local JSON picker.", "Open Settings and focus the local JSON picker.", "Open Settings and focus the bounded local JSON picker.", "Open Settings and focus the picker before validation changes anything.", "Open Settings and focus the picker; the bytes get checked before they join the party."],
+    cantonese: ["開啟設定並聚焦本機 JSON 揀檔掣。", "開啟設定並聚焦本機 JSON 揀檔掣。", "開啟設定並聚焦有界本機 JSON 揀檔掣。", "開啟設定並聚焦揀檔掣，驗證前唔會改任何文字。", "開啟設定並聚焦揀檔掣；啲 bytes 要驗身先可以入場。"],
+  },
+  "settings.personalVocabulary.command.replace": {
+    english: ["Replace local vocabulary JSON", "Replace local vocabulary JSON", "Replace local vocabulary JSON", "Replace local vocabulary JSON after validation", "Replace local vocabulary JSON; the cache gets a new understudy"],
+    cantonese: ["更換本機詞彙 JSON", "更換本機詞彙 JSON", "更換本機詞彙 JSON", "驗證後更換本機詞彙 JSON", "更換本機詞彙 JSON；快取搵到新替身"],
+  },
+  "settings.personalVocabulary.command.replaceDescription": {
+    english: ["Open Settings and focus the replace control without exposing the file path.", "Open Settings and focus the replace control without exposing the file path.", "Open Settings and focus the local replace control; the path stays privileged.", "Open Settings and focus the replace control; the complete file is checked first.", "Open Settings and focus replace; the file path stays backstage where it belongs."],
+    cantonese: ["開啟設定並聚焦更換掣，唔會暴露檔案路徑。", "開啟設定並聚焦更換掣，唔會暴露檔案路徑。", "開啟設定並聚焦本機更換掣；路徑留喺特權邊界。", "開啟設定並聚焦更換掣；完整檔案會先驗證。", "開啟設定並聚焦更換掣；檔案路徑留喺後台，應有咁嘅禮貌。"],
+  },
+  "settings.personalVocabulary.command.status": {
+    english: ["Review local vocabulary status", "Review local vocabulary status", "Review local vocabulary status", "Review local vocabulary status and entry count", "Review local vocabulary status; the tiny counter is on duty"],
+    cantonese: ["查看本機詞彙狀態", "查看本機詞彙狀態", "查看本機詞彙狀態", "查看本機詞彙狀態同項目數量", "查看本機詞彙狀態；細細個計數員當值中"],
+  },
+  "settings.personalVocabulary.command.statusDescription": {
+    english: ["Open Settings and focus the accessible local status.", "Open Settings and focus the accessible local status.", "Open Settings and focus the local vocabulary status.", "Open Settings and focus status without exposing file bytes or paths.", "Open Settings and focus status; the file itself stays off the stage."],
+    cantonese: ["開啟設定並聚焦可存取嘅本機狀態。", "開啟設定並聚焦可存取嘅本機狀態。", "開啟設定並聚焦本機詞彙狀態。", "開啟設定並聚焦狀態，唔會暴露檔案 bytes 或路徑。", "開啟設定並聚焦狀態；檔案本身唔使上台。"],
+  },
+  "settings.personalVocabulary.command.clear": {
+    english: ["Clear local vocabulary cache", "Clear local vocabulary cache", "Clear local vocabulary cache", "Clear local vocabulary cache and restore original wording", "Clear local vocabulary cache; let the original wording take the encore"],
+    cantonese: ["清除本機詞彙快取", "清除本機詞彙快取", "清除本機詞彙快取", "清除本機詞彙快取並恢復原本文字", "清除本機詞彙快取；等原本文字返場 encore"],
+  },
+  "settings.personalVocabulary.command.clearDescription": {
+    english: ["Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control for an explicit local action.", "Open Settings and focus clear; a deliberate click is still required.", "Open Settings and focus clear; the palette points, the user decides."],
+    cantonese: ["開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣，明確進行本機動作。", "開啟設定並聚焦清除掣；仍然要用戶刻意撳掣。", "開啟設定並聚焦清除掣；命令面板只指路，用戶先決定。"],
+  },
   "settings.appearance.title": {
     english: ["Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent", "Theme, density, and accent for the desktop shell", "Theme, density, and accent: the shell gets a wardrobe, not a new identity"],
     cantonese: ["主題、密度同強調色", "主題、密度同強調色", "主題、密度同強調色", "桌面外殼嘅主題、密度同強調色", "主題、密度同強調色：外殼換衫，身份唔換"],
@@ -318,8 +438,8 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     cantonese: ["重設通用設定", "重設通用設定", "喺本機重設通用設定", "重設通用設定；伺服器檔案保持原樣", "重設通用設定；伺服器唔會收到突然搬屋通知"],
   },
   "settings.footnote": {
-    english: ["This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. Full contract coverage is tracked in the repository inventory.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The repository inventory tracks the wider contract.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. Wider coverage stays explicit in the inventory.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The inventory names what is implemented and what remains.", "This panel excludes credentials, arbitrary commands, remote services, and private vocabulary values. The inventory is the referee, not a decorative clipboard."],
-    cantonese: ["呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；完整合約覆蓋記錄喺項目清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；項目清單記錄更闊合約。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；更闊覆蓋會清楚列喺清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；清單會列明已做同未做。", "呢個頁面唔包括憑證、任意指令、遠端服務同私人詞彙值；清單係裁判，唔係裝飾用夾板。"],
+    english: ["This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. Full contract coverage is tracked in the repository inventory.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The repository inventory tracks the wider contract.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. Wider coverage stays explicit in the inventory.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The inventory names what is implemented and what remains.", "This panel excludes credentials, arbitrary commands, remote services, and vocabulary file contents. The inventory is the referee, not a decorative clipboard."],
+    cantonese: ["呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；完整合約覆蓋記錄喺項目清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；項目清單記錄更闊合約。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；更闊覆蓋會清楚列喺清單。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；清單會列明已做同未做。", "呢個頁面唔包括憑證、任意指令、遠端服務同詞彙檔案內容；清單係裁判，唔係裝飾用夾板。"],
   },
   "settings.status.loading": {
     english: ["Loading local universal settings…", "Loading local universal settings…", "Loading local universal settings locally…", "Loading local universal settings; no server action is involved…", "Loading local universal settings; the server is not invited to this bit…"],

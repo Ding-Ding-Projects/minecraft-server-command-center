@@ -42,8 +42,10 @@ The companion and desktop also contain a partial universal-settings
 foundation. Read `docs/reference/universal-settings.md` before extending it.
 The foundation is bounded and local-only: it does not imply cloud sync,
 credential storage, server access, or complete localization. The companion
-personal-vocabulary loader validates a private file but does not yet replace
-text across every surface, and the desktop does not yet expose that picker.
+personal-vocabulary loader and the desktop native picker validate a complete
+local JSON file before applying it; the desktop cache, typed bridge, replace,
+clear, and original-wording recovery path are covered by the focused source
+check. Packaged runtime interaction and capture evidence remain unverified.
 
 Read `docs/reference/notification-centre.md` before extending either review
 surface. The desktop article is already registered in

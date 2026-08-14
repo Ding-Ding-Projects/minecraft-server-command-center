@@ -79,6 +79,12 @@ server action.
   The payload-free negative regression and renderer/main builds remain source
   and build evidence only; packaged runtime interaction and captures remain
   unverified.
+- Added the bounded desktop personal-vocabulary control slice: a native local
+  JSON picker, complete-file validation before atomic cache replacement, typed
+  main/preload wiring, renderer status/replace/clear controls, localized copy,
+  command-palette focus routes, and fail-closed cache recovery. The focused
+  payload-free check and source/build path do not prove packaged runtime
+  interaction or captures.
 
 ## Next implementation slices
 

@@ -16,6 +16,10 @@
   English and Cantonese funny levels from 1 through 5.
 - Wired the persisted dialog/message-box emoji toggle to non-blocking desktop
   message content while keeping controls and accessible names emoji-free.
+- Added the desktop local personal-vocabulary JSON control: native selection,
+  complete bounded validation before atomic cache replacement, typed main/preload
+  wiring, localized status/replace/clear controls, command-palette focus routes,
+  and fail-closed cache recovery that restores original shipped wording.
 - Implemented the bounded Planner Handoff v1 source flow: guided browser-local
   JSON export/import, native desktop selected-file parsing, strict schema,
   version, size, duplicate-key, and unknown-field validation, normalized
@@ -38,6 +42,9 @@
   because the repository has no root lockfile.
 - Added `npm run test:desktop-presentation-settings`, including payload-free
   mode, slider, emoji, persistence, and exact negative-registration checks.
+- Added `npm run test:desktop-personal-vocabulary`, covering valid replacement,
+  invalid and oversized rollback, corrupt-cache recovery, clear behavior, local
+  no-network boundaries, and exact negative-registration checks.
 - Added `npm run test:planner-handoff`, with 185 focused assertions covering
   malformed, unsupported-version, duplicate-key, oversized, prohibited-field,
   source-registration, selected-file, normalized-preview, and local-retention
