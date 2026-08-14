@@ -23,12 +23,15 @@ evidence of installation.
 - [Notification centre](../reference/notification-centre.md) — browser-local non-blocking
   notice review, explicit selection scopes, inverse selection, and bulk
   dismissal for dismissible records.
+- [Changelog viewer](changelog-viewer.md) — checked-in release records,
+  inclusive typed date ranges and presets, anchored plain-text/regex search,
+  exact commit links, and filtered Markdown copy/export.
 
 ## Canonical navigation destinations
 
 The companion documentation uses these exact destination names: **Overview**,
 **Configure**, **Paper CLI**, **Spigot setup**, **Runtime**, **Safety**,
-**Docs**, **Notification centre**, and **Release status**. They are planning and documentation labels,
+**Docs**, **Release status**, **Changelog**, and **Notification centre**. They are planning and documentation labels,
 not claims of a live server connection, external service, transfer completion,
 installation, or Minecraft server operation. **Release status** can display a
 separately verified, hard-coded version-pinned release record.
