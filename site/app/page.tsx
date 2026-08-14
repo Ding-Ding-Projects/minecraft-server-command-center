@@ -845,7 +845,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!notice) return;
+    if (!notice || notice.tone === "warning" || notice.tone === "error") return;
     const timer = window.setTimeout(() => setNotice(null), 5200);
     return () => window.clearTimeout(timer);
   }, [notice]);
@@ -1815,8 +1815,9 @@ export default function Home() {
           <p className="eyebrow">Non-blocking notice history</p>
           <h2 id="notification-centre-title">Review what happened in this browser</h2>
           <p className="body-copy">
-            Toasts remain non-blocking and auto-dismiss from the corner. This centre keeps a bounded local record so you can review
-            active and dismissed notices without any remote delivery or account.
+            Toasts remain non-blocking; informational and success notices auto-dismiss from the corner, while warnings and errors remain
+            until dismissed. This centre keeps a bounded local record so you can review active and dismissed notices without any remote
+            delivery or account.
           </p>
         </div>
         <span className={`status-chip status-chip--${notificationPersistenceStatus === "unavailable" ? "warning" : notificationPersistenceStatus === "saved" ? "success" : "neutral"}`}>
@@ -1928,6 +1929,7 @@ export default function Home() {
             {filteredNotificationRecords.map((record) => {
               const isSelected = selectedNotificationSet.has(record.id);
               const isDismissed = record.dismissedAt !== null;
+              const displayedTimestamp = isDismissed ? record.dismissedAt ?? record.createdAt : record.createdAt;
               return (
                 <article key={record.id} className={`notification-record notification-record--${record.tone}`} role="listitem">
                   <label className="notification-record__select">
@@ -1950,7 +1952,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="notification-record__meta">
-                      <time dateTime={record.createdAt}>{isDismissed ? "Dismissed" : "Received"} {new Date(isDismissed ? record.dismissedAt ?? record.createdAt : record.createdAt).toLocaleString()}</time>
+                      <time dateTime={displayedTimestamp}>{isDismissed ? "Dismissed" : "Received"} {new Date(displayedTimestamp).toLocaleString()}</time>
                       {isDismissed ? (
                         <span className="status-chip status-chip--neutral">Dismissed · retained for review</span>
                       ) : record.dismissible ? (
