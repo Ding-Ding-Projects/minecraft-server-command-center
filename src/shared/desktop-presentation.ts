@@ -65,6 +65,7 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.personalVocabulary.notice.cleared",
   "settings.personalVocabulary.notice.clearFailed",
   "settings.personalVocabulary.notice.loadFailed",
+  "settings.personalVocabulary.notice.cacheRemovalFailed",
   "settings.personalVocabulary.command.choose",
   "settings.personalVocabulary.command.chooseDescription",
   "settings.personalVocabulary.command.replace",
@@ -373,6 +374,11 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
   "settings.personalVocabulary.notice.loadFailed": {
     english: ["The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored. Original shipped wording remains active.", "The local vocabulary cache could not be restored; original wording remains active.", "The local vocabulary cache could not be restored, so original shipped wording remains active.", "The local vocabulary cache could not be restored; original shipped wording keeps the microphone."],
     cantonese: ["本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復。原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本文字保持啟用。", "本機詞彙快取未能恢復，所以原本出廠文字保持啟用。", "本機詞彙快取未能恢復；原本出廠文字繼續拎住咪高峰。"],
+    dialogEmoji: "⚠️",
+  },
+  "settings.personalVocabulary.notice.cacheRemovalFailed": {
+    english: ["The malformed local vocabulary cache could not be removed. Original shipped wording is active and the persisted status is reset to empty.", "The malformed local vocabulary cache could not be removed. Original shipped wording is active and the persisted status is reset to empty.", "The malformed local vocabulary cache could not be removed; original wording is active and the status is empty.", "The malformed local vocabulary cache could not be removed, so original shipped wording is active and the persisted status is reset to empty.", "The malformed local vocabulary cache could not be removed; original wording is back and the status has been sent home empty-handed."],
+    cantonese: ["格式錯誤嘅本機詞彙快取未能移除。原本出廠文字已啟用，儲存狀態已重設為空。", "格式錯誤嘅本機詞彙快取未能移除。原本出廠文字已啟用，儲存狀態已重設為空。", "格式錯誤嘅本機詞彙快取未能移除；原本文字啟用中，狀態係空。", "格式錯誤嘅本機詞彙快取未能移除，所以原本出廠文字已啟用，儲存狀態已重設為空。", "格式錯誤嘅本機詞彙快取未能移除；原本文字返場，狀態就兩手空空咁返屋企。"],
     dialogEmoji: "⚠️",
   },
   "settings.personalVocabulary.command.choose": {

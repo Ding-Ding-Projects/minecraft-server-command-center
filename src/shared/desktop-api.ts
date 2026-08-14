@@ -40,6 +40,7 @@ export interface PersonalVocabularyState {
   readonly status: "empty" | "loaded";
   readonly entryCount: number;
   readonly entries: readonly PersonalVocabularyEntryV1[];
+  readonly recovery?: "malformed-cache-removal-failed";
 }
 
 export interface JavaRuntimeCandidateSummary {

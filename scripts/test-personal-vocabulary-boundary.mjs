@@ -132,6 +132,31 @@ for (const marker of companionMarkers) {
     `negative regression stayed green after removing ${sourcePath} :: ${marker}`,
   );
 }
+
+const companionMalformedCacheFailureBoundary = `          } catch {
+            setPersonalVocabularyEntries([]);
+            setUniversalSettings((current) => ({
+              ...current,
+              personalVocabulary: { status: "empty", entryCount: 0 },
+            }));
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active and the persisted status was reset to empty." });
+          }`;
+function assertCompanionMalformedCacheFailureBoundary(source) {
+  assert.equal(
+    countExactMarker(source, companionMalformedCacheFailureBoundary),
+    1,
+    "companion cache restoration must clear in-memory and persisted vocabulary state when malformed-cache removal fails",
+  );
+}
+assertCompanionMalformedCacheFailureBoundary(pageSource);
+const disabledCompanionBoundary = removeExactMarker(pageSource, companionMalformedCacheFailureBoundary);
+assert.throws(
+  () => assertCompanionMalformedCacheFailureBoundary(disabledCompanionBoundary),
+  /companion cache restoration must clear in-memory and persisted vocabulary state/,
+  "negative regression stayed green after disabling the companion malformed-cache recovery branch",
+);
+assertCompanionMalformedCacheFailureBoundary(pageSource);
+
 assert.doesNotMatch(pageSource, /if \(!vocabularyCacheAvailable\) \{\s*setPersonalVocabularyEntries\(\[\]\);/, "a transient browser-storage read failure must not clear in-memory vocabulary");
 assert.equal(countExactMarker(boundarySource, "const PROTECTED_TAGS = new Set([\"code\", \"pre\", \"kbd\", \"samp\", \"output\", \"script\", \"style\"]);"), 1, "code-like elements must be protected");
 assert.equal(countExactMarker(boundarySource, "const TRANSLATABLE_ATTRIBUTES = [\"aria-label\", \"aria-description\", \"alt\", \"placeholder\", \"title\"] as const;"), 1, "accessible user-facing attributes must share the boundary");

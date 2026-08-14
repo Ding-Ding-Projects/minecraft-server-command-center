@@ -90,8 +90,12 @@ async function readValidatedFile(filePath: string): Promise<PersonalVocabularySt
   return stateFromEntries(parsed.value.entries);
 }
 
-export async function loadPersonalVocabulary(userDataDirectory: string): Promise<PersonalVocabularyState> {
+export async function loadPersonalVocabulary(
+  userDataDirectory: string,
+  options: { readonly removeMalformedCache?: (filePath: string) => Promise<void> } = {},
+): Promise<PersonalVocabularyState> {
   const target = cachePath(userDataDirectory);
+  const removeMalformedCache = options.removeMalformedCache ?? unlink;
   try {
     return await readValidatedFile(target);
   } catch (error) {
@@ -103,10 +107,13 @@ export async function loadPersonalVocabulary(userDataDirectory: string): Promise
       throw new Error("The local vocabulary cache could not be read; the previous valid cache remains active.", { cause: error });
     }
     try {
-      await unlink(target);
+      await removeMalformedCache(target);
     } catch (removeError) {
       if (errorCode(removeError) !== "ENOENT") {
-        throw new Error("The malformed local vocabulary cache could not be removed; the previous valid cache remains active.", { cause: removeError });
+        return {
+          ...EMPTY_STATE,
+          recovery: "malformed-cache-removal-failed",
+        };
       }
     }
     return EMPTY_STATE;

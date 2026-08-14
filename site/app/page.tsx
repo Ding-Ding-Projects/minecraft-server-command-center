@@ -1011,7 +1011,12 @@ export default function Home() {
               personalVocabulary: { status: "empty", entryCount: 0 },
             }));
           } catch {
-            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. The persisted status remains unchanged." });
+            setPersonalVocabularyEntries([]);
+            setUniversalSettings((current) => ({
+              ...current,
+              personalVocabulary: { status: "empty", entryCount: 0 },
+            }));
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active and the persisted status was reset to empty." });
           }
         }
       } else {
