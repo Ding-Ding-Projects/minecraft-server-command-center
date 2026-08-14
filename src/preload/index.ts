@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer } from "electron";
 import type { DesktopApi, PickerKind } from "../shared/desktop-api";
 
 const desktopApi: DesktopApi = {
+  settings: {
+    load: () => ipcRenderer.invoke("settings:load"),
+    save: (value: unknown) => ipcRenderer.invoke("settings:save", value)
+  },
   draft: {
     load: () => ipcRenderer.invoke("draft:load"),
     save: (value: unknown) => ipcRenderer.invoke("draft:save", value)

@@ -48,6 +48,9 @@
             <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-catalog" id="tab-catalog" tabindex="-1" data-tab="catalog">
               <span aria-hidden="true">☷</span><span>CLI catalog</span>
             </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-settings" id="tab-settings" tabindex="-1" data-tab="settings">
+              <span aria-hidden="true">⚙</span><span>Universal settings</span>
+            </button>
           </div>
           <div class="navigation-rail__footer">
             <span class="status-dot" aria-hidden="true"></span>
@@ -415,6 +418,99 @@
               </div>
               <p class="catalog-source" id="catalog-source">Loading the bounded catalog…</p>
               <div class="catalog-grid" id="catalog-grid" aria-live="polite"></div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" data-panel="settings" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Local preferences</p>
+                  <h2>Universal settings foundation</h2>
+                </div>
+                <span class="section-heading__chip">Schema v1</span>
+              </div>
+              <section class="settings-search-card" aria-labelledby="settings-search-title">
+                <div class="settings-search-card__heading">
+                  <div>
+                    <p class="eyebrow">Find a setting</p>
+                    <h3 id="settings-search-title">Search this settings surface</h3>
+                  </div>
+                  <span class="badge">Plain text by default</span>
+                </div>
+                <div class="settings-search-row">
+                  <label class="sr-only" for="settings-search">Search universal settings</label>
+                  <input id="settings-search" class="text-input" type="search" placeholder="Search language, tone, appearance…" autocomplete="off" />
+                  <button class="outlined-button" type="button" id="settings-regex-toggle" aria-expanded="false" aria-controls="settings-regex-builder">Regex</button>
+                </div>
+                <div class="settings-regex-builder" id="settings-regex-builder" hidden>
+                  <label class="field__label" for="settings-regex-pattern">Pattern</label>
+                  <input id="settings-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Language" spellcheck="false" />
+                  <div class="settings-regex-tokens" aria-label="Regex pattern shortcuts">
+                    <button class="input-action" type="button" data-settings-token="^">Start</button>
+                    <button class="input-action" type="button" data-settings-token="$">End</button>
+                    <button class="input-action" type="button" data-settings-token="[A-Za-z]">Letters</button>
+                    <button class="input-action" type="button" data-settings-token="()">Group</button>
+                    <button class="input-action" type="button" data-settings-token="|">Either</button>
+                    <button class="input-action" type="button" data-settings-token="+">One or more</button>
+                  </div>
+                  <label class="check-row"><input id="settings-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+                  <p class="field__hint" id="settings-regex-status" role="status" aria-live="polite">Patterns run locally in the bounded JavaScript engine.</p>
+                </div>
+              </section>
+
+              <section class="settings-card-grid" id="settings-card-grid" aria-live="polite">
+                <article class="settings-card" data-settings-item data-settings-label="Language mode">
+                  <h3>Language mode</h3>
+                  <p>English, playful Hong Kong-style Cantonese, or bilingual. The setting is local and persisted.</p>
+                  <select class="select-input" data-universal-setting="languageMode" aria-label="Language mode">
+                    <option value="english">English</option>
+                    <option value="cantonese">Playful Hong Kong-style Cantonese</option>
+                    <option value="bilingual">Bilingual</option>
+                  </select>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="English funny level">
+                  <h3>English funny level</h3>
+                  <p>Styles message voice from serious to maximum playful without changing facts.</p>
+                  <input type="range" min="1" max="5" step="1" data-universal-setting="funnyLevelEnglish" aria-label="English funny level" />
+                  <output data-universal-output="funnyLevelEnglish">2 / 5</output>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Cantonese funny level">
+                  <h3>Cantonese funny level</h3>
+                  <p>Independent Cantonese voice control with the same factual-warning boundary.</p>
+                  <input type="range" min="1" max="5" step="1" data-universal-setting="funnyLevelCantonese" aria-label="Cantonese funny level" />
+                  <output data-universal-output="funnyLevelCantonese">3 / 5</output>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Emoji dialogs">
+                  <h3>Dialog emoji decoration</h3>
+                  <p>Decorative emoji can be shown in dialogs and message boxes without entering control labels.</p>
+                  <label class="switch-row switch-row--inline" for="settings-show-emojis"><span>Show emojis</span><input id="settings-show-emojis" type="checkbox" data-universal-setting="showEmojisInDialogs" /><span class="switch-track" aria-hidden="true"></span></label>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Application display name">
+                  <h3>Application display name</h3>
+                  <p>Changes the visible label only; installed identity and data location remain constant.</p>
+                  <input class="text-input" type="text" maxlength="100" data-universal-setting="appDisplayName" aria-label="Application display name" />
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="School mode name">
+                  <h3>School mode name</h3>
+                  <p>Rename the focus setting. Its unlock value is not stored in this preference file.</p>
+                  <input class="text-input" type="text" maxlength="80" data-universal-setting="schoolModeName" aria-label="School mode name" />
+                  <label class="switch-row switch-row--inline" for="settings-school-mode"><span>Enable focus mode</span><input id="settings-school-mode" type="checkbox" data-universal-setting="schoolModeEnabled" /><span class="switch-track" aria-hidden="true"></span></label>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Theme density accent">
+                  <h3>Theme, density, and accent</h3>
+                  <p>These values apply to the desktop shell and persist through the local settings store.</p>
+                  <div class="settings-inline-controls"><select class="select-input" data-universal-setting="theme" aria-label="Theme"><option value="dark">Dark</option><option value="light">Light</option></select><select class="select-input" data-universal-setting="density" aria-label="Density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select><input type="color" data-universal-setting="seedColor" aria-label="Accent color" /></div>
+                </article>
+                <article class="settings-card" data-settings-item data-settings-label="Tab docking">
+                  <h3>Tab docking</h3>
+                  <p>Choose the future tab strip edge. Full tab reorder, pin, group, and discovery work is still unverified.</p>
+                  <select class="select-input" data-universal-setting="tabDock" aria-label="Tab strip docking position"><option value="left">Left</option><option value="right">Right</option><option value="top">Top</option><option value="bottom">Bottom</option></select>
+                </article>
+              </section>
+              <div class="settings-actions">
+                <span id="universal-settings-state" class="field__hint" role="status" aria-live="polite">Loading local universal settings…</span>
+                <button class="outlined-button" type="button" id="reset-universal-settings">Reset universal settings</button>
+              </div>
+              <p class="field__hint">This panel intentionally excludes credentials, arbitrary commands, remote services, and private vocabulary values. Full contract coverage is tracked in the repository inventory.</p>
             </section>
           </form>
         </main>

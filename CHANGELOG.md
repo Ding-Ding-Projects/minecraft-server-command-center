@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.1.32 — 2026-08-14
+
+### Changed
+
+- Recorded the universal surface coverage baseline at commit
+  [`7974e8b`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/7974e8b975838ed167710e1aa130024fd457f897).
+- Published the unsigned Windows Squirrel.Windows artifacts with dim-sum code
+  name `Crab Roe Siu Mai · 蟹籽燒賣`.
+
+### Verification
+
+- GitHub Actions run
+  [`31771514026`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31771514026)
+  completed successfully and published the non-draft release
+  [`v0.1.32`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.32).
+- Release timing was `00:02:22`; the release contains `Setup.exe`, `RELEASES`,
+  and the full `.nupkg`, all unsigned. The release workflow builds and packages
+  but does not run tests or lint.
+- The release line-count table reported 19,382 non-generated total lines and
+  17,327 non-blank lines, with 19,387 grand-total lines and 17,331 grand-total
+  non-blank lines.
+
+## 0.1.31 — 2026-08-14
+
+### Changed
+
+- Refreshed release handoff evidence at commit
+  [`c75f0e0`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/c75f0e0efa5330b4262a7699a8c7f9af29ed14c5).
+- Published the unsigned Windows Squirrel.Windows artifacts with dim-sum code
+  name `Classic Siu Mai · 燒賣`.
+
+### Verification
+
+- Release [`v0.1.31`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.31)
+  was published from the verified release workflow. Its line-count table
+  reported 19,344 non-generated total lines and 17,292 non-blank lines.
+
 ## 0.1.30 — 2026-08-14
 
 ### Changed
@@ -19,6 +56,13 @@
 ## Unreleased
 
 ### Added
+
+- A partial universal-settings foundation for the desktop and companion site:
+  bounded schema-version-1 normalization, local persistence, independent
+  language funny levels, dialog emoji, renameable School mode, display name,
+  theme, density, seed color, tab docking, local logo selection, and a
+  fail-closed personal-vocabulary JSON parser. Full app-wide contract coverage
+  remains tracked in the completeness inventory.
 
 - Guided desktop Java-runtime discovery and review controls using opaque
   candidate IDs, bounded conventional locations, a native executable picker,
@@ -53,6 +97,13 @@
   access, and execution.
 
 ### Verification
+
+- `npm run test:universal-contracts` passed and the root `npm run build` passed
+  for the changed desktop source. `npm --prefix site run lint` completed with
+  two image-element warnings. `npm --prefix site run build` and
+  `npx tsc --noEmit -p site/tsconfig.json` also completed. No
+  packaged runtime interaction, accessibility interaction, or real captures
+  were run.
 
 - Documentation-only change. No test, lint, build, package, runtime interaction, capture, release, or server-process action is represented as having occurred.
 - Planner Handoff v1 documentation adds no verified browser UI, desktop UI,

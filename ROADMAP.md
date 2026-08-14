@@ -40,25 +40,36 @@ server action.
   requirement resolver, and exposes bounded catalog provenance/count metadata
   without adding network, download, install, server, configuration, or
   credential behavior.
+- Added the first shared universal-settings foundation: schema-version-1
+  normalization, local desktop persistence, companion browser-local settings,
+  independent language funny levels, emoji and renameable School mode controls,
+  display-name/theme/density/seed settings, bounded local logo selection, and
+  a fail-closed personal-vocabulary JSON parser with negative regressions.
+  This is a partial source foundation; it is not full universal feature
+  completion or built-artifact evidence.
 
 ## Next implementation slices
 
 1. **Focused verification** — run authorized checks and exercise both the
    built companion and packaged desktop app through the approved headless path.
-2. **Spigot runtime requirements** — add an independently sourced Spigot
+2. **Universal settings completion** — extend the shared settings foundation
+   to every required surface, including full localization, narration, scheduled
+   settings, credential-factor behavior, appearance editing, tab management,
+   history, exports, accessibility, and capture evidence.
+3. **Spigot runtime requirements** — add an independently sourced Spigot
    resolver rather than reusing Paper mappings.
-3. **Companion planner and handoff implementation** — finish browser-local
+4. **Companion planner and handoff implementation** — finish browser-local
    controls, validation, provenance, reset, non-secret export/import, bounded
    desktop selected-file parsing, safe normalization preview, and explicit
    apply/save behavior without weakening the no-path/no-secret/no-execution
    boundary.
-4. **Lifecycle integration** — connect a separately reviewed lifecycle service
+5. **Lifecycle integration** — connect a separately reviewed lifecycle service
    only after explicit confirmation, process ownership, logging, cancellation,
    recovery, and real runtime evidence are in place.
-5. **Updater implementation** — add a verified unsigned-feed, hash-validation,
+6. **Updater implementation** — add a verified unsigned-feed, hash-validation,
    staging, restart, rollback, and unsaved-work route before replacing the
    desktop's unavailable updater state.
-6. **Installer-operation evidence** — exercise the published unsigned Windows
+7. **Installer-operation evidence** — exercise the published unsigned Windows
    installer on a suitable test computer and record factual installation,
    launch, and recovery evidence without overstating the static release record.
 

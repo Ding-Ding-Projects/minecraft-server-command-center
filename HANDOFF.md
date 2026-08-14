@@ -28,15 +28,22 @@ claim installation, update, application, or server completion.
 Read `docs/site/README.md` and
 `docs/site/configuration-planner.md` before changing companion behavior.
 
+The companion and desktop also contain a partial universal-settings
+foundation. Read `docs/reference/universal-settings.md` before extending it.
+The foundation is bounded and local-only: it does not imply cloud sync,
+credential storage, server access, or complete localization. The companion
+personal-vocabulary loader validates a private file but does not yet replace
+text across every surface, and the desktop does not yet expose that picker.
+
 ## Current release proof
 
-The release audit for commit `ffe3c43df50c29d254526d616db5150325179af2`
+The release audit for commit `7974e8b975838ed167710e1aa130024fd457f897`
 verified GitHub Actions run
-[`31770796058`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31770796058)
-as successful and published release `v0.1.30`.
+[`31771514026`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31771514026)
+as successful and published release `v0.1.32`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.30-full.nupkg`. The published asset URLs
+`minecraft-server-command-center-0.1.32-full.nupkg`. The published asset URLs
 responded with HTTP 200 and the release notes contain workflow timing, the
 committed line-count table, and the linked public dim-sum catalog metadata.
 The assets are unsigned; no signing material is used.
@@ -86,7 +93,10 @@ The desktop source contains:
 - typed Paper/Spigot registry projection and direct argument-array preview;
 - explicit no-launch IPC and automatic-update-unavailable boundaries;
 - Windows Squirrel.Windows packaging configuration, unsigned-only settings,
-  root build scripts, and an SVG icon master generated to an ICO during build.
+  root build scripts, and an SVG icon master generated to an ICO during build;
+- a schema-version-1 universal-settings record with local desktop persistence,
+  language/funny-level/emoji/School-mode controls, appearance basics, tab
+  docking, and companion-site logo and personal-vocabulary foundations.
 
 The following desktop paths are source-only evidence:
 
@@ -141,6 +151,13 @@ operation, server-process action, or real capture evidence. The embedded
 installer fields originate from the separately verified published release
 record; source paths and scripts do not prove anything beyond that bounded
 record.
+
+For the current universal-settings lane, `npm run test:universal-contracts`
+passed and the root `npm run build` passed. `npm --prefix site run lint` completed with
+two image-element warnings. `npm --prefix site run build` and
+`npx tsc --noEmit -p site/tsconfig.json` also completed. No
+packaged runtime interaction, accessibility interaction, or real capture
+evidence is claimed.
 
 ## Safe continuation
 

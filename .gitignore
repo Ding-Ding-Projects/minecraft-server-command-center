@@ -6,4 +6,5 @@ release/
 .env
 .env.*
 !.env.example
+site/tsconfig.tsbuildinfo
 

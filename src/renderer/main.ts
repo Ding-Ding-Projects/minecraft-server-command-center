@@ -8,6 +8,7 @@ import type {
   PickerKind
 } from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
+import { DEFAULT_UNIVERSAL_SETTINGS, normalizeUniversalSettings, type UniversalSettingsV1 } from "../shared/universal-contracts";
 import {
   DEFAULT_SERVER_DRAFT,
   describeJavaRuntime,
@@ -41,8 +42,16 @@ const javaRuntimeAssessmentSummary = document.querySelector<HTMLElement>("#java-
 const javaRuntimeAssessmentDetails = document.querySelector<HTMLDListElement>("#java-runtime-assessment-details");
 const javaRuntimeAssessmentRecovery = document.querySelector<HTMLElement>("#java-runtime-assessment-recovery");
 const javaRuntimeAssessmentPlan = document.querySelector<HTMLElement>("#java-runtime-assessment-plan");
+const universalSettingsState = document.querySelector<HTMLElement>("#universal-settings-state");
+const resetUniversalSettingsButton = document.querySelector<HTMLButtonElement>("#reset-universal-settings");
+const settingsSearch = document.querySelector<HTMLInputElement>("#settings-search");
+const settingsRegexToggle = document.querySelector<HTMLButtonElement>("#settings-regex-toggle");
+const settingsRegexBuilder = document.querySelector<HTMLElement>("#settings-regex-builder");
+const settingsRegexPattern = document.querySelector<HTMLInputElement>("#settings-regex-pattern");
+const settingsRegexIgnoreCase = document.querySelector<HTMLInputElement>("#settings-regex-ignore-case");
+const settingsRegexStatus = document.querySelector<HTMLElement>("#settings-regex-status");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -55,6 +64,10 @@ let currentArgvTokens: readonly string[] = [];
 let pendingPlannerHandoff: PlannerHandoffPreview | undefined;
 let latestJavaRuntimeDiscovery: JavaRuntimeDiscovery | undefined;
 let selectedJavaCandidateId: string | null = null;
+let universalSettings: UniversalSettingsV1 = DEFAULT_UNIVERSAL_SETTINGS;
+let universalSaveTimer: number | undefined;
+let universalSaveVersion = 0;
+let settingsRegexMode = false;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
@@ -63,7 +76,8 @@ const tabCopy: Record<string, readonly [string, string]> = {
   access: ["Set access intent", "Keep network and RCON planning visible without opening a port or remote console."],
   paths: ["Choose local paths", "Native file and folder pickers supply direct values without a generic command field."],
   preview: ["Inspect direct tokens", "The preview is an argument vector, not a command line, and it cannot be launched here."],
-  catalog: ["Review supported CLI categories", "Mapped and unavailable entries stay visible so no arbitrary argument escape hatch is needed."]
+  catalog: ["Review supported CLI categories", "Mapped and unavailable entries stay visible so no arbitrary argument escape hatch is needed."],
+  settings: ["Adjust universal local settings", "Set language, funny levels, emoji, display name, appearance, and tab docking without server actions."]
 };
 
 function showSnackbar(message: string): void {
@@ -77,6 +91,105 @@ function showSnackbar(message: string): void {
 
 function writeSaveState(message: string): void {
   saveState.textContent = message;
+}
+
+function settingsControls(): Array<HTMLInputElement | HTMLSelectElement> {
+  return Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-universal-setting]"));
+}
+
+function settingsMatches(text: string): boolean {
+  const query = settingsSearch.value.trim();
+  if (!settingsRegexMode) return text.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+  if (!settingsRegexPattern.value) return true;
+  try {
+    settingsRegexStatus.textContent = "Pattern is valid and runs only in this settings surface.";
+    return new RegExp(settingsRegexPattern.value, settingsRegexIgnoreCase.checked ? "i" : "").test(text);
+  } catch (error) {
+    settingsRegexStatus.textContent = error instanceof Error ? error.message : "The local pattern is invalid.";
+    return false;
+  }
+}
+
+function renderSettingsSearch(): void {
+  for (const card of document.querySelectorAll<HTMLElement>("[data-settings-item]")) {
+    const label = card.dataset.settingsLabel ?? "";
+    const matches = settingsMatches(`${label} ${card.textContent ?? ""}`);
+    const hiddenByFocusMode = universalSettings.schoolModeEnabled && ["Language mode", "English funny level", "Cantonese funny level", "Emoji dialogs"].includes(label);
+    card.hidden = hiddenByFocusMode || !matches;
+  }
+  if (!settingsRegexMode) settingsRegexStatus.textContent = "Plain text search is active. Regex is an explicit local opt-in.";
+}
+
+function renderUniversalSettings(): void {
+  for (const control of settingsControls()) {
+    const key = control.dataset.universalSetting as keyof UniversalSettingsV1 | undefined;
+    if (!key) continue;
+    const value = universalSettings[key];
+    if (control instanceof HTMLInputElement && control.type === "checkbox") {
+      control.checked = Boolean(value);
+    } else {
+      control.value = String(value);
+    }
+  }
+  for (const output of document.querySelectorAll<HTMLOutputElement>("[data-universal-output]")) {
+    const key = output.dataset.universalOutput as keyof UniversalSettingsV1 | undefined;
+    if (!key) continue;
+    output.value = `${String(universalSettings[key])} / 5`;
+    output.textContent = output.value;
+  }
+  const title = document.querySelector<HTMLElement>(".titlebar__copy strong");
+  const brand = document.querySelector<HTMLElement>(".titlebar__brand");
+  if (title) title.textContent = universalSettings.appDisplayName;
+  if (brand) brand.setAttribute("aria-label", universalSettings.appDisplayName);
+  document.documentElement.dataset.theme = universalSettings.theme;
+  document.documentElement.dataset.density = universalSettings.density;
+  renderSettingsSearch();
+}
+
+function scheduleUniversalSettingsSave(): void {
+  if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
+  universalSettingsState.textContent = "Universal setting changes pending…";
+  universalSaveTimer = window.setTimeout(() => {
+    universalSaveTimer = undefined;
+    const requestedVersion = ++universalSaveVersion;
+    void window.commandCenter.settings.save(universalSettings).then((saved) => {
+      if (requestedVersion !== universalSaveVersion) return;
+      universalSettings = saved;
+      renderUniversalSettings();
+      universalSettingsState.textContent = "Universal settings saved locally.";
+    }).catch(() => {
+      universalSettingsState.textContent = "Universal settings could not be saved; the current window values remain visible.";
+      showSnackbar("The universal settings file could not be saved. No server draft or process was changed.");
+    });
+  }, 350);
+}
+
+function handleUniversalSetting(control: HTMLInputElement | HTMLSelectElement): void {
+  const key = control.dataset.universalSetting as keyof UniversalSettingsV1 | undefined;
+  if (!key) return;
+  const value = control instanceof HTMLInputElement && control.type === "checkbox"
+    ? control.checked
+    : control instanceof HTMLInputElement && control.type === "range"
+      ? Number(control.value)
+      : control.value;
+  universalSettings = normalizeUniversalSettings({ ...universalSettings, [key]: value });
+  renderUniversalSettings();
+  scheduleUniversalSettingsSave();
+}
+
+function resetUniversalSettings(): void {
+  universalSaveVersion += 1;
+  if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
+  universalSaveTimer = undefined;
+  universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
+  renderUniversalSettings();
+  void window.commandCenter.settings.save(universalSettings).then(() => {
+    universalSettingsState.textContent = "Universal settings reset and saved locally.";
+    showSnackbar("Universal settings reset. Server files and the server draft were not changed.");
+  }).catch(() => {
+    universalSettingsState.textContent = "Universal settings reset in this window; the file could not be updated.";
+    showSnackbar("The universal settings reset could not be persisted.");
+  });
 }
 
 function invalidatePendingSave(): void {
@@ -587,6 +700,16 @@ function renderCatalog(catalog: CliCatalogProjection): void {
 }
 
 function bindInteraction(): void {
+  for (const control of settingsControls()) {
+    control.addEventListener("input", () => handleUniversalSetting(control));
+    control.addEventListener("change", () => handleUniversalSetting(control));
+  }
+  settingsSearch.addEventListener("input", renderSettingsSearch);
+  settingsRegexPattern.addEventListener("input", () => {
+    settingsRegexMode = true;
+    renderSettingsSearch();
+  });
+  settingsRegexIgnoreCase.addEventListener("change", renderSettingsSearch);
   form.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
@@ -619,6 +742,28 @@ function bindInteraction(): void {
     const picker = target.closest<HTMLButtonElement>("[data-picker-kind]");
     if (picker) {
       void usePicker(picker);
+      return;
+    }
+    const settingsToken = target.closest<HTMLButtonElement>("[data-settings-token]");
+    if (settingsToken?.dataset.settingsToken) {
+      settingsRegexMode = true;
+      settingsRegexPattern.value = (settingsRegexPattern.value + settingsToken.dataset.settingsToken).slice(0, 160);
+      renderSettingsSearch();
+      settingsRegexPattern.focus();
+      return;
+    }
+    const settingsRegex = target.closest<HTMLButtonElement>("#settings-regex-toggle");
+    if (settingsRegex) {
+      settingsRegexMode = !settingsRegexMode;
+      settingsRegex.setAttribute("aria-expanded", String(settingsRegexMode));
+      settingsRegexBuilder.hidden = !settingsRegexMode;
+      renderSettingsSearch();
+      if (settingsRegexMode) settingsRegexPattern.focus();
+      return;
+    }
+    const resetUniversal = target.closest<HTMLButtonElement>("#reset-universal-settings");
+    if (resetUniversal) {
+      resetUniversalSettings();
       return;
     }
     const chooseHandoff = target.closest<HTMLButtonElement>("#choose-planner-handoff");
@@ -706,6 +851,16 @@ function bindInteraction(): void {
 
 async function start(): Promise<void> {
   bindInteraction();
+  try {
+    universalSettings = await window.commandCenter.settings.load();
+    renderUniversalSettings();
+    universalSettingsState.textContent = "Universal settings ready locally.";
+  } catch {
+    universalSettings = DEFAULT_UNIVERSAL_SETTINGS;
+    renderUniversalSettings();
+    universalSettingsState.textContent = "Universal settings are using the bounded in-window defaults.";
+    showSnackbar("The universal settings file was unavailable. Bounded defaults are shown and no server state changed.");
+  }
   resetJavaRuntimeGuidance("No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.");
   try {
     draft = await window.commandCenter.draft.load();

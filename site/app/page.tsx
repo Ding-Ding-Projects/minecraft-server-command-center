@@ -10,6 +10,17 @@ import {
   previewPlannerHandoff,
   type PlannerHandoffV1
 } from "../../src/shared/planner-handoff";
+import {
+  DEFAULT_UNIVERSAL_SETTINGS,
+  LOGO_PRESETS,
+  PERSONAL_VOCABULARY_LIMITS,
+  TAB_DOCK_POSITIONS,
+  parseUniversalSettings,
+  parsePersonalVocabularyJson,
+  type LogoPreset,
+  type UniversalLanguageMode,
+  type UniversalSettingsV1
+} from "../../src/shared/universal-contracts";
 
 // The planner has no server data; emit its root route as static HTML.
 export const dynamic = "force-static";
@@ -28,7 +39,8 @@ type PageId =
   | "runtime"
   | "safety"
   | "docs"
-  | "release-status";
+  | "release-status"
+  | "settings";
 
 type PlannerDraft = {
   serverName: string;
@@ -78,6 +90,11 @@ type VerifiedInstallerManifest = {
 };
 
 const STORAGE_KEY = "minecraft-server-command-center.site.planner.v1";
+const UNIVERSAL_STORAGE_KEY = "minecraft-server-command-center.site.universal.v1";
+const PERSONAL_VOCABULARY_CACHE_KEY = "minecraft-server-command-center.site.personal-vocabulary.v1";
+const SCHOOL_UNLOCK_KEY = "minecraft-server-command-center.site.school-unlock.sha256";
+const CUSTOM_LOGO_CACHE_KEY = "minecraft-server-command-center.site.custom-logo.v1";
+const MAX_CUSTOM_LOGO_BYTES = 512 * 1024;
 const SEARCH_DEFAULT: SearchState = {
   query: "",
   pattern: "",
@@ -105,12 +122,12 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.30",
-  sourceCommit: "ffe3c43df50c29d254526d616db5150325179af2",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.30",
+  releaseTag: "v0.1.32",
+  sourceCommit: "7974e8b975838ed167710e1aa130024fd457f897",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.32",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.30/Setup.exe",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.32/Setup.exe",
   assetSizeBytes: 115077120,
   releasePublishedAt: "2026-08-14T04:47:01Z",
   unsigned: true,
@@ -170,6 +187,12 @@ const PAGE_DEFINITIONS: Array<{
     eyebrow: "Version-pinned installer handoff",
     description: "Review the embedded release record and open its exact Windows installer asset.",
   },
+  {
+    id: "settings",
+    label: "Universal settings",
+    eyebrow: "Local preferences",
+    description: "Set language, tone, emoji, appearance, app display name, logo, tabs, and private local-data controls.",
+  },
 ];
 
 const VERSION_DETAILS: Record<GameVersion, { java: JavaVersion; note: string }> = {
@@ -225,6 +248,12 @@ const DOC_ITEMS = [
 
 function isHexColor(value: unknown): value is string {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
+
+function hexToRgb(value: string): string {
+  if (!isHexColor(value)) return "RGB unavailable";
+  const channels = [value.slice(1, 3), value.slice(3, 5), value.slice(5, 7)].map((channel) => Number.parseInt(channel, 16));
+  return `rgb(${channels.join(", ")})`;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -323,6 +352,59 @@ function testSearch(text: string, state: SearchState) {
   } catch {
     return false;
   }
+}
+
+async function sha256Text(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function tonePreview(language: UniversalLanguageMode, level: number): string {
+  const english = level >= 4
+    ? "The planner is wearing a tiny party hat, but the safety facts stay exactly where they belong."
+    : level >= 2
+      ? "The planner keeps the facts clear, with a small wink around the edges."
+      : "The planner uses a direct, professional voice while preserving every safety fact.";
+  const cantonese = level >= 4
+    ? "個 planner 戴住細細頂派對帽，但安全資料一樣企得直直。"
+    : level >= 2
+      ? "個 planner 保持資料清楚，順手加少少笑位。"
+      : "個 planner 用直接、專業嘅語氣，安全資料一字不漏。";
+  if (language === "cantonese") return cantonese;
+  if (language === "bilingual") return `${english} · ${cantonese}`;
+  return english;
+}
+
+async function readCustomLogo(file: File): Promise<string> {
+  if (file.size <= 0 || file.size > MAX_CUSTOM_LOGO_BYTES) {
+    throw new Error("Choose a non-empty PNG or JPEG image no larger than 512 KiB.");
+  }
+  if (file.type !== "image/png" && file.type !== "image/jpeg") {
+    throw new Error("Only PNG and JPEG custom logos are accepted in this local image boundary.");
+  }
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const png = bytes.length >= 8 && bytes.slice(0, 8).every((value, index) => value === [137, 80, 78, 71, 13, 10, 26, 10][index]);
+  const jpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (!png && !jpeg) throw new Error("The selected file did not contain a recognised PNG or JPEG signature.");
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("The logo could not be read locally.")));
+    reader.addEventListener("error", () => reject(new Error("The logo could not be read locally.")));
+    reader.readAsDataURL(file);
+  });
+  await new Promise<void>((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => {
+      if (image.naturalWidth <= 0 || image.naturalHeight <= 0 || image.naturalWidth > 4096 || image.naturalHeight > 4096) {
+        reject(new Error("The logo dimensions must be between 1 and 4096 pixels on each axis."));
+        return;
+      }
+      resolve();
+    });
+    image.addEventListener("error", () => reject(new Error("The selected image could not be decoded locally.")));
+    image.src = dataUrl;
+  });
+  return dataUrl;
 }
 
 function regexError(state: SearchState) {
@@ -566,6 +648,7 @@ function ArgvPlan({ argv, caption }: { argv: string[]; caption: string }) {
 
 export default function Home() {
   const [draft, setDraft] = useState<PlannerDraft>(DEFAULT_DRAFT);
+  const [universalSettings, setUniversalSettings] = useState<UniversalSettingsV1>(DEFAULT_UNIVERSAL_SETTINGS);
   const [activePage, setActivePage] = useState<PageId>("overview");
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
@@ -573,12 +656,18 @@ export default function Home() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [universalHydrated, setUniversalHydrated] = useState(false);
+  const [schoolUnlockConfigured, setSchoolUnlockConfigured] = useState(false);
+  const [schoolUnlockInput, setSchoolUnlockInput] = useState("");
+  const [customLogoPreview, setCustomLogoPreview] = useState<string | null>(null);
   const [pendingPlannerHandoff, setPendingPlannerHandoff] = useState<PlannerHandoffV1 | null>(null);
   const [handoffStatus, setHandoffStatus] = useState<HandoffStatus>({
     tone: "neutral",
     message: "No planner handoff is selected. JSON files stay local to this browser session until you apply one.",
   });
   const plannerHandoffInput = useRef<HTMLInputElement>(null);
+  const personalVocabularyInput = useRef<HTMLInputElement>(null);
+  const customLogoInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const restore = () => {
@@ -590,10 +679,53 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const restore = () => {
+      const saved = window.localStorage.getItem(UNIVERSAL_STORAGE_KEY);
+      let parsed: unknown;
+      try {
+        parsed = saved ? JSON.parse(saved) as unknown : undefined;
+      } catch {
+        parsed = undefined;
+      }
+      const universalResult = parseUniversalSettings(parsed);
+      setUniversalSettings(universalResult.ok ? universalResult.value : DEFAULT_UNIVERSAL_SETTINGS);
+      if (!universalResult.ok) window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
+      const unlockHash = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+      setSchoolUnlockConfigured(Boolean(unlockHash));
+      const cachedVocabulary = window.localStorage.getItem(PERSONAL_VOCABULARY_CACHE_KEY);
+      if (cachedVocabulary) {
+        const result = parsePersonalVocabularyJson(cachedVocabulary);
+        if (result.ok) {
+          setUniversalSettings((current) => ({
+            ...current,
+            personalVocabulary: { status: "loaded", entryCount: result.value.entries.length },
+          }));
+        } else {
+          window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+        }
+      }
+      const cachedLogo = window.localStorage.getItem(CUSTOM_LOGO_CACHE_KEY);
+      if (cachedLogo?.startsWith("data:image/")) {
+        setCustomLogoPreview(cachedLogo);
+        setUniversalSettings((current) => ({ ...current, customLogoStatus: "loaded" }));
+      }
+      setUniversalHydrated(true);
+    };
+    const timer = window.setTimeout(restore, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-    document.documentElement.dataset.theme = draft.theme;
   }, [draft, hydrated]);
+
+  useEffect(() => {
+    if (!universalHydrated) return;
+    window.localStorage.setItem(UNIVERSAL_STORAGE_KEY, JSON.stringify(universalSettings));
+    document.documentElement.dataset.theme = universalSettings.theme;
+    document.documentElement.dataset.density = universalSettings.density;
+  }, [universalSettings, universalHydrated]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -695,10 +827,25 @@ export default function Home() {
       detail: "Clear the non-secret draft saved in this browser and restore the planner defaults.",
       action: () => resetDraft(),
     },
+    {
+      id: "universal-settings",
+      label: "Open universal settings",
+      detail: "Edit the local language, tone, appearance, app-name, logo, tab-dock, and private-data controls.",
+      action: () => setActivePage("settings"),
+    },
   ].filter((item) => testSearch(`${item.label} ${item.detail}`, paletteSearch));
 
   const updateDraft = <Key extends keyof PlannerDraft>(key: Key, value: PlannerDraft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
+    if (key === "theme" && (value === "dark" || value === "light")) {
+      setUniversalSettings((current) => ({ ...current, theme: value }));
+    }
+    if (key === "seed" && isHexColor(value)) {
+      setUniversalSettings((current) => ({ ...current, seedColor: value.toUpperCase() }));
+    }
+  };
+  const updateUniversalSettings = <Key extends keyof UniversalSettingsV1>(key: Key, value: UniversalSettingsV1[Key]) => {
+    setUniversalSettings((current) => ({ ...current, [key]: value }));
   };
   const navigate = (page: PageId) => {
     setActivePage(page);
@@ -711,6 +858,90 @@ export default function Home() {
     setHandoffStatus({ tone: "neutral", message: "Browser draft reset. No planner handoff is selected." });
     window.localStorage.removeItem(STORAGE_KEY);
     setNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
+  };
+  const resetUniversalSettings = () => {
+    setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);
+    setSchoolUnlockInput("");
+    setCustomLogoPreview(null);
+    window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
+    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+    window.localStorage.removeItem(SCHOOL_UNLOCK_KEY);
+    window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
+    setSchoolUnlockConfigured(false);
+    setNotice({ tone: "success", title: "Universal settings reset", detail: "Local preferences, the private vocabulary cache, the custom logo, and the toy unlock credential were cleared." });
+  };
+  const saveSchoolUnlock = async () => {
+    if (schoolUnlockInput.length < 4 || schoolUnlockInput.length > 32) {
+      setNotice({ tone: "warning", title: "Unlock credential not saved", detail: "Use a locally entered value from 4 to 32 characters. It is never shown or exported." });
+      return;
+    }
+    const digest = await sha256Text(schoolUnlockInput);
+    window.localStorage.setItem(SCHOOL_UNLOCK_KEY, digest);
+    setSchoolUnlockConfigured(true);
+    setSchoolUnlockInput("");
+    setNotice({ tone: "success", title: "Local unlock credential saved", detail: "The credential is stored only as a local digest. This toy lock is not a security boundary." });
+  };
+  const disableSchoolMode = async () => {
+    const stored = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
+    if (!stored) {
+      setNotice({ tone: "warning", title: "Set an unlock credential first", detail: `Set a local credential before turning off ${universalSettings.schoolModeName}. Clearing this site's storage remains the documented recovery route.` });
+      return;
+    }
+    if (!schoolUnlockInput) {
+      setNotice({ tone: "warning", title: "Unlock value required", detail: `Enter the local credential to turn off ${universalSettings.schoolModeName}.` });
+      return;
+    }
+    const digest = await sha256Text(schoolUnlockInput);
+    if (digest !== stored) {
+      setNotice({ tone: "warning", title: "Unlock value did not match", detail: `The local credential did not match. The ${universalSettings.schoolModeName} setting remains on.` });
+      return;
+    }
+    setSchoolUnlockInput("");
+    updateUniversalSettings("schoolModeEnabled", false);
+    setNotice({ tone: "success", title: `${universalSettings.schoolModeName} turned off`, detail: "The previous language and tone preferences are available again." });
+  };
+  const selectPersonalVocabulary = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.currentTarget.files?.item(0);
+    event.currentTarget.value = "";
+    if (!selected) return;
+    if (selected.size > PERSONAL_VOCABULARY_LIMITS.maxBytes) {
+      setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: "Choose a JSON file no larger than 64 KiB." });
+      return;
+    }
+    const result = parsePersonalVocabularyJson(await selected.text());
+    if (!result.ok) {
+      setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: result.reason });
+      return;
+    }
+    window.localStorage.setItem(PERSONAL_VOCABULARY_CACHE_KEY, JSON.stringify(result.value));
+    updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
+    setNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately. This foundation does not rewrite shipped public labels.` });
+  };
+  const clearPersonalVocabulary = () => {
+    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+    updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
+    setNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording remains active." });
+  };
+  const selectCustomLogo = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.currentTarget.files?.item(0);
+    event.currentTarget.value = "";
+    if (!selected) return;
+    try {
+      const dataUrl = await readCustomLogo(selected);
+      window.localStorage.setItem(CUSTOM_LOGO_CACHE_KEY, dataUrl);
+      setCustomLogoPreview(dataUrl);
+      updateUniversalSettings("customLogoStatus", "loaded");
+      setNotice({ tone: "success", title: "Custom logo converted locally", detail: "The validated PNG or JPEG is cached only in this browser. Package identity and installer identity were not changed." });
+    } catch (error) {
+      setNotice({ tone: "warning", title: "Custom logo rejected", detail: error instanceof Error ? error.message : "The local image could not be converted." });
+    }
+  };
+  const clearCustomLogo = () => {
+    window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
+    setCustomLogoPreview(null);
+    updateUniversalSettings("customLogoStatus", "empty");
+    updateUniversalSettings("logoPreset", "default");
+    setNotice({ tone: "info", title: "Custom logo cleared", detail: "The shipped default mark is active again." });
   };
   const exportPlannerHandoff = () => {
     try {
@@ -763,7 +994,7 @@ export default function Home() {
     setHandoffStatus({ tone: "neutral", message: "Imported planner handoff discarded. The browser-local draft was not changed." });
     setNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
   };
-  const appStyle = { "--seed": draft.seed } as CSSProperties;
+  const appStyle = { "--seed": universalSettings.seedColor } as CSSProperties;
   const selectedPage = PAGE_DEFINITIONS.find((page) => page.id === activePage) ?? PAGE_DEFINITIONS[0];
   const pendingPlannerHandoffPreview = pendingPlannerHandoff ? previewPlannerHandoff(pendingPlannerHandoff) : null;
 
@@ -1056,7 +1287,7 @@ export default function Home() {
               <button type="button" className="secondary-button" onClick={resetDraft}>
                 Reset browser draft
               </button>
-              <p className="field-help">No secrets, server files, account data, or live settings are placed in browser storage.</p>
+              <p className="field-help">No credentials, server files, account data, or private planner file contents are placed in this draft record. Universal settings use a separate bounded local record.</p>
             </div>
           </div>
         </section>
@@ -1068,7 +1299,7 @@ export default function Home() {
     <div className="page-stack">
       <section className="hero-card">
         <div className="hero-card__copy">
-          <p className="eyebrow">Minecraft Server Command Center</p>
+          <p className="eyebrow">{universalSettings.appDisplayName}</p>
           <h1>Plan a safer Paper or Spigot server.</h1>
           <p className="hero-lede">Configure locally. Launch in the desktop app.</p>
           <p className="body-copy">
@@ -1388,6 +1619,227 @@ export default function Home() {
     </div>
   );
 
+  const settingsPage = (
+    <div className="page-stack">
+      <PageHeading page={selectedPage} />
+      <section className="surface-card notice-panel">
+        <div>
+          <p className="eyebrow">Local-only settings foundation</p>
+          <h2>One bounded preference record for this site</h2>
+          <p className="body-copy">
+            These controls persist in this browser only. They do not change package identity, installer identity, server files,
+            accounts, credentials, or any remote service. The full universal surface inventory remains the release gate.
+          </p>
+        </div>
+        <span className="status-chip status-chip--info">Schema v1</span>
+      </section>
+
+      <section className="surface-card" aria-labelledby="settings-language-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Language & tone</p>
+            <h2 id="settings-language-title">Choose how local copy is presented</h2>
+          </div>
+          <span className="status-chip status-chip--neutral">Persisted</span>
+        </div>
+        {universalSettings.schoolModeEnabled ? (
+          <p className="field-help field-help--large">{universalSettings.schoolModeName} is on: English is forced and Cantonese, bilingual, funny-level, emoji, and private-vocabulary controls are omitted until the setting is unlocked.</p>
+        ) : (
+          <>
+            <div className="form-grid">
+              <div className="field-group">
+                <label className="field-label" htmlFor="universal-language-mode">Language mode</label>
+                <select
+                  id="universal-language-mode"
+                  className="select-input"
+                  value={universalSettings.languageMode}
+                  onChange={(event) => updateUniversalSettings("languageMode", event.target.value as UniversalLanguageMode)}
+                >
+                  <option value="english">English</option>
+                  <option value="cantonese">Playful Hong Kong-style Cantonese</option>
+                  <option value="bilingual">Bilingual</option>
+                </select>
+                <p className="field-help">The setting is stored as a bounded enum. This foundation shows the selected mode in its tone preview; complete app-wide localization remains unverified.</p>
+              </div>
+              <div className="field-group">
+                <span className="field-label">Dialog emoji decoration</span>
+                <div className="switch-row">
+                  <span><strong>Show emojis in dialogs and message boxes</strong><small>Emoji is decoration only and never replaces a control label or accessible name.</small></span>
+                  <input id="universal-emojis" type="checkbox" checked={universalSettings.showEmojisInDialogs} onChange={(event) => updateUniversalSettings("showEmojisInDialogs", event.target.checked)} />
+                  <span className="switch-track" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
+            <div className="form-grid">
+              <div className="field-group">
+                <label className="field-label" htmlFor="funny-level-english">English funny level: {universalSettings.funnyLevelEnglish} / 5</label>
+                <input id="funny-level-english" type="range" min="1" max="5" step="1" value={universalSettings.funnyLevelEnglish} onChange={(event) => updateUniversalSettings("funnyLevelEnglish", Number(event.target.value))} />
+                <p className="field-help">Level 1 is fully serious; level 5 styles every message, including warnings and errors, without changing facts.</p>
+              </div>
+              <div className="field-group">
+                <label className="field-label" htmlFor="funny-level-cantonese">Cantonese funny level: {universalSettings.funnyLevelCantonese} / 5</label>
+                <input id="funny-level-cantonese" type="range" min="1" max="5" step="1" value={universalSettings.funnyLevelCantonese} onChange={(event) => updateUniversalSettings("funnyLevelCantonese", Number(event.target.value))} />
+                <p className="field-help">This independent slider is stored separately from English and keeps the same factual-warning boundary.</p>
+              </div>
+            </div>
+            <div className="surface-card surface-card--nested" aria-live="polite">
+              <p className="eyebrow">Tone preview</p>
+              <p className="body-copy">{universalSettings.showEmojisInDialogs ? "✨ " : ""}{tonePreview(universalSettings.languageMode, universalSettings.languageMode === "cantonese" ? universalSettings.funnyLevelCantonese : universalSettings.funnyLevelEnglish)}</p>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="surface-card" aria-labelledby="settings-school-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Focus boundary</p>
+            <h2 id="settings-school-title">{universalSettings.schoolModeName}</h2>
+          </div>
+          <span className={universalSettings.schoolModeEnabled ? "status-chip status-chip--warning" : "status-chip status-chip--neutral"}>{universalSettings.schoolModeEnabled ? "On" : "Off"}</span>
+        </div>
+        {!universalSettings.schoolModeEnabled ? (
+          <>
+            <div className="field-group">
+              <label className="field-label" htmlFor="school-mode-name">Display name</label>
+              <input id="school-mode-name" className="text-input" value={universalSettings.schoolModeName} maxLength={80} onChange={(event) => updateUniversalSettings("schoolModeName", event.target.value)} />
+              <p className="field-help">The chosen name is used on this surface after saving. It is a user-experience lock, not a security boundary.</p>
+            </div>
+            <div className="switch-row">
+              <span><strong>Turn on {universalSettings.schoolModeName}</strong><small>When enabled, English is forced and the optional language, tone, emoji, and private-vocabulary controls are omitted.</small></span>
+              <input id="school-mode-enabled" type="checkbox" checked={false} onChange={() => updateUniversalSettings("schoolModeEnabled", true)} />
+              <span className="switch-track" aria-hidden="true" />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="school-unlock-create">Set or replace local unlock value</label>
+              <input id="school-unlock-create" className="text-input" type="password" value={schoolUnlockInput} maxLength={32} onChange={(event) => setSchoolUnlockInput(event.target.value)} autoComplete="new-password" />
+              <div className="button-row"><button type="button" className="secondary-button" onClick={saveSchoolUnlock}>Save local unlock value</button></div>
+              <p className="field-help">{schoolUnlockConfigured ? "A local digest is configured; the value itself is never shown, exported, logged, or placed in the vocabulary cache." : "No unlock value is configured yet."}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="body-copy">This site uses a local digest for the toy unlock. It makes no security claim and does not protect data from another person using this browser.</p>
+            <div className="field-group">
+              <label className="field-label" htmlFor="school-unlock-disable">Enter the local unlock value to turn off {universalSettings.schoolModeName}</label>
+              <input id="school-unlock-disable" className="text-input" type="password" value={schoolUnlockInput} maxLength={32} onChange={(event) => setSchoolUnlockInput(event.target.value)} autoComplete="current-password" />
+              <div className="button-row"><button type="button" className="secondary-button" onClick={disableSchoolMode}>Unlock and turn off</button></div>
+              <p className="field-help">Forgotten values recover by clearing this site&apos;s browser storage; the site does not provide a support reset or claim encryption.</p>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="surface-card" aria-labelledby="settings-appearance-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Appearance</p>
+            <h2 id="settings-appearance-title">Theme, density, accent, and app display name</h2>
+          </div>
+          <span className="status-chip status-chip--info">Live local preview</span>
+        </div>
+        <div className="form-grid">
+          <div className="field-group">
+            <label className="field-label" htmlFor="app-display-name">App display name</label>
+            <input id="app-display-name" className="text-input" value={universalSettings.appDisplayName} maxLength={100} onChange={(event) => updateUniversalSettings("appDisplayName", event.target.value)} />
+            <p className="field-help">This changes the user-facing label only. Package identity, data location, executable name, installer, and update feed stay constant.</p>
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="universal-density">Density</label>
+            <select id="universal-density" className="select-input" value={universalSettings.density} onChange={(event) => updateUniversalSettings("density", event.target.value as UniversalSettingsV1["density"])}>
+              <option value="comfortable">Comfortable</option>
+              <option value="compact">Compact</option>
+            </select>
+            <p className="field-help">The preference is persisted and exposed as a document density state; full every-element editing remains a separate incomplete contract.</p>
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="universal-theme">Theme</label>
+            <select id="universal-theme" className="select-input" value={universalSettings.theme} onChange={(event) => { const theme = event.target.value as UniversalSettingsV1["theme"]; updateUniversalSettings("theme", theme); setDraft((current) => ({ ...current, theme })); }}>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+            <p className="field-help">The site applies this theme live and keeps it in the universal preference record.</p>
+          </div>
+          <div className="field-group">
+            <label className="field-label" htmlFor="universal-seed">Accent color</label>
+            <div className="color-row"><input id="universal-seed" type="color" value={universalSettings.seedColor} onChange={(event) => { const seed = event.target.value.toUpperCase(); updateUniversalSettings("seedColor", seed); setDraft((current) => ({ ...current, seed })); }} /><code>{universalSettings.seedColor}</code><span className="field-help">{hexToRgb(universalSettings.seedColor)}</span></div>
+            <p className="field-help">This foundation keeps the hex and RGB readout synchronized. The full multi-space translator remains unverified.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="surface-card" aria-labelledby="settings-logo-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">App logo</p>
+            <h2 id="settings-logo-title">Choose a shipped mark or a private local image</h2>
+          </div>
+          <span className="status-chip status-chip--neutral">{universalSettings.customLogoStatus === "loaded" ? "Custom loaded" : "Preset active"}</span>
+        </div>
+        <div className="form-grid">
+          <div className="field-group">
+            <span className="field-label">Logo presets</span>
+            <div className="segmented-control segmented-control--compact" role="radiogroup" aria-label="App logo presets">
+              {LOGO_PRESETS.map((preset) => (
+                <button key={preset} type="button" className={universalSettings.logoPreset === preset ? "segment is-selected" : "segment"} role="radio" aria-checked={universalSettings.logoPreset === preset} onClick={() => { updateUniversalSettings("logoPreset", preset as LogoPreset); setCustomLogoPreview(null); updateUniversalSettings("customLogoStatus", "empty"); window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY); }}>
+                  {preset === "default" ? "Default" : preset === "paper" ? "Paper" : "Pixel"}
+                </button>
+              ))}
+            </div>
+            <p className="field-help">Presets change the local display mark only. They do not change package or installer identity.</p>
+          </div>
+          <div className="field-group">
+            <span className="field-label">Custom image</span>
+            <input ref={customLogoInput} className="sr-only" type="file" accept="image/png,image/jpeg" onChange={selectCustomLogo} aria-label="Choose a local custom app logo" />
+            <div className="button-row"><button type="button" className="secondary-button" onClick={() => customLogoInput.current?.click()}>Choose local PNG or JPEG</button><button type="button" className="secondary-button" onClick={clearCustomLogo} disabled={!customLogoPreview}>Reset custom logo</button></div>
+            <p className="field-help">The file is decoded and bounded locally at 512 KiB and 4096 pixels per axis. No upload or remote converter is used.</p>
+            {customLogoPreview ? <img className="custom-logo-preview" src={customLogoPreview} alt="User-selected local custom app logo preview" /> : <p className="empty-state">No custom image is loaded.</p>}
+          </div>
+        </div>
+      </section>
+
+      <section className="surface-card" aria-labelledby="settings-tabs-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Tabbed navigation</p>
+            <h2 id="settings-tabs-title">Choose the tab strip docking edge</h2>
+          </div>
+          <span className="status-chip status-chip--neutral">Persisted</span>
+        </div>
+        <label className="field-label" htmlFor="tab-dock-position">Tab strip position</label>
+        <select id="tab-dock-position" className="select-input" value={universalSettings.tabDock} onChange={(event) => updateUniversalSettings("tabDock", event.target.value as UniversalSettingsV1["tabDock"])}>
+          {TAB_DOCK_POSITIONS.map((position) => <option key={position} value={position}>{position[0].toUpperCase() + position.slice(1)}</option>)}
+        </select>
+        <p className="field-help">The preference is stored for future tab-strip layout work. Reordering, pinning, grouping, four discovery searches, and bulk close remain explicitly unverified.</p>
+      </section>
+
+      {!universalSettings.schoolModeEnabled ? (
+        <section className="surface-card" aria-labelledby="settings-vocabulary-title">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Private personal vocabulary</p>
+              <h2 id="settings-vocabulary-title">Upload a validated local JSON file</h2>
+            </div>
+            <span className={universalSettings.personalVocabulary.status === "loaded" ? "status-chip status-chip--success" : "status-chip status-chip--neutral"}>{universalSettings.personalVocabulary.status === "loaded" ? `${universalSettings.personalVocabulary.entryCount} entries loaded` : "No file loaded"}</span>
+          </div>
+          <input ref={personalVocabularyInput} className="sr-only" type="file" accept="application/json,.json" onChange={selectPersonalVocabulary} aria-label="Choose local personal vocabulary JSON" />
+          <div className="button-row"><button type="button" className="secondary-button" onClick={() => personalVocabularyInput.current?.click()}>Choose personal vocabulary JSON</button><button type="button" className="secondary-button" onClick={clearPersonalVocabulary} disabled={universalSettings.personalVocabulary.status !== "loaded"}>Clear private vocabulary</button></div>
+          <p className="field-help">Schema v1 is bounded to 64 KiB, 128 entries, 160-character strings, fixed fields, safe object keys, and no duplicate keys. The cache is local-only and this foundation does not copy its values into exports, logs, or public text.</p>
+          <p className="field-error">The validated cache is recorded, but complete private text-boundary replacement across every surface is not yet shipped.</p>
+        </section>
+      ) : null}
+
+      <section className="surface-card">
+        <div className="section-heading">
+          <div><p className="eyebrow">Recovery</p><h2>Reset this browser&apos;s local preference record</h2></div>
+          <span className="status-chip status-chip--warning">Destructive local reset</span>
+        </div>
+        <p className="body-copy">This action clears the universal preference record, the private vocabulary cache, the custom logo cache, and the toy unlock digest. It does not touch server files or the desktop draft.</p>
+        <button type="button" className="secondary-button" onClick={resetUniversalSettings}>Reset universal settings</button>
+      </section>
+    </div>
+  );
+
   const pageContent: Record<PageId, ReactNode> = {
     overview: overviewPage,
     configure: configurePage,
@@ -1397,6 +1849,7 @@ export default function Home() {
     safety: safetyPage,
     docs: docsPage,
     "release-status": releaseStatusPage,
+    settings: settingsPage,
   };
 
   return (
@@ -1404,9 +1857,13 @@ export default function Home() {
       <a className="skip-link" href="#planner-content">Skip to planner content</a>
       <header className="top-app-bar">
         <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true"><span /><span /><span /></div>
+          {customLogoPreview && universalSettings.customLogoStatus === "loaded" ? (
+            <img className="brand-mark brand-mark--custom" src={customLogoPreview} alt="User-selected app logo" />
+          ) : (
+            <div className={`brand-mark brand-mark--${universalSettings.logoPreset}`} aria-hidden="true"><span /><span /><span /></div>
+          )}
           <div>
-            <p className="brand-name">Minecraft Server Command Center</p>
+            <p className="brand-name">{universalSettings.appDisplayName}</p>
             <p className="brand-subtitle">Companion configuration planner</p>
           </div>
         </div>

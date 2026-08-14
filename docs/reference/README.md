@@ -11,6 +11,7 @@ This directory holds source-governed reusable technical contracts for Minecraft 
 | [Unsigned automatic-update foundation](unsigned-automatic-updates.md) | Defines the future Squirrel.Windows update-feed, parsing, package-selection, unsigned-artifact, and native-adapter boundaries without claiming a live update flow. |
 | [Server Configuration Writer Foundation](server-configuration-writer.md) | Defines the controlled, review-token-confirmed local writer for allowlisted scalar configuration patches, bounded atomic writes, redacted outcomes, rollback records, and leaf-only Paper world overrides. |
 | [Release dim sum metadata](release-dim-sum-metadata.md) | Defines bounded public-catalog resolution, per-project code-name reservation, release-note linking, and an honest no-asset fallback without copying a photo. |
+| [Universal settings foundation](universal-settings.md) | Defines the shared schema, local persistence, bounded personal-vocabulary loader, School mode boundary, logo selection, privacy behavior, and current verification limits. |
 
 ## Source policy
 

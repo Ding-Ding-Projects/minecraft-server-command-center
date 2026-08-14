@@ -13,6 +13,17 @@ server-process action. The companion site can display one separately verified,
 published, version-pinned installer handoff; that static record is not evidence of a
 local download, installation, update, or runtime action.
 
+The current implementation also contains a partial universal-settings
+foundation. The companion site and desktop renderer expose a bounded persisted
+settings record with language mode, independent funny levels, dialog emoji,
+renameable School mode, display name, theme, density, seed color, tab docking,
+logo selection, and a local personal-vocabulary JSON boundary. These controls
+are source and focused-contract evidence only; full app-wide localization,
+credential-factor behavior, every-element appearance editing, complete tab
+management, and built-artifact interaction remain unverified. See
+[Universal settings](docs/reference/universal-settings.md) and the
+[completeness inventory](docs/verification/completeness-inventory.md).
+
 ## Current boundaries
 
 The companion site is a browser-local planning and documentation surface. It
@@ -74,6 +85,7 @@ not a shell command and remains non-launching.
 - [Paper and Spigot CLI guidance](docs/server-configuration/paper-spigot-cli.md)
 - [Typed Paper and Spigot registry reference](docs/reference/paper-spigot-cli-catalog.md)
 - [Java runtime setup reference](docs/reference/java-runtime-setup.md)
+- [Universal settings foundation](docs/reference/universal-settings.md)
 - [Desktop completeness inventory](docs/verification/completeness-inventory.md)
 
 ## Source layout
@@ -116,8 +128,8 @@ record does not claim automated desktop tests, browser or desktop interaction,
 accessibility review, local installer operation, automatic-update behavior, or
 server-process action. The 2026-08-14 release audit did verify the root build,
 unsigned Squirrel.Windows package, companion-site build and lint, Pages staging,
-GitHub Actions run `31770796058`, and published release `v0.1.30` for commit
-`ffe3c43df50c29d254526d616db5150325179af2`. Read the relevant handoff and
+GitHub Actions run `31771514026`, and published release `v0.1.32` for commit
+`7974e8b975838ed167710e1aa130024fd457f897`. Read the relevant handoff and
 completeness inventory before calling a surface fully verified.
 
 The Planner Handoff v1 record and Java runtime guidance remain source-design

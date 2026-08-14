@@ -4,6 +4,7 @@ import type { PickerKind } from "../shared/desktop-api";
 import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
+import { loadUniversalSettings, saveUniversalSettings } from "./universal-settings-store";
 import { JavaRuntimeController } from "./java-runtime-controller";
 import { getUpdateBoundary } from "./update-boundary";
 import {
@@ -114,6 +115,8 @@ function createWindow(): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle("settings:load", () => loadUniversalSettings(app.getPath("userData")));
+  ipcMain.handle("settings:save", (_event, value: unknown) => saveUniversalSettings(app.getPath("userData"), value));
   ipcMain.handle("draft:load", () => loadDraft(app.getPath("userData")));
   ipcMain.handle("draft:save", (_event, value: unknown) => saveDraft(app.getPath("userData"), value));
   ipcMain.handle("handoff:choose", () => choosePlannerHandoff());

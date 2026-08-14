@@ -1,5 +1,6 @@
 import type { ServerDraft } from "./server-draft";
 import type { PlannerHandoffPreview } from "./planner-handoff";
+import type { UniversalSettingsV1 } from "./universal-contracts";
 
 export type PickerKind = "folder" | "jar" | "config";
 
@@ -107,6 +108,10 @@ export interface JavaRuntimeAssessment {
 }
 
 export interface DesktopApi {
+  readonly settings: {
+    load(): Promise<UniversalSettingsV1>;
+    save(value: unknown): Promise<UniversalSettingsV1>;
+  };
   readonly draft: {
     load(): Promise<ServerDraft>;
     save(value: unknown): Promise<ServerDraft>;
