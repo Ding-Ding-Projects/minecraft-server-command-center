@@ -31,7 +31,7 @@ const rendererMarkers = [
   "function dismissSelectedNotifications(): void",
   "notificationRegexBinding = bindAnchoredRegexBuilder({",
   'data-notification-action=\"dismiss-selected\"',
-  "showSnackbar(message: string): void",
+  "showSnackbar(message: string, tone?:",
 ];
 const htmlMarkers = [
   'data-tab=\"notifications\"',
