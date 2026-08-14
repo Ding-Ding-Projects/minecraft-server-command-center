@@ -171,13 +171,14 @@ The planner and desktop sources remain distinct from runtime evidence. This
 record does not claim automated desktop tests, a complete accessibility audit,
 automatic-update behavior, or server-process action. The 2026-08-14 release
 audit verified the root build, unsigned Squirrel.Windows package, companion-site
-build, GitHub Actions run `31844310617`, and published release `v0.1.51` for
-commit `0e599ccb0fc7a1d0cf256db3d775e86c200ec913`. The release record names the
-unsigned `Setup.exe` asset at `140467200` bytes, workflow timing `00:02:35`,
-dim-sum code name `Steamed Beef Tripe with Chu Hou Sauce · 柱侯金錢肚`,
-and the exact line-count table. The verified catalog photo is attached to the
-release. The direct `/silent` installer run returned `EXIT_CODE=0`, and the
-installed `app-0.1.51` surface launched through the approved headless route.
+build, GitHub Actions run `31847230951`, and published release `v0.1.52` for
+commit `53f304e9a389e5264739d2cab9383f10083f70e6`. The release record names the
+unsigned `Setup.exe` asset at `140467200` bytes, workflow timing `00:03:00`,
+dim-sum code name `Steamed Curry Cuttlefish · 咖喱蒸魷魚`, exact artifact hashes,
+and the exact line-count table. The release links to the public catalog photo
+asset without copying a catalog image into this repository's release. The
+direct `/silent` installer run returned `EXIT_CODE=0`; the real built
+companion-site focus capture is published as a release asset with its SHA-256.
 Read the relevant handoff and completeness inventory before calling a surface
 fully verified.
 

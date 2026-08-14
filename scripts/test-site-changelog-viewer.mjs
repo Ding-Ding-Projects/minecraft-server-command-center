@@ -12,7 +12,7 @@ const styleSource = await readText("site/app/globals.css");
 const changelogSource = await readText("CHANGELOG.md");
 
 const expectedVersions = [
-  "0.1.51", "0.1.50", "0.1.44", "0.1.42", "0.1.40", "0.1.39", "0.1.38", "0.1.37", "0.1.36", "0.1.35", "0.1.34", "0.1.33", "0.1.32", "0.1.31", "0.1.30",
+  "0.1.52", "0.1.51", "0.1.50", "0.1.44", "0.1.42", "0.1.40", "0.1.39", "0.1.38", "0.1.37", "0.1.36", "0.1.35", "0.1.34", "0.1.33", "0.1.32", "0.1.31", "0.1.30",
   "0.1.29", "0.1.28", "0.1.27", "0.1.26", "0.1.25", "0.1.24", "0.1.23", "0.1.22", "0.1.21", "0.1.20",
   "0.1.19", "0.1.16", "0.1.15", "0.1.14", "0.1.13", "0.1.12",
 ];
@@ -51,7 +51,7 @@ const requiredPageMarkers = [
   "onClick={exportChangelog}",
   "renderChangelogMarkdown(filteredChangelogReleases, changelogFilterSummary)",
   "Exact commit links",
-  "including the verified published v0.1.51, v0.1.50, v0.1.44, v0.1.42, and v0.1.40 records.",
+  "including the verified published v0.1.52, v0.1.51, v0.1.50, v0.1.44, and v0.1.42 records.",
 ];
 
 function assertSourceContract(source, markers, label) {
@@ -71,12 +71,12 @@ for (const marker of requiredPageMarkers) {
 }
 
 const requiredInstallerMarkers = [
-  'releaseTag: "v0.1.51"',
-  'sourceCommit: "0e599ccb0fc7a1d0cf256db3d775e86c200ec913"',
-  'releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.51"',
-  'https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.51/Setup.exe',
+  'releaseTag: "v0.1.52"',
+  'sourceCommit: "53f304e9a389e5264739d2cab9383f10083f70e6"',
+  'releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.52"',
+  'https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/Setup.exe',
   "assetSizeBytes: 140467200",
-  'releasePublishedAt: "2026-08-14T21:55:16Z"',
+  'releasePublishedAt: "2026-08-14T22:38:57Z"',
 ];
 assertSourceContract(pageSource, requiredInstallerMarkers, "verified installer handoff");
 for (const marker of requiredInstallerMarkers) {
@@ -119,6 +119,26 @@ const requiredRelease51Markers = [
   "project-total files / 32104 lines / 29012 non-blank",
   "grand-total files / 32109 lines / 29016 non-blank",
 ];
+const requiredRelease52Markers = [
+  'version: "0.1.52"',
+  'releaseTargetSha: "53f304e9a389e5264739d2cab9383f10083f70e6"',
+  'releaseUrl: `${RELEASE}v0.1.52`',
+  "31847230951",
+  "Steamed Curry Cuttlefish · 咖喱蒸魷魚",
+  "140467200 bytes",
+  "project total was 124 files / 32206 lines / 29111 non-blank",
+  "grand total was 125 files / 32211 lines / 29115 non-blank",
+  "site-v0151-focus-fixed.png",
+  "7f7a865f8820a2aebbb9b91e3a7dfb37ddf971036c001252da8d92a732d52b2e",
+];
+assertSourceContract(dataSource, requiredRelease52Markers, "v0.1.52 changelog record");
+for (const marker of requiredRelease52Markers) {
+  const removed = dataSource.replaceAll(marker, "");
+  assert.throws(
+    () => assertSourceContract(removed, requiredRelease52Markers, "v0.1.52 changelog record"),
+    `negative regression stayed green after removing v0.1.52 release marker: ${marker}`,
+  );
+}
 assertSourceContract(dataSource, requiredRelease51Markers, "v0.1.51 changelog record");
 for (const marker of requiredRelease51Markers) {
   const removed = dataSource.replaceAll(marker, "");

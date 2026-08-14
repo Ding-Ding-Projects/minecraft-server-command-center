@@ -7,13 +7,23 @@ external API, start a transfer, or treat `Unreleased` notes as shipped.
 
 ## Records and commit provenance
 
-The checked-in `site/app/changelog-data.ts` contains all 31 non-draft,
+The checked-in `site/app/changelog-data.ts` contains all 32 non-draft,
 non-prerelease release records currently available to this companion:
 
 - The categorized `CHANGELOG.md` records are used for `v0.1.38`, `v0.1.33`,
   `v0.1.32`, `v0.1.31`, and `v0.1.30`.
-- The published release records supply `v0.1.51`, `v0.1.50`, `v0.1.44`, `v0.1.42`, `v0.1.40`, `v0.1.39`, `v0.1.37` through `v0.1.34`,
+- The published release records supply `v0.1.52`, `v0.1.51`, `v0.1.50`, `v0.1.44`, `v0.1.42`, `v0.1.40`, `v0.1.39`, `v0.1.37` through `v0.1.34`,
   `v0.1.29` through `v0.1.19`, and `v0.1.16` through `v0.1.12`.
+
+The `v0.1.52` record includes the exact target commit
+[`53f304e9a389e5264739d2cab9383f10083f70e6`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/53f304e9a389e5264739d2cab9383f10083f70e6),
+release date `2026-08-14`, published release time `2026-08-14T22:38:57Z`,
+the [published release record](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.52),
+the exact [Setup.exe asset](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/Setup.exe)
+with published size `140467200` bytes, and the successfully completed
+[GitHub Actions run 31847230951](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31847230951).
+Its dim-sum code name is `Steamed Curry Cuttlefish · 咖喱蒸魷魚`; the release
+links to the public catalog photo and the built companion-site focus capture.
 
 The `v0.1.51` record includes the exact target commit
 [`0e599ccb0fc7a1d0cf256db3d775e86c200ec913`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/0e599ccb0fc7a1d0cf256db3d775e86c200ec913),

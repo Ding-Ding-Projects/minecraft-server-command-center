@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Recorded the verified published `v0.1.52` release for source commit
+  `53f304e9a389e5264739d2cab9383f10083f70e6`, including workflow `31847230951`,
+  exact unsigned artifact hashes and line-count totals, the public dim-sum photo
+  link, and the real built companion-site focus capture.
 - Refreshed the verified installer handoff and release-history records to the
   published `v0.1.51` release, including its exact source commit, workflow
   timing, unsigned asset evidence, and dim-sum code name.

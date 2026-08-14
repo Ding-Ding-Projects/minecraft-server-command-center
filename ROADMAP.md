@@ -4,11 +4,13 @@
 
 Minecraft Server Command Center contains browser-local companion-site and
 desktop-foundation work, a published static companion surface, and a verified
-version-pinned release-asset record. Release `v0.1.51` also has verified
-packaged and installed launch evidence, planner handoff captures, a direct
-installer exit-code capture, and a bounded Java-runtime review capture. Those
-records do not prove server integration, external-service connection, live
-server action, a complete screen-reader audit, or a positive local Java probe.
+version-pinned release-asset record. Release `v0.1.52` has verified workflow,
+unsigned artifact, line-count, direct installer exit-code, public catalog-link,
+and real built companion-site capture evidence. The preceding `v0.1.51` release
+also has verified packaged and installed launch evidence, planner handoff
+captures, and a bounded Java-runtime review capture. These records do not prove
+server integration, external-service connection, live server action, a complete
+screen-reader audit, or a positive local Java probe.
 
 ## Completed source foundations
 
@@ -97,6 +99,10 @@ server action, a complete screen-reader audit, or a positive local Java probe.
   orientation and ArrowUp/ArrowDown/Home/End keyboard navigation; the real
   built surface keeps focus on the selected destination, with focused negative
   regressions for both handler registration and focus restoration.
+- Recorded and verified published release `v0.1.52` for commit
+  `53f304e9a389e5264739d2cab9383f10083f70e6`, including run `31847230951`,
+  exact unsigned artifact hashes, line-count totals, direct `Setup.exe /silent`
+  exit code `0`, the public dim-sum photo link, and the real built focus capture.
 
 ## Next implementation slices
 

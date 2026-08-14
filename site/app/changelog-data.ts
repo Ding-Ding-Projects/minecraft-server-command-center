@@ -302,6 +302,59 @@ function makePublishedRelease(input: {
 
 const PUBLISHED_RELEASE_RECORDS: readonly ChangelogRelease[] = [
   {
+    version: "0.1.52",
+    tag: "v0.1.52",
+    releaseDate: "2026-08-14",
+    releaseTargetSha: "53f304e9a389e5264739d2cab9383f10083f70e6",
+    releaseUrl: `${RELEASE}v0.1.52`,
+    sourceRecord: "Published release record",
+    categories: [
+      {
+        label: "Release",
+        items: [
+          "Published the non-draft v0.1.52 release for the exact source commit 53f304e9a389e5264739d2cab9383f10083f70e6 with unsigned Windows Squirrel.Windows artifacts.",
+          "Dim sum code name: Steamed Curry Cuttlefish · 咖喱蒸魷魚.",
+        ],
+      },
+      {
+        label: "Verification",
+        items: [
+          "GitHub Actions run 31847230951 completed its build and release-publication path for the exact target commit; the workflow does not run tests or lint.",
+          "Workflow started at 2026-08-14T22:35:57.0000000+00:00; release publication completed at 2026-08-14T22:38:57.3389039+00:00; workflow duration through publication was 00:03:00.",
+          "Setup.exe was published unsigned at https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/Setup.exe with an exact published size of 140467200 bytes and SHA-256 b196aa8bfccf716406560c68f97e781c473f8240543d18980c9e7716ec289302.",
+          "RELEASES SHA-256 was b5c708d33fff25b121d81add33b78f10788a384163a372b778530c54c679f249; the full nupkg SHA-256 was b8b19c1c73f577cdec01ec08c8a4844aeead72abab147a6bf542664e51d2f15c.",
+          "The release line-count table reported 73 own-source files / 24062 total lines / 22289 non-blank, 0 test files / 0 / 0, 49 styles-or-markup files / 8090 / 6778, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44.",
+          "The project total was 124 files / 32206 lines / 29111 non-blank and the grand total was 125 files / 32211 lines / 29115 non-blank; attribution totals matched and one package-manager lockfile was excluded.",
+          "The release notes link to the public catalog photo https://github.com/Ding-Ding-Projects/dim-sum-photos/releases/download/catalog-v1/hk-dish-0031-curry-cuttlefish.png; the consumer release does not copy or attach a second catalog image.",
+          "The real built companion-site focus capture was published at https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/site-v0151-focus-fixed.png with SHA-256 7f7a865f8820a2aebbb9b91e3a7dfb37ddf971036c001252da8d92a732d52b2e.",
+        ],
+      },
+    ],
+    commits: [
+      {
+        label: "Release target",
+        sha: "53f304e9a389e5264739d2cab9383f10083f70e6",
+        url: `${COMMIT}53f304e9a389e5264739d2cab9383f10083f70e6`,
+      },
+    ],
+    links: [
+      { label: "GitHub Actions run 31847230951", url: `${ACTIONS}31847230951` },
+      { label: "Published release record", url: `${RELEASE}v0.1.52` },
+      {
+        label: "Setup.exe · 140467200 bytes",
+        url: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/Setup.exe",
+      },
+      {
+        label: "Dim sum photo · hk-dish-0031-curry-cuttlefish.png",
+        url: "https://github.com/Ding-Ding-Projects/dim-sum-photos/releases/download/catalog-v1/hk-dish-0031-curry-cuttlefish.png",
+      },
+      {
+        label: "Built companion-site focus capture",
+        url: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/site-v0151-focus-fixed.png",
+      },
+    ],
+  },
+  {
     version: "0.1.51",
     tag: "v0.1.51",
     releaseDate: "2026-08-14",

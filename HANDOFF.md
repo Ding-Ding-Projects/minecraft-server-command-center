@@ -85,7 +85,42 @@ surface. The desktop article is already registered in
 source, focused contract, and renderer/main build only, not packaged runtime
 interaction or capture evidence.
 
-## Current release proof
+## Current release proof (v0.1.52)
+
+The current release audit for commit `53f304e9a389e5264739d2cab9383f10083f70e6`
+verified GitHub Actions run
+[`31847230951`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31847230951)
+and published release `v0.1.52`.
+
+The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
+`minecraft-server-command-center-0.1.52-full.nupkg`. The published `Setup.exe`
+URL is
+<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.52/Setup.exe>
+and its exact published size is `140467200` bytes with SHA-256
+`b196aa8bfccf716406560c68f97e781c473f8240543d18980c9e7716ec289302`.
+`RELEASES` has SHA-256
+`b5c708d33fff25b121d81add33b78f10788a384163a372b778530c54c679f249`; the
+full nupkg has SHA-256
+`b8b19c1c73f577cdec01ec08c8a4844aeead72abab147a6bf542664e51d2f15c`.
+The release timing is `00:03:00`, the dim-sum code name is
+`Steamed Curry Cuttlefish · 咖喱蒸魷魚`, and the assets are unsigned; no signing
+material is used. The release notes link to the public catalog photo, but do
+not copy or attach a second catalog image.
+
+The published line-count table reports 73 own-source files / 24062 total lines /
+22289 non-blank, 0 test files / 0 / 0, 49 styles-or-markup files / 8090 /
+6778, 1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its
+project total is 124 files / 32206 lines / 29111 non-blank; its grand total is
+125 / 32211 / 29115; and its attribution total matches. One package-manager
+lockfile is excluded.
+
+The release workflow does not run automated tests or lint. Local evidence also
+includes the companion-site build, type-check, changelog guard, vertical-tab
+keyboard guard, the real built focus capture, and direct `Setup.exe /silent`
+exit code `0`. A complete screen-reader audit and a positive local Java probe
+remain unverified.
+
+## Previous release proof (v0.1.51)
 
 The release audit for commit `0e599ccb0fc7a1d0cf256db3d775e86c200ec913`
 verified GitHub Actions run
