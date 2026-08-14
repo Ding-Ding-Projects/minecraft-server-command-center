@@ -126,6 +126,20 @@ function assertSourceContract(source) {
   }
 }
 
+function assertNoReparseComponents(relativePath, context) {
+  let current = repositoryRoot;
+  for (const part of relativePath.split("/")) {
+    current = join(current, part);
+    let stats;
+    try {
+      stats = lstatSync(current);
+    } catch {
+      assert.fail(`${context} path does not exist: ${relativePath}`);
+    }
+    assert.equal(stats.isSymbolicLink(), false, `${context} path must not contain a symlink or reparse component: ${relativePath}`);
+  }
+}
+
 function assertRepositoryFile(relativePath, context, gitEnvironment = process.env) {
   assert.equal(typeof relativePath, "string", `${context} path must be a string`);
   assert.ok(relativePath.length > 0, `${context} path must not be empty`);
@@ -140,17 +154,7 @@ function assertRepositoryFile(relativePath, context, gitEnvironment = process.en
   const relativeCandidate = relative(repositoryRoot, candidate);
   assert.ok(relativeCandidate && relativeCandidate !== ".." && !relativeCandidate.startsWith(`..${sep}`) && !isAbsolute(relativeCandidate), `${context} path must stay inside the repository root`);
 
-  let current = repositoryRoot;
-  for (const part of parts) {
-    current = join(current, part);
-    let stats;
-    try {
-      stats = lstatSync(current);
-    } catch {
-      assert.fail(`${context} path does not exist: ${relativePath}`);
-    }
-    assert.equal(stats.isSymbolicLink(), false, `${context} path must not contain a symlink or reparse component: ${relativePath}`);
-  }
+  assertNoReparseComponents(relativePath, context);
 
   const finalStats = lstatSync(candidate);
   assert.equal(finalStats.isFile(), true, `${context} path must name a file, not a directory: ${relativePath}`);
@@ -187,48 +191,66 @@ function isReparseFixtureCapabilityError(error) {
   return ["EACCES", "EINVAL", "ENOTSUP", "EPERM"].includes(error?.code);
 }
 
-function createReparseFixture() {
-  const symlinkRelativePath = `scripts/.inventory-symlink-${fixtureToken}.mjs`;
-  const symlinkAbsolutePath = resolve(repositoryRoot, symlinkRelativePath);
-  const junctionRelativePath = `.inventory-junction-${fixtureToken}`;
-  const junctionAbsolutePath = resolve(repositoryRoot, junctionRelativePath);
-  const targetFile = "test-universal-contract-inventory.mjs";
-
-  assert.equal(pathExistsForCleanup(symlinkAbsolutePath), false, `symlink fixture path must not already exist: ${symlinkAbsolutePath}`);
-  assert.equal(pathExistsForCleanup(junctionAbsolutePath), false, `junction fixture path must not already exist: ${junctionAbsolutePath}`);
+function tryCreateReparseFixture({ kind, linkRelativePath, targetPath, linkType, evidenceRelativePath }) {
+  const linkAbsolutePath = resolve(repositoryRoot, linkRelativePath);
+  assert.equal(pathExistsForCleanup(linkAbsolutePath), false, `${kind} fixture path must not already exist: ${linkAbsolutePath}`);
 
   try {
-    symlinkSync(targetFile, symlinkAbsolutePath, "file");
+    symlinkSync(targetPath, linkAbsolutePath, linkType);
+    assert.equal(lstatSync(linkAbsolutePath).isSymbolicLink(), true, `${kind} fixture probe must expose a reparse link`);
+    if (evidenceRelativePath !== linkRelativePath) {
+      assert.equal(lstatSync(resolve(repositoryRoot, evidenceRelativePath)).isFile(), true, `${kind} fixture probe must resolve to a file`);
+    }
     return Object.freeze({
-      kind: "symlink",
-      relativePath: symlinkRelativePath,
-      cleanupPaths: Object.freeze([symlinkAbsolutePath]),
+      kind,
+      relativePath: evidenceRelativePath,
+      cleanupPaths: Object.freeze([linkAbsolutePath]),
     });
   } catch (error) {
-    if (pathExistsForCleanup(symlinkAbsolutePath)) {
-      removeFixture(symlinkAbsolutePath);
-    }
-    if (!isReparseFixtureCapabilityError(error)) {
-      throw error;
-    }
-  }
-
-  try {
-    symlinkSync(resolve(repositoryRoot, "scripts"), junctionAbsolutePath, "junction");
-    return Object.freeze({
-      kind: "junction",
-      relativePath: `${junctionRelativePath}/test-universal-contract-inventory.mjs`,
-      cleanupPaths: Object.freeze([junctionAbsolutePath]),
-    });
-  } catch (error) {
-    if (pathExistsForCleanup(junctionAbsolutePath)) {
-      removeFixture(junctionAbsolutePath);
+    if (pathExistsForCleanup(linkAbsolutePath)) {
+      removeFixture(linkAbsolutePath);
     }
     if (!isReparseFixtureCapabilityError(error)) {
       throw error;
     }
     return null;
   }
+}
+
+function createReparseFixtures() {
+  const fixtures = [];
+  let ancestorFixture = tryCreateReparseFixture({
+    kind: "ancestor-junction",
+    linkRelativePath: `.inventory-junction-${fixtureToken}`,
+    targetPath: resolve(repositoryRoot, "scripts"),
+    linkType: "junction",
+    evidenceRelativePath: `.inventory-junction-${fixtureToken}/test-universal-contract-inventory.mjs`,
+  });
+  if (!ancestorFixture) {
+    ancestorFixture = tryCreateReparseFixture({
+      kind: "ancestor-directory-symlink",
+      linkRelativePath: `.inventory-directory-symlink-${fixtureToken}`,
+      targetPath: resolve(repositoryRoot, "scripts"),
+      linkType: "dir",
+      evidenceRelativePath: `.inventory-directory-symlink-${fixtureToken}/test-universal-contract-inventory.mjs`,
+    });
+  }
+  if (ancestorFixture) {
+    fixtures.push(ancestorFixture);
+  }
+
+  const finalSymlink = tryCreateReparseFixture({
+    kind: "final-symlink",
+    linkRelativePath: `scripts/.inventory-symlink-${fixtureToken}.mjs`,
+    targetPath: "test-universal-contract-inventory.mjs",
+    linkType: "file",
+    evidenceRelativePath: `scripts/.inventory-symlink-${fixtureToken}.mjs`,
+  });
+  if (finalSymlink) {
+    fixtures.push(finalSymlink);
+  }
+
+  return Object.freeze(fixtures);
 }
 
 function assertDocumentationTable(source, inventory) {
@@ -270,6 +292,14 @@ function replaceProjectedMarkdownRow(source, originalRow, replacementRow) {
   assert.ok(originalIndex >= 0, "the expected Markdown projection row must exist exactly before regeneration");
   assert.equal(source.indexOf(originalLine, originalIndex + originalLine.length), -1, "the expected Markdown projection row must occur exactly once before regeneration");
   return `${source.slice(0, originalIndex)}${replacementLine}${source.slice(originalIndex + originalLine.length)}`;
+}
+
+function regenerateProjectedMarkdown(source, originalInventory, mutatedInventory) {
+  assert.equal(mutatedInventory.length, originalInventory.length, "projection regeneration requires the same canonical row count");
+  return mutatedInventory.reduce(
+    (currentSource, row, rowIndex) => replaceProjectedMarkdownRow(currentSource, originalInventory[rowIndex], row),
+    source,
+  );
 }
 
 function assertEvidenceSlot(slot, rowId, evidenceKey, gitEnvironment = process.env) {
@@ -322,8 +352,8 @@ function assertIndependentSurfaceEvidence(row) {
 
   const desktopPaths = new Set(desktop.paths);
   const companionSitePaths = new Set(companionSite.paths);
-  assert.equal(desktopPaths.size, desktop.paths.length, `${row.id} desktop surface paths must be unique`);
   assert.equal(companionSitePaths.size, companionSite.paths.length, `${row.id} companion-site surface paths must be unique`);
+  assert.equal(desktopPaths.size, desktop.paths.length, `${row.id} desktop surface paths must be unique`);
   for (const path of desktopPaths) {
     assert.equal(companionSitePaths.has(path), false, `${row.id} desktop and companion-site surface paths must be disjoint: ${path}`);
   }
@@ -475,7 +505,12 @@ collapsedSurfacePaths[0].surfaces.companionSite = {
   ...collapsedSurfacePaths[0].surfaces.companionSite,
   paths: collapsedSurfacePaths[0].surfaces.desktop.paths,
 };
-assertMutationFails("collapsing desktop and companion-site surface paths", () => assertInventory(collapsedSurfacePaths, inventoryDocumentationSource));
+const collapsedSurfacePathsDocumentation = regenerateProjectedMarkdown(
+  inventoryDocumentationSource,
+  UNIVERSAL_CONTRACT_INVENTORY,
+  collapsedSurfacePaths,
+);
+assertMutationFails("collapsing desktop and companion-site surface paths", () => assertInventory(collapsedSurfacePaths, collapsedSurfacePathsDocumentation));
 mutationCount += 1;
 
 const duplicatedDesktopSurfacePath = cloneInventory();
@@ -483,7 +518,25 @@ duplicatedDesktopSurfacePath[0].surfaces.desktop.paths = [
   duplicatedDesktopSurfacePath[0].surfaces.desktop.paths[0],
   ...duplicatedDesktopSurfacePath[0].surfaces.desktop.paths,
 ];
-assertMutationFails("duplicating a desktop surface path", () => assertInventory(duplicatedDesktopSurfacePath, inventoryDocumentationSource));
+const duplicatedDesktopSurfacePathDocumentation = regenerateProjectedMarkdown(
+  inventoryDocumentationSource,
+  UNIVERSAL_CONTRACT_INVENTORY,
+  duplicatedDesktopSurfacePath,
+);
+assertMutationFails("duplicating a desktop surface path", () => assertInventory(duplicatedDesktopSurfacePath, duplicatedDesktopSurfacePathDocumentation));
+mutationCount += 1;
+
+const duplicatedCompanionSurfacePath = cloneInventory();
+duplicatedCompanionSurfacePath[0].surfaces.companionSite.paths = [
+  duplicatedCompanionSurfacePath[0].surfaces.companionSite.paths[0],
+  ...duplicatedCompanionSurfacePath[0].surfaces.companionSite.paths,
+];
+const duplicatedCompanionSurfacePathDocumentation = regenerateProjectedMarkdown(
+  inventoryDocumentationSource,
+  UNIVERSAL_CONTRACT_INVENTORY,
+  duplicatedCompanionSurfacePath,
+);
+assertMutationFails("duplicating a companion-site surface path", () => assertInventory(duplicatedCompanionSurfacePath, duplicatedCompanionSurfacePathDocumentation));
 mutationCount += 1;
 
 const sharedSurfacePath = cloneInventory();
@@ -491,17 +544,21 @@ sharedSurfacePath[0].surfaces.companionSite.paths = [
   sharedSurfacePath[0].surfaces.desktop.paths[0],
   ...sharedSurfacePath[0].surfaces.companionSite.paths,
 ];
-assertMutationFails("sharing a path between desktop and companion-site surfaces", () => assertInventory(sharedSurfacePath, inventoryDocumentationSource));
+const sharedSurfacePathDocumentation = regenerateProjectedMarkdown(
+  inventoryDocumentationSource,
+  UNIVERSAL_CONTRACT_INVENTORY,
+  sharedSurfacePath,
+);
+assertMutationFails("sharing a path between desktop and companion-site surface paths", () => assertInventory(sharedSurfacePath, sharedSurfacePathDocumentation));
 mutationCount += 1;
 
 const regeneratedMandatoryNotApplicable = cloneInventory();
-regeneratedMandatoryNotApplicable[0].evidence.documentation = {
-  applicable: false,
-  status: "not-applicable",
-  paths: ["docs/verification/completeness-inventory.md"],
-  assertion: "Mandatory documentation evidence cannot be marked not-applicable.",
-  reason: "This semantic mutation must be rejected even after Markdown regeneration.",
-};
+regeneratedMandatoryNotApplicable[0].evidence.documentation.status = "not-applicable";
+assert.deepEqual(
+  Object.keys(regeneratedMandatoryNotApplicable[0].evidence.documentation).sort(),
+  ["assertion", "paths", "status"],
+  "the regenerated mandatory-applicability mutation must change status only",
+);
 const regeneratedMandatoryNotApplicableDocumentation = replaceProjectedMarkdownRow(
   inventoryDocumentationSource,
   UNIVERSAL_CONTRACT_INVENTORY[0],
@@ -564,9 +621,14 @@ try {
 
   const mutated = cloneInventory();
   mutated[0].evidence.implementation.paths = [stagedOnlyRelativePath];
+  const regeneratedDocumentation = regenerateProjectedMarkdown(
+    inventoryDocumentationSource,
+    UNIVERSAL_CONTRACT_INVENTORY,
+    mutated,
+  );
   assertMutationFails(
     "staged-only evidence path",
-    () => assertInventory(mutated, inventoryDocumentationSource, { gitEnvironment: stagedGitEnvironment }),
+    () => assertInventory(mutated, regeneratedDocumentation, { gitEnvironment: stagedGitEnvironment }),
   );
   mutationCount += 1;
 } finally {
@@ -574,22 +636,40 @@ try {
   removeFixture(stagedIndexRoot);
 }
 
-let reparseFixtureKind = "unavailable";
-const reparseFixture = createReparseFixture();
-if (reparseFixture) {
-  reparseFixtureKind = reparseFixture.kind;
+const reparseFixtures = createReparseFixtures();
+if (reparseFixtures.length > 0) {
   try {
-    const mutated = cloneInventory();
-    mutated[0].evidence.implementation.paths = [reparseFixture.relativePath];
-    assertMutationFails(`${reparseFixture.kind} evidence path`, () => assertInventory(mutated, inventoryDocumentationSource));
-    mutationCount += 1;
+    for (const reparseFixture of reparseFixtures) {
+      if (reparseFixture.kind.startsWith("ancestor-")) {
+        assertMutationFails(
+          `${reparseFixture.kind} reparse assertion`,
+          () => assertNoReparseComponents(reparseFixture.relativePath, `${reparseFixture.kind} fixture`),
+        );
+        mutationCount += 1;
+        continue;
+      }
+      const mutated = cloneInventory();
+      mutated[0].evidence.implementation.paths = [reparseFixture.relativePath];
+      const regeneratedDocumentation = regenerateProjectedMarkdown(
+        inventoryDocumentationSource,
+        UNIVERSAL_CONTRACT_INVENTORY,
+        mutated,
+      );
+      assertMutationFails(
+        `${reparseFixture.kind} evidence path`,
+        () => assertInventory(mutated, regeneratedDocumentation),
+      );
+      mutationCount += 1;
+    }
   } finally {
-    for (const cleanupPath of reparseFixture.cleanupPaths) {
-      removeFixture(cleanupPath);
+    for (const reparseFixture of reparseFixtures) {
+      for (const cleanupPath of reparseFixture.cleanupPaths) {
+        removeFixture(cleanupPath);
+      }
     }
   }
 } else {
-  console.log("INFO: symlink and junction fixture creation were unavailable; the reparse mutation was not counted");
+  console.log("INFO: ancestor and final reparse fixture creation were unavailable; those capability-bound mutations were not counted");
 }
 
 for (const [rowId, rowTitle] of expectedRows) {
@@ -612,4 +692,4 @@ assertMutationFails("changing a non-empty Markdown evidence cell", () => assertI
 mutationCount += 1;
 
 assertInventory(UNIVERSAL_CONTRACT_INVENTORY, inventoryDocumentationSource);
-console.log(`PASS: explicit universal-contract inventory, ${UNIVERSAL_CONTRACT_INVENTORY.length} canonical rows, ${expectedEvidenceKeys.length} evidence slots, ${expectedSurfaceKeys.length} independent surfaces per row, and ${mutationCount} negative mutations (reparse fixture: ${reparseFixtureKind})`);
+console.log(`PASS: explicit universal-contract inventory, ${UNIVERSAL_CONTRACT_INVENTORY.length} canonical rows, ${expectedEvidenceKeys.length} evidence slots, ${expectedSurfaceKeys.length} independent surfaces per row, and ${mutationCount} negative mutations (reparse fixtures: ${reparseFixtures.map(({ kind }) => kind).join(", ") || "unavailable"})`);

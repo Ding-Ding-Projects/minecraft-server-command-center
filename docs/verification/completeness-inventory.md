@@ -12,9 +12,13 @@ built-artifact interaction, and capture evidence. A slot may honestly record a
 partial, unimplemented, or unverified state, but it may not disappear. Run
 `npm run test:universal-contract-inventory` to check the exact 27-row order,
 the Markdown projection, every evidence slot, both independent surface keys,
-the intentional remove/rename/restore mutation proof, regenerated-document
-applicability proof, HEAD-tree path proof, staged-only fixture, surface path
-uniqueness/disjointness, and capability-aware symlink/junction cleanup. The
+the intentional remove/rename/restore mutation proof, and the capability-aware
+fixture cleanup. The check keeps aggregate stale-projection mutations for the
+  document contract, while targeted R2-R5 mutations regenerate the
+  metadata-owned projection before testing their semantic assertion: surface
+  independence, status-only mandatory applicability, immutable `HEAD` tree
+  membership, and desktop/companion-site surface-path uniqueness/disjointness. R6 uses a direct probe
+  of the shared path-component assertion for ancestor-reparse rejection. The
 check is hand-written and fail-closed; it does not discover rows from the
 files it happens to find.
 
@@ -22,10 +26,15 @@ Surface evidence is validated as two separate records with separate path
 arrays. Paths are unique within each surface and disjoint between desktop and
 the companion site. Tracked-file evidence is resolved from the committed
 `HEAD` tree rather than the mutable index, so a path that exists only in a
-staged test fixture is rejected. The mandatory evidence rule is checked after
-regenerating the affected Markdown row, so a stale projection cannot mask a
-mandatory `not-applicable` mutation. Symlink and junction fixtures are
-capability-aware, and every fixture is removed and verified during cleanup.
+staged test fixture is rejected; the staged-only mutation regenerates its row
+so the immutable tree result is the decisive failure. The mandatory evidence
+mutation changes only `status`, so its semantic `not-applicable` assertion is
+not masked by object-shape validation. Reparse coverage retains the final
+symlink fixture and adds an ancestor junction/directory-link probe whose
+descendant file remains valid, making the reparse assertion independently
+decisive. Fixture creation accepts only capability errors (`EACCES`, `EINVAL`,
+`ENOTSUP`, or `EPERM`), and every created fixture is removed and verified during
+cleanup.
 
 ## Inventory
 

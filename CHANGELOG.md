@@ -4,19 +4,28 @@
 
 ### Changed
 
+- Completed the second universal-contract inventory-guard repair against
+  target `fdbef9e265fac3bf015f6f3fc52dd1a26df4e180` with base
+  `958d4439c77bff27d5a726655269b479087f0b6a`. The guard now distinguishes
+  aggregate stale-projection coverage from independently decisive mutation
+  coverage: surface, status-only applicability, immutable `HEAD` membership,
+  and desktop/companion-site uniqueness/disjointness mutations regenerate the metadata-owned Markdown
+  projection before their exact assertion runs. The ancestor-reparse probe
+  calls the same path-component assertion directly against a valid descendant
+  fixture, and the final-component symlink check remains as additional
+  functional coverage.
 - Hardened the universal-contract inventory guard with an independent literal
   27-row oracle, including the application display-name row, a literal
   seven-slot contract, independent desktop and companion-site evidence,
   checker-rooted HEAD-tree tracked-file validation, an exact metadata-owned Markdown
   projection, and boundary mutations. Existing partial, not-implemented, and
   unverified states remain explicit.
-- Strengthened the universal-contract inventory guard against the five accepted
-  repair findings: surface records and path sets must remain independent,
-  regenerated Markdown cannot legalize mandatory `not-applicable` evidence,
-  tracked paths must exist in the committed `HEAD` tree rather than only the
-  mutable index, and symlink/junction fixtures now degrade safely when the host
-  lacks reparse-point creation capability. The focused mutation count is now
-  892, up from the 887-mutation baseline.
+- The initial five-finding repair established independent surface records,
+  regenerated-document applicability coverage, immutable `HEAD`-tree path
+  validation, staged-only coverage, and capability-safe reparse setup. Its
+  aggregate focused run reported 892 mutations; the second repair above adds
+  the independent proof that those targeted assertions are not merely covered
+  by stale Markdown failures.
 - Changed the release line-count command to consume large `git blame
   --line-porcelain --root` output incrementally, avoiding Node's
   `spawnSync git ENOBUFS` failure without changing line buckets or surviving-line
@@ -42,15 +51,18 @@
 
 ### Verification
 
-- `npm run test:universal-contract-inventory` passed with 27 canonical rows,
-  7 evidence slots, 2 independent surface keys per row, and 892 negative
-  mutations. The run rejected the isolated staged-only path, regenerated
-  mandatory-applicability mutation, collapsed/shared/duplicated surface paths,
-  and successful symlink reparse fixture, with cleanup verified. `npm run
-  test:universal-contracts`,
-  `npm run test:offline-documentation`, both syntax checks, and `git diff --check`
-  also passed; the supported `npm run build` completed the asset, main, catalog,
-  and renderer build steps.
+- On the second repair lane, `npm run test:universal-contract-inventory`
+  passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
+  per row, and 894 negative mutations. Aggregate stale-projection mutations
+  and independently regenerated-projection mutations both passed; the latter
+  covered surface independence, status-only mandatory applicability,
+  staged-only immutable-`HEAD` membership, duplicate/overlap path ownership,
+  and retained final-symlink coverage. The independent ancestor-junction
+  reparse probe also passed, with cleanup verified. The focused
+  universal-contract, offline-documentation,
+  syntax, and `git diff --check` results are recorded by the bounded repair
+  handoff; no new packaged runtime, accessibility interaction, release, or
+  capture evidence is claimed here.
 - Added `npm run test:release-line-count`; it requires the current
   `site/app/page.tsx` blame output to exceed 1 MiB and verifies the full counter
   completes with matching grand-total and attribution-total rows.
