@@ -17,10 +17,14 @@ The current implementation also contains a partial universal-settings
 foundation. The companion site and desktop renderer expose a bounded persisted
 settings record with language mode, independent funny levels, dialog emoji,
 renameable School mode, display name, theme, density, seed color, tab docking,
-logo selection, and a local personal-vocabulary JSON boundary. These controls
-are source and focused-contract evidence only; full app-wide localization,
-credential-factor behavior, every-element appearance editing, complete tab
-management, and built-artifact interaction remain unverified. See
+logo selection, and a local personal-vocabulary JSON boundary. The current
+personal-vocabulary repair also serializes desktop cache operations, refuses to
+delete a malformed cache after its bytes have changed, re-reads after cleanup,
+exposes a direct retry action on both surfaces, and ignores stale settings-save
+successes and failures. These controls are source and focused-contract
+evidence only; full app-wide localization, credential-factor behavior,
+every-element appearance editing, complete tab management, and built-artifact
+interaction remain unverified. See
 [Universal settings](docs/reference/universal-settings.md), [desktop presentation settings](docs/reference/desktop-presentation-settings.md), and the
 [completeness inventory](docs/verification/completeness-inventory.md).
 
@@ -166,12 +170,13 @@ The planner and desktop sources remain distinct from runtime evidence. This
 record does not claim automated desktop tests, browser or desktop interaction,
 accessibility review, local installer operation, automatic-update behavior, or
 server-process action. The 2026-08-14 release audit did verify the root build,
-unsigned Squirrel.Windows package, companion-site build and lint, Pages staging,
-GitHub Actions run `31792576349`, and published release `v0.1.42` for commit
-`052144ce44c7daf068170375d448b2da001a052a`. The release record names the
-unsigned `Setup.exe` asset at `140395520` bytes, workflow timing `00:03:53`,
-dim-sum code name `Steamed Beef Balls · 山竹牛肉`, and the exact line-count
-table. Read the relevant handoff and
+unsigned Squirrel.Windows package, companion-site build, GitHub Actions run
+`31822353967`, and published release `v0.1.48` for commit
+`4dfc6b7837c38a37f411ea4c8d2041b025db09d1`. The release record names the
+unsigned `Setup.exe` asset at `140411392` bytes, workflow timing `00:02:42`,
+dim-sum code name `Steamed Chicken Feet in Black Bean Sauce · 豉汁蒸鳳爪`, and
+the exact line-count table. The public catalog photo is linked rather than
+copied into the consumer release. Read the relevant handoff and
 completeness inventory before calling a surface fully verified.
 
 The Planner Handoff v1 source record now covers JSON export/import, native

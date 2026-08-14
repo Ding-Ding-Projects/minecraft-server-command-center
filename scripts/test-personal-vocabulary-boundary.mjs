@@ -62,6 +62,12 @@ assert.equal(
   "unquoted paths with spaces must remain intact while adjacent UI copy remains replaceable",
 );
 
+assert.equal(
+  applyPersonalVocabularyReplacements("Open C:\\Program Files\\My,Folder;part\\Overview; Overview", parsed.value.entries),
+  "Open C:\\Program Files\\My,Folder;part\\Overview; Personal landing",
+  "unquoted paths with comma and semicolon characters must remain intact while adjacent UI copy remains replaceable",
+);
+
 for (const boundary of ["code", "command", "url", "identifier", "path", "external"]) {
   assert.equal(
     applyPersonalVocabularyReplacements("Overview server.properties", parsed.value.entries, { boundary }),
@@ -95,8 +101,8 @@ const pageSource = fs.readFileSync(path.join(repoRoot, "site", "app", "page.tsx"
 const boundarySource = fs.readFileSync(path.join(repoRoot, "site", "app", "personal-vocabulary-boundary.tsx"), "utf8").replace(/\r\n/g, "\n");
 const companionMarkers = [
   "PersonalVocabularyBoundary entries={universalSettings.schoolModeEnabled ? [] : personalVocabularyEntries}",
-  "setPersonalVocabularyEntries([]);\n    setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);",
-  "setPersonalVocabularyEntries([]);\n      updateUniversalSettings(\"personalVocabulary\", { status: \"empty\", entryCount: 0 });",
+  "setPersonalVocabularyEntries([]);\n    setPersonalVocabularyRecoveryPending(false);\n    setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);",
+  "setPersonalVocabularyEntries([]);\n      setPersonalVocabularyRecoveryPending(false);\n      updateUniversalSettings(\"personalVocabulary\", { status: \"empty\", entryCount: 0 });",
   "parsePersonalVocabularyJson(cachedVocabulary)",
   "function readLocalStorageValue(key: string):",
   "function writeLocalStorageValue(key: string, value: string): boolean {",
@@ -134,12 +140,14 @@ for (const marker of companionMarkers) {
 }
 
 const companionMalformedCacheFailureBoundary = `          } catch {
+            const recovery = projectPersonalVocabularyRecovery({ status: "empty", entryCount: 0, recovery: "malformed-cache-removal-failed" });
+            setPersonalVocabularyRecoveryPending(recovery.retryAvailable);
             setPersonalVocabularyEntries([]);
             setUniversalSettings((current) => ({
               ...current,
-              personalVocabulary: { status: "empty", entryCount: 0 },
+              personalVocabulary: { status: recovery.status, entryCount: recovery.entryCount },
             }));
-            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active and the persisted status was reset to empty." });
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active; use Retry cache cleanup to try again." });
           }`;
 function assertCompanionMalformedCacheFailureBoundary(source) {
   assert.equal(

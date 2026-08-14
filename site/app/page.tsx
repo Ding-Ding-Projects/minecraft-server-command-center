@@ -22,6 +22,7 @@ import {
   type UniversalLanguageMode,
   type UniversalSettingsV1
 } from "../../src/shared/universal-contracts";
+import { projectPersonalVocabularyRecovery } from "../../src/shared/personal-vocabulary-recovery";
 import { PersonalVocabularyBoundary, usePersonalVocabularyEntries } from "./personal-vocabulary-boundary";
 import {
   appendNotificationRecord,
@@ -862,6 +863,7 @@ export default function Home() {
   const [draft, setDraft] = useState<PlannerDraft>(DEFAULT_DRAFT);
   const [universalSettings, setUniversalSettings] = useState<UniversalSettingsV1>(DEFAULT_UNIVERSAL_SETTINGS);
   const [personalVocabularyEntries, setPersonalVocabularyEntries] = useState<readonly PersonalVocabularyEntryV1[]>([]);
+  const [personalVocabularyRecoveryPending, setPersonalVocabularyRecoveryPending] = useState(false);
   const [activePage, setActivePage] = useState<PageId>("overview");
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
@@ -997,6 +999,7 @@ export default function Home() {
       } else if (cachedVocabulary !== null) {
         const result = parsePersonalVocabularyJson(cachedVocabulary);
         if (result.ok) {
+          setPersonalVocabularyRecoveryPending(false);
           setPersonalVocabularyEntries(result.value.entries);
           setUniversalSettings((current) => ({
             ...current,
@@ -1005,21 +1008,26 @@ export default function Home() {
         } else {
           try {
             window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+            const recovery = projectPersonalVocabularyRecovery({ status: "empty", entryCount: 0 });
+            setPersonalVocabularyRecoveryPending(recovery.retryAvailable);
             setPersonalVocabularyEntries([]);
             setUniversalSettings((current) => ({
               ...current,
               personalVocabulary: { status: "empty", entryCount: 0 },
             }));
           } catch {
+            const recovery = projectPersonalVocabularyRecovery({ status: "empty", entryCount: 0, recovery: "malformed-cache-removal-failed" });
+            setPersonalVocabularyRecoveryPending(recovery.retryAvailable);
             setPersonalVocabularyEntries([]);
             setUniversalSettings((current) => ({
               ...current,
-              personalVocabulary: { status: "empty", entryCount: 0 },
+              personalVocabulary: { status: recovery.status, entryCount: recovery.entryCount },
             }));
-            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active and the persisted status was reset to empty." });
+            publishNotice({ tone: "warning", title: "Personal vocabulary cache could not be cleared", detail: "The cached data was malformed, but the browser could not remove it. Original shipped wording is active; use Retry cache cleanup to try again." });
           }
         }
       } else {
+        setPersonalVocabularyRecoveryPending(false);
         setPersonalVocabularyEntries([]);
         if (restoredSettings.personalVocabulary.status === "loaded") {
           setUniversalSettings((current) => ({
@@ -1414,6 +1422,7 @@ export default function Home() {
       return;
     }
     setPersonalVocabularyEntries([]);
+    setPersonalVocabularyRecoveryPending(false);
     setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);
     setSchoolUnlockInput("");
     setCustomLogoPreview(null);
@@ -1477,6 +1486,7 @@ export default function Home() {
         throw new Error("The local vocabulary cache could not be written. The previous vocabulary remains active.");
       }
       setPersonalVocabularyEntries(result.value.entries);
+      setPersonalVocabularyRecoveryPending(false);
       updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
       publishNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately and now style user-facing copy. Protected commands, URLs, identifiers, paths, code, and factual records remain unchanged.` });
     } catch (error) {
@@ -1489,11 +1499,23 @@ export default function Home() {
         throw new Error("The local vocabulary cache could not be removed, so the active vocabulary remains unchanged.");
       }
       setPersonalVocabularyEntries([]);
+      setPersonalVocabularyRecoveryPending(false);
       updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
       publishNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording is active again." });
     } catch (error) {
       publishNotice({ tone: "warning", title: "Personal vocabulary was not cleared", detail: error instanceof Error ? error.message : "The local cache could not be removed, so the active vocabulary remains unchanged." });
     }
+  };
+  const retryPersonalVocabulary = () => {
+    if (!personalVocabularyRecoveryPending) return;
+    if (!removeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY)) {
+      publishNotice({ tone: "warning", title: "Personal vocabulary cache is still present", detail: "The malformed local cache could not be removed. Original shipped wording remains active; retry this cleanup again." });
+      return;
+    }
+    setPersonalVocabularyEntries([]);
+    setPersonalVocabularyRecoveryPending(false);
+    updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
+    publishNotice({ tone: "success", title: "Personal vocabulary cache cleared", detail: "The malformed cache was removed and original shipped wording is active again." });
   };
   const selectCustomLogo = async (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.currentTarget.files?.item(0);
@@ -2722,7 +2744,7 @@ export default function Home() {
             <span className={universalSettings.personalVocabulary.status === "loaded" ? "status-chip status-chip--success" : "status-chip status-chip--neutral"}>{universalSettings.personalVocabulary.status === "loaded" ? `${universalSettings.personalVocabulary.entryCount} entries loaded` : "No file loaded"}</span>
           </div>
           <input ref={personalVocabularyInput} className="sr-only" type="file" accept="application/json,.json" onChange={selectPersonalVocabulary} aria-label="Choose local personal vocabulary JSON" />
-          <div className="button-row"><button type="button" className="secondary-button" onClick={() => personalVocabularyInput.current?.click()}>Choose personal vocabulary JSON</button><button type="button" className="secondary-button" onClick={clearPersonalVocabulary} disabled={universalSettings.personalVocabulary.status !== "loaded"}>Clear private vocabulary</button></div>
+          <div className="button-row"><button type="button" className="secondary-button" onClick={() => personalVocabularyInput.current?.click()}>Choose personal vocabulary JSON</button><button type="button" className="secondary-button" onClick={clearPersonalVocabulary} disabled={universalSettings.personalVocabulary.status !== "loaded"}>Clear private vocabulary</button><button type="button" className="secondary-button" onClick={retryPersonalVocabulary} disabled={!personalVocabularyRecoveryPending}>Retry cache cleanup</button></div>
           <p className="field-help">Schema v1 is bounded to 64 KiB, 128 entries, 160-character strings, fixed fields, safe object keys, and no duplicate keys. The cache is local-only and this foundation does not copy its values into exports, logs, or public text.</p>
           <p className="field-help">Validated private wording is active at user-facing text boundaries. Protected code, commands, URLs, paths, identifiers, and factual external records remain unchanged.</p>
         </section>

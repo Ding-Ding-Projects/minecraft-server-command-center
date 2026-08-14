@@ -20,12 +20,14 @@ const requiredMarkers = [
   ["src/main/personal-vocabulary-store.ts", "export async function clearPersonalVocabulary("],
   ["src/main/personal-vocabulary-store.ts", "await rename(temporary, target);"],
   ["src/main/personal-vocabulary-store.ts", "PERSONAL_VOCABULARY_LIMITS.maxBytes + 1"],
-  ["src/main/personal-vocabulary-store.ts", "removeMalformedCache?: (filePath: string) => Promise<void>"],
-  ["src/main/personal-vocabulary-store.ts", "recovery: \"malformed-cache-removal-failed\""],
+  ["src/main/personal-vocabulary-store.ts", "removeMalformedCache?: (filePath: string, expected?: CacheSnapshot) => Promise<void>"],
+  ["src/main/personal-vocabulary-store.ts", "return {\n            ...EMPTY_STATE,\n            recovery: \"malformed-cache-removal-failed\",\n          };"],
   ["src/main/personal-vocabulary-store.ts", "class VocabularyReadError extends Error"],
   ["src/main/personal-vocabulary-store.ts", "error.kind === \"unavailable\""],
-  ["src/main/personal-vocabulary-store.ts", "if (error.kind === \"unavailable\") {\n      throw new Error(\"The local vocabulary cache could not be read; the previous valid cache remains active."],
+  ["src/main/personal-vocabulary-store.ts", "if (error.kind === \"unavailable\") {\n        throw new Error(\"The local vocabulary cache could not be read; the previous valid cache remains active."],
   ["src/main/personal-vocabulary-store.ts", "The vocabulary cache is not valid UTF-8."],
+  ["src/shared/versioned-debounced-save.ts", "export function createVersionedDebouncedSave<T>("],
+  ["src/shared/personal-vocabulary-recovery.ts", "export function projectPersonalVocabularyRecovery("],
   ["src/shared/desktop-api.ts", "readonly personalVocabulary: {"],
   ["src/shared/desktop-api.ts", "readonly recovery?: \"malformed-cache-removal-failed\";"],
   ["src/shared/desktop-api.ts", "choose(languageMode?: UniversalLanguageMode)"],
@@ -41,7 +43,9 @@ const requiredMarkers = [
   ["src/main/index.ts", "ipcMain.handle(\"personal-vocabulary:clear\", () => clearPersonalVocabulary(app.getPath(\"userData\"))"],
   ["src/main/index.ts", "presentDesktopCopy(\"settings.personalVocabulary.picker.title\""],
   ["package.json", "\"test:desktop-personal-vocabulary\": \"node --experimental-strip-types scripts/test-desktop-personal-vocabulary.mjs\""],
-  ["src/renderer/main.ts", "function restorePersonalVocabulary(): Promise<void> {"],
+  ["src/renderer/main.ts", "async function restorePersonalVocabulary(announceSuccess = false): Promise<void> {"],
+  ["src/renderer/main.ts", "const universalSettingsSave = createVersionedDebouncedSave<UniversalSettingsV1>("],
+  ["src/renderer/main.ts", "function retryPersonalVocabulary(): Promise<void> {"],
   ["src/renderer/main.ts", "await window.commandCenter.personalVocabulary.load();"],
   ["src/renderer/main.ts", "if (state.recovery === \"malformed-cache-removal-failed\") {"],
   ["src/renderer/main.ts", "showSnackbar(presentDesktopCopy(\"settings.personalVocabulary.notice.cacheRemovalFailed\", effectivePresentationSettings()), \"warning\");"],
@@ -68,6 +72,7 @@ const requiredMarkers = [
   ["src/renderer/index.html", "data-settings-label=\"Personal vocabulary\""],
   ["src/renderer/index.html", "id=\"choose-personal-vocabulary\""],
   ["src/renderer/index.html", "id=\"clear-personal-vocabulary\""],
+  ["src/renderer/index.html", "id=\"retry-personal-vocabulary\""],
   ["src/renderer/index.html", "data-presentation-key=\"palette.title\""],
   ["src/renderer/index.html", "data-presentation-key=\"palette.regex.dialogLabel\""],
   ["src/renderer/index.html", "data-presentation-key=\"notifications.regex.dialogLabel\""],
@@ -77,6 +82,8 @@ const requiredMarkers = [
   ["src/shared/desktop-presentation.ts", "return `English: ${parts.english} · Cantonese: ${parts.cantonese}`;"],
   ["site/app/page.tsx", "function readLocalStorageValue(key: string):"],
   ["site/app/page.tsx", "if (!writeLocalStorageValue(PERSONAL_VOCABULARY_CACHE_KEY, serialized)) {"],
+  ["site/app/page.tsx", "const [personalVocabularyRecoveryPending, setPersonalVocabularyRecoveryPending] = useState(false);"],
+  ["site/app/page.tsx", "const retryPersonalVocabulary = () => {"],
   ["site/app/page.tsx", "function companionLanguageMode(settings: UniversalSettingsV1): UniversalLanguageMode {"],
   ["site/app/page.tsx", "function CompanionBilingualText("],
   ["site/app/page.tsx", "schoolSuppressed: true,"],
@@ -259,6 +266,19 @@ try {
     "malformed-cache removal failure must fail closed with an explicit recovery state",
   );
   assert.equal(await readFile(cachePath, "utf8"), "{malformed", "the regression must exercise a failed removal rather than a successful deletion");
+  await rm(cachePath, { force: true });
+
+  await writeFile(cachePath, "{malformed", "utf8");
+  const replacementDuringRemoval = await loadPersonalVocabulary(userDataDirectory, {
+    removeMalformedCache: async () => {
+      await writeFile(cachePath, JSON.stringify({ schemaVersion: 1, entries: replacementFixture.entries }), "utf8");
+    },
+  });
+  assert.deepEqual(
+    replacementDuringRemoval.entries,
+    replacementFixture.entries,
+    "a valid cache replacement that arrives during malformed-cache cleanup must survive the recovery re-read",
+  );
   await rm(cachePath, { force: true });
 
   await replacePersonalVocabulary(userDataDirectory, validPath);

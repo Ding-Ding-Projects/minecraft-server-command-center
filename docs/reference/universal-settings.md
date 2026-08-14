@@ -95,16 +95,23 @@ The companion surface applies a validated entry set through its private
 user-facing text boundary. Replacement is one-pass over the original copy, so
 replacement output is not fed back through another entry. The boundary also
 leaves code-like elements and protected URLs, paths, identifiers, commands,
-and factual external values unchanged. The desktop surface does not yet expose
-the file picker. Complete app-wide localization and desktop application remain
-explicit implementation items, not implied by this companion-only slice.
+and factual external values unchanged. The desktop surface exposes the same
+local file-picker contract through its native selected-file bridge. Complete
+app-wide localization and packaged desktop interaction remain explicit
+implementation items, not implied by this slice.
 
 Selecting a new file validates the complete payload before the cache or active
 entry set changes. A read, validation, or local-storage failure leaves the
 previous valid cache and displayed wording intact. Clearing the control removes
 the private cache, drops the active entry set, and restores the original
-shipped wording; an invalid cache is removed and fails closed to that same
-empty state during restoration.
+shipped wording. On desktop, load, replace, and clear operations serialize per
+application-data directory. If a cache is malformed, recovery records its
+bounded bytes and removes the file only when those bytes are still current;
+cleanup then re-reads the path, so a valid replacement written during recovery
+is not deleted. If cleanup still fails, the surface renders original wording,
+records an explicit retryable recovery state, and exposes Retry cache cleanup.
+The companion site mirrors this retryable empty-state behavior through local
+browser storage.
 
 ## School mode and recovery
 
@@ -136,6 +143,10 @@ unverified.
   the desktop application-data directory.
 - Browser storage failures leave the shipped defaults active and do not create
   a network fallback.
+- A failed malformed-cache cleanup leaves original wording active and exposes
+  a direct retry action; it does not pretend the cache was removed.
+- Versioned debounced settings saves ignore both stale success and stale failure
+  results after a newer setting value is scheduled.
 - Unlock values are hashed locally; the entered value is not rendered back,
   exported, logged, or included in the vocabulary cache.
 - The display name never changes installed identity or the location holding
@@ -150,6 +161,19 @@ The focused source contract check is:
 ```text
 npm run test:universal-contracts
 ```
+
+The personal-vocabulary recovery checks are:
+
+```text
+npm run test:personal-vocabulary-races
+npm run test:desktop-personal-vocabulary
+npm run test:personal-vocabulary
+```
+
+They cover stale success and failure suppression, per-directory cache
+serialization, snapshot-aware cleanup, replacement during cleanup, the direct
+retry projection, comma/semicolon path preservation, and exact executable
+negative regressions.
 
 The desktop search foundation additionally uses:
 
@@ -172,8 +196,8 @@ companion artifacts. `npm --prefix site run lint` completed with two
 `@next/next/no-img-element` warnings. Packaged runtime interaction,
 accessibility interaction, and real captures remain unverified because the
 required approved headless route is not available in this session. This
-implementation and verification record are carried by
-[`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
+implementation and verification record is part of the active personal-vocabulary recovery lane.
+The final integrated commit is recorded in the handoff after merge.
 
 ## Related articles
 
