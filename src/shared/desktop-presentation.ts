@@ -60,6 +60,7 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.personalVocabulary.choose",
   "settings.personalVocabulary.replace",
   "settings.personalVocabulary.clear",
+  "settings.personalVocabulary.retry",
   "settings.personalVocabulary.notice.loaded",
   "settings.personalVocabulary.notice.rejected",
   "settings.personalVocabulary.notice.cleared",
@@ -74,6 +75,8 @@ export const DESKTOP_PRESENTATION_KEYS = [
   "settings.personalVocabulary.command.statusDescription",
   "settings.personalVocabulary.command.clear",
   "settings.personalVocabulary.command.clearDescription",
+  "settings.personalVocabulary.command.retry",
+  "settings.personalVocabulary.command.retryDescription",
   "settings.personalVocabulary.picker.title",
   "settings.personalVocabulary.picker.filter",
   "palette.eyebrow",
@@ -351,6 +354,10 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
     english: ["Clear local vocabulary", "Clear local vocabulary", "Clear the local vocabulary cache", "Clear the local vocabulary cache and restore original wording", "Clear the local vocabulary cache; the original wording gets its encore"],
     cantonese: ["清除本機詞彙", "清除本機詞彙", "清除本機詞彙快取", "清除本機詞彙快取並恢復原本文字", "清除本機詞彙快取；原本文字返場 encore"],
   },
+  "settings.personalVocabulary.retry": {
+    english: ["Retry cache cleanup", "Retry cache cleanup", "Retry malformed-cache cleanup", "Retry removing the malformed local cache", "Retry cache cleanup; the stubborn bytes get one more exit interview"],
+    cantonese: ["重試清理快取", "重試清理快取", "重試清理格式錯誤快取", "重試移除格式錯誤嘅本機快取", "重試清理快取；頑固 bytes 再做一次離場面談"],
+  },
   "settings.personalVocabulary.notice.loaded": {
     english: ["The complete bounded JSON file passed local validation and is now active. Displayed wording changed only after validation.", "The complete bounded JSON file passed local validation and is now active. Wording changed only after validation.", "The bounded JSON file passed locally and is now active; invalid input could not sneak through.", "The complete bounded JSON file passed local validation and is active; displayed wording changed only after the full check.", "The complete bounded JSON file passed local validation and is active; the wording waited politely until the whole check finished."],
     cantonese: ["完整有界 JSON 檔案通過本機驗證，現在已啟用。顯示文字只喺驗證後改變。", "完整有界 JSON 檔案通過本機驗證，現在已啟用。文字只喺驗證後改變。", "有界 JSON 檔案通過本機驗證並已啟用；無效輸入冇機會偷偷入場。", "完整有界 JSON 檔案通過本機驗證並已啟用；顯示文字等完整檢查後先改。", "完整有界 JSON 檔案通過本機驗證並已啟用；文字好有禮貌咁等完整檢查做完先換衫。"],
@@ -412,6 +419,14 @@ const DESKTOP_COPY: Record<DesktopPresentationKey, DesktopCopyDefinition> = {
   "settings.personalVocabulary.command.clearDescription": {
     english: ["Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control; it never runs from the palette.", "Open Settings and focus the clear control for an explicit local action.", "Open Settings and focus clear; a deliberate click is still required.", "Open Settings and focus clear; the palette points, the user decides."],
     cantonese: ["開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣；唔會由命令面板直接執行。", "開啟設定並聚焦清除掣，明確進行本機動作。", "開啟設定並聚焦清除掣；仍然要用戶刻意撳掣。", "開啟設定並聚焦清除掣；命令面板只指路，用戶先決定。"],
+  },
+  "settings.personalVocabulary.command.retry": {
+    english: ["Retry local vocabulary cleanup", "Retry local vocabulary cleanup", "Retry local vocabulary cleanup", "Retry removing the malformed local cache", "Retry local vocabulary cleanup; give the cache one last polite nudge"],
+    cantonese: ["重試本機詞彙清理", "重試本機詞彙清理", "重試本機詞彙清理", "重試移除格式錯誤嘅本機快取", "重試本機詞彙清理；再客氣咁推快取一把"],
+  },
+  "settings.personalVocabulary.command.retryDescription": {
+    english: ["Open Settings and focus the direct cache-cleanup retry.", "Open Settings and focus the direct cache-cleanup retry.", "Open Settings and focus the retry without changing wording until removal succeeds.", "Open Settings and retry cleanup; persisted status changes only after removal succeeds.", "Open Settings and retry cleanup; the stubborn cache must actually leave before the status changes."],
+    cantonese: ["開啟設定並聚焦直接清理快取重試掣。", "開啟設定並聚焦直接清理快取重試掣。", "開啟設定並聚焦重試；移除成功前唔會改文字。", "開啟設定並重試清理；移除成功後先改儲存狀態。", "開啟設定並重試清理；快取真係離場先至改狀態，唔玩假動作。"],
   },
   "settings.personalVocabulary.picker.title": {
     english: ["Choose local personal vocabulary JSON", "Choose local personal vocabulary JSON", "Choose a local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file", "Choose a bounded local personal vocabulary JSON file; the bytes stay backstage"],

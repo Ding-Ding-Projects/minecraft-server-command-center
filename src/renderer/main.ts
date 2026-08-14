@@ -84,6 +84,7 @@ const resetUniversalSettingsButton = document.querySelector<HTMLButtonElement>("
 const personalVocabularyStatus = document.querySelector<HTMLElement>("#personal-vocabulary-status");
 const choosePersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#choose-personal-vocabulary");
 const clearPersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#clear-personal-vocabulary");
+const retryPersonalVocabularyButton = document.querySelector<HTMLButtonElement>("#retry-personal-vocabulary");
 const settingsSearch = document.querySelector<HTMLInputElement>("#settings-search");
 const settingsRegexToggle = document.querySelector<HTMLButtonElement>("#settings-regex-toggle");
 const settingsRegexBuilder = document.querySelector<HTMLElement>("#settings-regex-builder");
@@ -116,7 +117,7 @@ const notificationViewAllCount = document.querySelector<HTMLElement>("#notificat
 const notificationRecordList = document.querySelector<HTMLElement>("#notification-record-list");
 const notificationStatusMessage = document.querySelector<HTMLElement>("#notification-status-message");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !chooseJavaFolderButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !javaRuntimeSetupPlan || !javaRuntimeSetupPlanRoutes || !universalSettingsState || !resetUniversalSettingsButton || !personalVocabularyStatus || !choosePersonalVocabularyButton || !clearPersonalVocabularyButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !chooseJavaFolderButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !javaRuntimeSetupPlan || !javaRuntimeSetupPlanRoutes || !universalSettingsState || !resetUniversalSettingsButton || !personalVocabularyStatus || !choosePersonalVocabularyButton || !clearPersonalVocabularyButton || !retryPersonalVocabularyButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -132,6 +133,7 @@ let selectedJavaCandidateId: string | null = null;
 let universalSettings: UniversalSettingsV1 = DEFAULT_UNIVERSAL_SETTINGS;
 let personalVocabularyEntries: readonly PersonalVocabularyEntryV1[] = [];
 let personalVocabularyBusy = false;
+let personalVocabularyRecoveryPending = false;
 let universalSaveTimer: number | undefined;
 let universalSaveVersion = 0;
 let settingsRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
@@ -163,7 +165,7 @@ const tabCopy: Record<string, readonly [string, string]> = {
 };
 
 interface CommandPaletteCommand {
-  readonly id: "docs-search" | "docs-regex" | "settings-search" | "settings-regex" | "personal-vocabulary-choose" | "personal-vocabulary-replace" | "personal-vocabulary-status" | "personal-vocabulary-clear";
+  readonly id: "docs-search" | "docs-regex" | "settings-search" | "settings-regex" | "personal-vocabulary-choose" | "personal-vocabulary-replace" | "personal-vocabulary-status" | "personal-vocabulary-clear" | "personal-vocabulary-retry";
   readonly label: string;
   readonly description: string;
   readonly tab: "docs" | "settings";
@@ -172,7 +174,7 @@ interface CommandPaletteCommand {
   readonly openRegex?: boolean;
   readonly presentationLabelKey?: DesktopPresentationKey;
   readonly presentationDescriptionKey?: DesktopPresentationKey;
-  readonly personalVocabularyAction?: "choose" | "status" | "clear";
+  readonly personalVocabularyAction?: "choose" | "status" | "clear" | "retry";
 }
 
 const commandPaletteCommands: readonly CommandPaletteCommand[] = [
@@ -255,6 +257,15 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
     presentationLabelKey: "settings.personalVocabulary.command.clear",
     presentationDescriptionKey: "settings.personalVocabulary.command.clearDescription",
     personalVocabularyAction: "clear",
+  },
+  {
+    id: "personal-vocabulary-retry",
+    label: "Retry local vocabulary cleanup",
+    description: "Open Settings and retry removal of the malformed local cache.",
+    tab: "settings",
+    presentationLabelKey: "settings.personalVocabulary.command.retry",
+    presentationDescriptionKey: "settings.personalVocabulary.command.retryDescription",
+    personalVocabularyAction: "retry",
   },
 ];
 
@@ -518,6 +529,7 @@ function dismissSelectedNotifications(): void {
 function commandPaletteTargetId(command: CommandPaletteCommand): string | undefined {
   if (command.personalVocabularyAction === "status") return "personal-vocabulary-status";
   if (command.personalVocabularyAction === "clear") return "clear-personal-vocabulary";
+  if (command.personalVocabularyAction === "retry") return "retry-personal-vocabulary";
   if (command.personalVocabularyAction === "choose") return "choose-personal-vocabulary";
   return command.searchId;
 }
@@ -712,6 +724,10 @@ function renderPersonalVocabularyControl(): void {
   clearPersonalVocabularyButton.disabled = personalVocabularyBusy || status !== "loaded";
   clearPersonalVocabularyButton.textContent = presentUserCopy("settings.personalVocabulary.clear");
   clearPersonalVocabularyButton.setAttribute("aria-label", clearPersonalVocabularyButton.textContent);
+  retryPersonalVocabularyButton.hidden = !personalVocabularyRecoveryPending;
+  retryPersonalVocabularyButton.disabled = personalVocabularyBusy;
+  retryPersonalVocabularyButton.textContent = presentUserCopy("settings.personalVocabulary.retry");
+  retryPersonalVocabularyButton.setAttribute("aria-label", retryPersonalVocabularyButton.textContent);
 }
 
 function applyDesktopPresentation(): void {
@@ -814,16 +830,18 @@ function renderUniversalSettings(): void {
 
 function scheduleUniversalSettingsSave(): void {
   if (universalSaveTimer !== undefined) window.clearTimeout(universalSaveTimer);
+  const requestedVersion = ++universalSaveVersion;
+  const requestedSettings = universalSettings;
   writeUniversalSettingsStatus("settings.status.pending");
   universalSaveTimer = window.setTimeout(() => {
     universalSaveTimer = undefined;
-    const requestedVersion = ++universalSaveVersion;
-    void window.commandCenter.settings.save(universalSettings).then((saved) => {
+    void window.commandCenter.settings.save(requestedSettings).then((saved) => {
       if (requestedVersion !== universalSaveVersion) return;
       universalSettings = saved;
       renderUniversalSettings();
       writeUniversalSettingsStatus("settings.status.saved");
     }).catch(() => {
+      if (requestedVersion !== universalSaveVersion) return;
       writeUniversalSettingsStatus("settings.status.saveFailed");
       showSnackbar(presentDesktopCopy("settings.snackbar.saveFailed", effectivePresentationSettings()), "warning");
     });
@@ -863,6 +881,7 @@ function resetUniversalSettings(): void {
 
 function applyPersonalVocabularyState(state: PersonalVocabularyState): void {
   personalVocabularyEntries = state.entries;
+  personalVocabularyRecoveryPending = state.recovery === "malformed-cache-removal-failed";
   universalSettings = normalizeUniversalSettings({
     ...universalSettings,
     personalVocabulary: {
@@ -876,14 +895,14 @@ function applyPersonalVocabularyState(state: PersonalVocabularyState): void {
 async function restorePersonalVocabulary(): Promise<void> {
   try {
     const previous = universalSettings.personalVocabulary;
+    const previousRecoveryPending = personalVocabularyRecoveryPending;
     const state = await window.commandCenter.personalVocabulary.load();
     applyPersonalVocabularyState(state);
     if (state.recovery === "malformed-cache-removal-failed") {
-      scheduleUniversalSettingsSave();
       showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cacheRemovalFailed", effectivePresentationSettings()), "warning");
       return;
     }
-    if (previous.status !== state.status || previous.entryCount !== state.entryCount) {
+    if (previousRecoveryPending || previous.status !== state.status || previous.entryCount !== state.entryCount) {
       scheduleUniversalSettingsSave();
     }
   } catch {
@@ -925,6 +944,18 @@ async function clearPersonalVocabulary(): Promise<void> {
     showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.cleared", effectivePresentationSettings()), "success");
   } catch {
     showSnackbar(presentDesktopCopy("settings.personalVocabulary.notice.clearFailed", effectivePresentationSettings()), "warning");
+  } finally {
+    personalVocabularyBusy = false;
+    renderPersonalVocabularyControl();
+  }
+}
+
+async function retryPersonalVocabularyCleanup(): Promise<void> {
+  if (personalVocabularyBusy || !personalVocabularyRecoveryPending) return;
+  personalVocabularyBusy = true;
+  renderPersonalVocabularyControl();
+  try {
+    await restorePersonalVocabulary();
   } finally {
     personalVocabularyBusy = false;
     renderPersonalVocabularyControl();
@@ -1660,6 +1691,11 @@ function bindInteraction(): void {
     const clearPersonal = target.closest<HTMLButtonElement>("#clear-personal-vocabulary");
     if (clearPersonal) {
       void clearPersonalVocabulary();
+      return;
+    }
+    const retryPersonal = target.closest<HTMLButtonElement>("#retry-personal-vocabulary");
+    if (retryPersonal) {
+      void retryPersonalVocabularyCleanup();
       return;
     }
     const chooseHandoff = target.closest<HTMLButtonElement>("#choose-planner-handoff");
