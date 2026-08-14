@@ -85,7 +85,7 @@ The desktop source contains:
 - narrow generic native folder, JAR, and configuration picker requests, plus a
   dedicated privileged Java-runtime chooser;
 - a frameless, sandboxed, context-isolated Material Design 3 renderer with
-  seven vertical setup tabs;
+  nine vertical setup tabs, including a bundle-only Docs reader;
 - a guided Java runtime card that keeps candidate paths in the main process,
   shows opaque candidate/source summaries, probes selected Java with fixed
   direct arguments, validates a bounded official Paper project-version
@@ -125,7 +125,11 @@ src/main/update-boundary.ts
 src/preload/index.ts
 src/renderer/index.html
 src/renderer/main.ts
+src/renderer/offline-documentation-registry.ts
+src/renderer/offline-documentation.ts
 src/renderer/styles.css
+src/shared/offline-documentation.ts
+scripts/test-offline-documentation.mjs
 ```
 
 The desktop renderer has no process-start IPC, shell command field, RCON
@@ -159,6 +163,13 @@ two image-element warnings. `npm --prefix site run build` and
 packaged runtime interaction, accessibility interaction, or real capture
 evidence is claimed. The implementation and this local verification record are
 carried by [`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
+
+For the offline documentation browser lane, `npm run test:offline-documentation`,
+`npm run test:universal-contracts`, and `npm run build` passed on 2026-08-14.
+Those checks cover the hand-written article completeness boundary, the shared
+renderer/search/link contract, and the supported root build. They do not claim
+packaged desktop interaction, accessibility interaction, or real capture
+evidence.
 
 ## Safe continuation
 

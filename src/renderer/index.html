@@ -48,6 +48,9 @@
             <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-catalog" id="tab-catalog" tabindex="-1" data-tab="catalog">
               <span aria-hidden="true">☷</span><span>CLI catalog</span>
             </button>
+            <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-docs" id="tab-docs" tabindex="-1" data-tab="docs">
+              <span aria-hidden="true">▤</span><span>Docs</span>
+            </button>
             <button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-settings" id="tab-settings" tabindex="-1" data-tab="settings">
               <span aria-hidden="true">⚙</span><span>Universal settings</span>
             </button>
@@ -418,6 +421,63 @@
               </div>
               <p class="catalog-source" id="catalog-source">Loading the bounded catalog…</p>
               <div class="catalog-grid" id="catalog-grid" aria-live="polite"></div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" data-panel="docs" hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Offline reference</p>
+                  <h2>Desktop documentation browser</h2>
+                </div>
+                <span class="section-heading__chip">Bundled locally</span>
+              </div>
+              <p class="catalog-source">These articles are bundled from the repository's desktop Markdown at build time. Search, rendering, and article links stay local; external links are shown as unavailable offline.</p>
+              <section class="offline-docs-search-card" aria-labelledby="offline-docs-search-title">
+                <div class="offline-docs-search-card__heading">
+                  <div>
+                    <p class="eyebrow">Find an article</p>
+                    <h3 id="offline-docs-search-title">Search titles and article bodies</h3>
+                  </div>
+                  <span class="badge" id="offline-docs-result-count">Loading articles…</span>
+                </div>
+                <div class="settings-search-row">
+                  <label class="sr-only" for="offline-docs-search">Search offline documentation</label>
+                  <input id="offline-docs-search" class="text-input" type="search" placeholder="Search setup, runtime, safety…" autocomplete="off" />
+                  <button class="outlined-button" type="button" id="offline-docs-regex-toggle" aria-expanded="false" aria-controls="offline-docs-regex-builder">Regex</button>
+                </div>
+                <div class="settings-regex-builder" id="offline-docs-regex-builder" hidden>
+                  <label class="field__label" for="offline-docs-regex-pattern">Bounded local pattern</label>
+                  <input id="offline-docs-regex-pattern" class="text-input" type="text" maxlength="160" placeholder="For example: ^Java|Paper" spellcheck="false" />
+                  <div class="settings-regex-tokens" aria-label="Documentation regex pattern shortcuts">
+                    <button class="input-action" type="button" data-docs-regex-token="^">Start</button>
+                    <button class="input-action" type="button" data-docs-regex-token="$">End</button>
+                    <button class="input-action" type="button" data-docs-regex-token="[A-Za-z]">Letters</button>
+                    <button class="input-action" type="button" data-docs-regex-token="()">Group</button>
+                    <button class="input-action" type="button" data-docs-regex-token="|">Either</button>
+                    <button class="input-action" type="button" data-docs-regex-token="+">One or more</button>
+                  </div>
+                  <label class="check-row"><input id="offline-docs-regex-ignore-case" type="checkbox" checked /> Ignore case</label>
+                  <p class="field__hint" id="offline-docs-regex-status" role="status" aria-live="polite">Plain text search is active. Regex is an explicit local opt-in.</p>
+                </div>
+              </section>
+              <div class="offline-docs-layout">
+                <aside class="offline-docs-results" aria-labelledby="offline-docs-results-title">
+                  <div class="offline-docs-results__heading">
+                    <h3 id="offline-docs-results-title">Articles</h3>
+                    <span class="field__hint">Title and body</span>
+                  </div>
+                  <div id="offline-docs-result-list" class="offline-docs-result-list" aria-live="polite"></div>
+                </aside>
+                <article class="offline-docs-reader" aria-labelledby="offline-docs-article-title">
+                  <header>
+                    <p class="eyebrow">Local article</p>
+                    <h3 id="offline-docs-article-title">Loading local documentation…</h3>
+                    <p id="offline-docs-article-source" class="offline-docs-reader__source">The bundled article source is loading.</p>
+                  </header>
+                  <div id="offline-docs-article-body" class="offline-docs-reader__body"></div>
+                  <p id="offline-docs-article-state" class="field__hint" role="status" aria-live="polite">The reader uses one isolated local Markdown path.</p>
+                </article>
+              </div>
             </section>
 
             <section class="tab-panel" role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" data-panel="settings" hidden>

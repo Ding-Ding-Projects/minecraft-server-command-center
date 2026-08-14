@@ -15,6 +15,7 @@ import {
   normalizeServerDraft,
   type ServerDraft
 } from "../shared/server-draft";
+import { bindOfflineDocumentation } from "./offline-documentation";
 
 const form = document.querySelector<HTMLFormElement>("#server-form");
 const saveState = document.querySelector<HTMLElement>("#save-state");
@@ -77,6 +78,7 @@ const tabCopy: Record<string, readonly [string, string]> = {
   paths: ["Choose local paths", "Native file and folder pickers supply direct values without a generic command field."],
   preview: ["Inspect direct tokens", "The preview is an argument vector, not a command line, and it cannot be launched here."],
   catalog: ["Review supported CLI categories", "Mapped and unavailable entries stay visible so no arbitrary argument escape hatch is needed."],
+  docs: ["Read offline documentation", "Search bundled desktop articles locally. External links stay unavailable without a network route."],
   settings: ["Adjust universal local settings", "Set language, funny levels, emoji, display name, appearance, and tab docking without server actions."]
 };
 
@@ -700,6 +702,7 @@ function renderCatalog(catalog: CliCatalogProjection): void {
 }
 
 function bindInteraction(): void {
+  bindOfflineDocumentation();
   for (const control of settingsControls()) {
     control.addEventListener("input", () => handleUniversalSetting(control));
     control.addEventListener("change", () => handleUniversalSetting(control));

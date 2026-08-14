@@ -10,6 +10,7 @@ This documentation describes the desktop-foundation branch of Minecraft Server C
 - [Architecture](architecture/README.md) — process boundaries, typed draft ownership, and command-preview data flow.
 - [Runtime reference](reference/README.md) — bounded Java runtime discovery, opaque candidate ownership, version probing, and Paper/Spigot compatibility limits.
 - [Universal settings](reference/universal-settings.md) — the shared settings schema, local storage, bounded personal-vocabulary file contract, School mode, logo boundary, and evidence limits.
+- [Offline documentation browser](reference/offline-documentation-browser.md) — the desktop-only typed Markdown bundle, isolated local renderer, title/body search, bounded regex hook, and local article-link boundary.
 - [Server configuration](server-configuration/README.md) — Paper and Spigot command-line categories and the current no-launch limit.
 - [Verification](verification/README.md) — the hand-written completeness inventory and evidence boundary.
 

@@ -81,6 +81,14 @@
 
 ### Added
 
+- A desktop-only offline documentation browser foundation: a typed bundle of
+  the non-site Markdown articles, one escaped local renderer path, title/body
+  search with a bounded opt-in regex hook, local article-link resolution, and a
+  hand-written completeness check ([`f05a8bf`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/f05a8bf0bafdeddc75647b35b4e0e4a62d31517f)).
+  `npm run test:offline-documentation`, `npm run test:universal-contracts`,
+  and `npm run build` passed; packaged desktop interaction and captures remain
+  unverified.
+
 - A partial universal-settings foundation for the desktop and companion site:
   bounded schema-version-1 normalization, local persistence, independent
   language funny levels, dialog emoji, renameable School mode, display name,
