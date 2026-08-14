@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.33 — 2026-08-14
+
+### Changed
+
+- Published the bounded universal-settings foundation and its linked evidence
+  records from commits
+  [`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922) and
+  [`44d23c9`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/44d23c9c8bbbe9aa2967f17b5c27f49cebcdee10).
+- Published the unsigned Windows Squirrel.Windows artifacts with dim-sum code
+  name `Quail Egg Siu Mai · 鵪鶉蛋燒賣`.
+
+### Verification
+
+- GitHub Actions run
+  [`31775779448`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31775779448)
+  completed successfully and published the non-draft release
+  [`v0.1.33`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.33)
+  for exact commit `44d23c9c8bbbe9aa2967f17b5c27f49cebcdee10`.
+- Release timing was `00:02:21`; `Setup.exe`, `RELEASES`, and the full
+  `.nupkg` were published, unsigned, and each download URL returned HTTP 200.
+- The release line-count table reported 20,855 non-generated total lines and
+  18,676 non-blank lines, with 20,860 grand-total lines and 18,680 grand-total
+  non-blank lines.
+
 ## 0.1.32 — 2026-08-14
 
 ### Changed

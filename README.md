@@ -128,8 +128,8 @@ record does not claim automated desktop tests, browser or desktop interaction,
 accessibility review, local installer operation, automatic-update behavior, or
 server-process action. The 2026-08-14 release audit did verify the root build,
 unsigned Squirrel.Windows package, companion-site build and lint, Pages staging,
-GitHub Actions run `31771514026`, and published release `v0.1.32` for commit
-`7974e8b975838ed167710e1aa130024fd457f897`. Read the relevant handoff and
+GitHub Actions run `31775779448`, and published release `v0.1.33` for commit
+`44d23c9c8bbbe9aa2967f17b5c27f49cebcdee10`. Read the relevant handoff and
 completeness inventory before calling a surface fully verified.
 
 The Planner Handoff v1 record and Java runtime guidance remain source-design
