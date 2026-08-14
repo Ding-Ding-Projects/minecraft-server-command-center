@@ -20,11 +20,14 @@ not retain secrets,
 private server data, file contents, logs, player data, or browser information
 outside its bounded non-secret planner contract.
 
-The Notification centre is a browser-local foundation for the existing
-non-blocking toast path. It retains bounded active and dismissed records,
-supports current-view or every-match selection, inverse selection, and bulk
-dismissal for active dismissible records. It does not send notices remotely,
-delete review records, or provide a desktop notification centre.
+The companion Notification centre is a browser-local foundation for its
+existing non-blocking toast path. The desktop renderer now has a separate
+renderer-local foundation for its own snackbar path. Each surface retains
+bounded active and dismissed records, supports current-view or every-match
+selection, inverse selection, and bulk dismissal for active dismissible
+records. Neither surface sends notices remotely or deletes review records;
+desktop storage does not add a preload, main-process, filesystem, or network
+route.
 
 The Home and Release status destinations can hand a person to one verified,
 published, version-pinned Windows `Setup.exe` asset. Its record is embedded in source with the
@@ -41,6 +44,12 @@ The foundation is bounded and local-only: it does not imply cloud sync,
 credential storage, server access, or complete localization. The companion
 personal-vocabulary loader validates a private file but does not yet replace
 text across every surface, and the desktop does not yet expose that picker.
+
+Read `docs/reference/notification-centre.md` before extending either review
+surface. The desktop article is already registered in
+`src/renderer/offline-documentation-registry.ts`; the current evidence is
+source, focused contract, and renderer/main build only, not packaged runtime
+interaction or capture evidence.
 
 ## Current release proof
 

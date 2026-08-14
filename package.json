@@ -12,6 +12,7 @@
     "build": "npm run prepare:assets && npm run build:main && npm run build:renderer",
     "test:personal-vocabulary": "node --experimental-strip-types scripts/test-personal-vocabulary-boundary.mjs",
     "test:site-notification-center": "node --experimental-strip-types scripts/test-site-notification-center.mjs",
+    "test:desktop-notification-center": "node --experimental-strip-types scripts/test-desktop-notification-center.mjs",
     "test:universal-contracts": "node --experimental-strip-types scripts/test-universal-contracts.mjs",
     "test:offline-documentation": "node --experimental-strip-types scripts/test-offline-documentation.mjs",
     "test:desktop-search": "node --experimental-strip-types scripts/test-desktop-search-foundation.mjs",

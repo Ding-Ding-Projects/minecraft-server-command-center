@@ -18,6 +18,22 @@ import {
 } from "../shared/server-draft";
 import { bindOfflineDocumentation } from "./offline-documentation";
 import { bindAnchoredRegexBuilder, type AnchoredRegexBuilderBinding, type RegexBuilderState } from "./regex-builder";
+import {
+  appendNotificationRecord,
+  bulkDismissNotificationRecords,
+  createNotificationRecord,
+  dismissNotificationRecord,
+  EMPTY_NOTIFICATION_CENTER,
+  invertNotificationSelection,
+  MAX_NOTIFICATION_RECORDS,
+  NOTIFICATION_STORAGE_KEY,
+  parseNotificationCenter,
+  serializeNotificationCenter,
+  type NotificationCenterState,
+  type NotificationRecord,
+  type NotificationSelectScope,
+  type NotificationView,
+} from "./notification-center";
 
 const form = document.querySelector<HTMLFormElement>("#server-form");
 const saveState = document.querySelector<HTMLElement>("#save-state");
@@ -63,8 +79,23 @@ const commandPaletteRegexIgnoreCase = document.querySelector<HTMLInputElement>("
 const commandPaletteRegexStatus = document.querySelector<HTMLElement>("#command-palette-regex-status");
 const commandPaletteStatus = document.querySelector<HTMLElement>("#command-palette-status");
 const commandPaletteResultList = document.querySelector<HTMLElement>("#command-palette-result-list");
+const notificationSearch = document.querySelector<HTMLInputElement>("#notification-search");
+const notificationRegexToggle = document.querySelector<HTMLButtonElement>("#notification-regex-toggle");
+const notificationRegexBuilder = document.querySelector<HTMLElement>("#notification-regex-builder");
+const notificationRegexPattern = document.querySelector<HTMLInputElement>("#notification-regex-pattern");
+const notificationRegexIgnoreCase = document.querySelector<HTMLInputElement>("#notification-regex-ignore-case");
+const notificationRegexStatus = document.querySelector<HTMLElement>("#notification-regex-status");
+const notificationPersistenceStatus = document.querySelector<HTMLElement>("#notification-persistence-status");
+const notificationActiveCount = document.querySelector<HTMLElement>("#notification-active-count");
+const notificationDismissedCount = document.querySelector<HTMLElement>("#notification-dismissed-count");
+const notificationRecordCount = document.querySelector<HTMLElement>("#notification-record-count");
+const notificationViewActiveCount = document.querySelector<HTMLElement>("#notification-view-active-count");
+const notificationViewDismissedCount = document.querySelector<HTMLElement>("#notification-view-dismissed-count");
+const notificationViewAllCount = document.querySelector<HTMLElement>("#notification-view-all-count");
+const notificationRecordList = document.querySelector<HTMLElement>("#notification-record-list");
+const notificationStatusMessage = document.querySelector<HTMLElement>("#notification-status-message");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !applyPlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -85,6 +116,15 @@ let commandPaletteRegexState: RegexBuilderState = { mode: "plain", query: "", pa
 let commandPaletteBinding: AnchoredRegexBuilderBinding | undefined;
 let commandPaletteOpen = false;
 let commandPaletteReturnFocus: HTMLElement | null = null;
+let notificationCenter: NotificationCenterState = EMPTY_NOTIFICATION_CENTER;
+let notificationView: NotificationView = "active";
+let notificationSelectScope: NotificationSelectScope = "view";
+let selectedNotificationIds: string[] = [];
+let notificationRegexState: RegexBuilderState = { mode: "plain", query: "", pattern: "", flags: "i" };
+let notificationRegexBinding: AnchoredRegexBuilderBinding | undefined;
+let notificationPersistence: "checking" | "saved" | "unavailable" = "checking";
+let notificationStatus = "";
+let currentSnackbarId: string | null = null;
 
 const tabCopy: Record<string, readonly [string, string]> = {
   overview: ["Create a bounded setup draft", "Choose meaningful values through controls. This foundation never turns them into a shell command."],
@@ -95,7 +135,8 @@ const tabCopy: Record<string, readonly [string, string]> = {
   preview: ["Inspect direct tokens", "The preview is an argument vector, not a command line, and it cannot be launched here."],
   catalog: ["Review supported CLI categories", "Mapped and unavailable entries stay visible so no arbitrary argument escape hatch is needed."],
   docs: ["Read offline documentation", "Search bundled desktop articles locally. External links stay unavailable without a network route."],
-  settings: ["Adjust universal local settings", "Set language, funny levels, emoji, display name, appearance, and tab docking without server actions."]
+  settings: ["Adjust universal local settings", "Set language, funny levels, emoji, display name, appearance, and tab docking without server actions."],
+  notifications: ["Review desktop notifications", "Keep bounded local snackbar records available for review, dismissal, and honest bulk actions."]
 };
 
 interface CommandPaletteCommand {
@@ -147,13 +188,261 @@ const commandPaletteCommands: readonly CommandPaletteCommand[] = [
   },
 ];
 
-function showSnackbar(message: string): void {
-  snackbar.textContent = message;
+function notificationToneFor(message: string): "warning" | "error" | "success" | "info" {
+  if (/\b(error|failed|failure|could not|unavailable|rejected|not accepted|unable)\b/i.test(message)) return "warning";
+  if (/\b(saved|completed|copied|applied|selected|reset)\b/i.test(message)) return "success";
+  return "info";
+}
+
+function persistNotificationCenter(): void {
+  try {
+    window.localStorage.setItem(NOTIFICATION_STORAGE_KEY, serializeNotificationCenter(notificationCenter));
+    notificationPersistence = "saved";
+  } catch {
+    notificationPersistence = "unavailable";
+  }
+  renderNotificationCenter();
+}
+
+function loadNotificationCenter(): void {
+  try {
+    const stored = window.localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    if (!stored) {
+      notificationCenter = EMPTY_NOTIFICATION_CENTER;
+      notificationPersistence = "saved";
+      return;
+    }
+    const parsed = parseNotificationCenter(JSON.parse(stored) as unknown);
+    if (parsed.ok) {
+      notificationCenter = parsed.value;
+      notificationPersistence = "saved";
+      return;
+    }
+    window.localStorage.removeItem(NOTIFICATION_STORAGE_KEY);
+    notificationCenter = EMPTY_NOTIFICATION_CENTER;
+    notificationPersistence = "saved";
+    notificationStatus = `${parsed.reason} The invalid local value was cleared.`;
+  } catch {
+    notificationCenter = EMPTY_NOTIFICATION_CENTER;
+    notificationPersistence = "unavailable";
+    notificationStatus = "Local notification storage is unavailable; this window will keep notices temporarily.";
+  }
+}
+
+function renderSnackbar(record: NotificationRecord): void {
+  const content = document.createElement("div");
+  content.className = "snackbar__content";
+  const title = document.createElement("strong");
+  title.textContent = record.title;
+  const detail = document.createElement("span");
+  detail.textContent = record.detail;
+  content.append(title, detail);
+  const actions = document.createElement("div");
+  actions.className = "snackbar__actions";
+  const review = document.createElement("button");
+  review.type = "button";
+  review.className = "text-action";
+  review.dataset.snackbarReview = record.id;
+  review.textContent = "Review";
+  review.setAttribute("aria-label", `Review notification: ${record.title}`);
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "icon-button icon-button--small";
+  dismiss.dataset.snackbarDismiss = record.id;
+  dismiss.textContent = "×";
+  dismiss.setAttribute("aria-label", `Dismiss notification: ${record.title}`);
+  actions.append(review, dismiss);
+  snackbar.dataset.tone = record.tone;
+  snackbar.replaceChildren(content, actions);
   snackbar.hidden = false;
+  currentSnackbarId = record.id;
   if (snackTimer !== undefined) window.clearTimeout(snackTimer);
   snackTimer = window.setTimeout(() => {
     snackbar.hidden = true;
+    currentSnackbarId = null;
   }, 4200);
+}
+
+function showSnackbar(message: string): void {
+  const record = createNotificationRecord({
+    tone: notificationToneFor(message),
+    title: "Desktop notification",
+    detail: message,
+  });
+  notificationCenter = {
+    schemaVersion: 1,
+    records: appendNotificationRecord(notificationCenter.records, record),
+  };
+  persistNotificationCenter();
+  renderSnackbar(record);
+}
+
+function notificationMatches(record: NotificationRecord): boolean {
+  const matcher = createBoundedSearchMatcher(notificationRegexState);
+  return matcher.ok && matcher.value(`${record.title} ${record.detail} ${record.tone}`);
+}
+
+function notificationViewRecords(): NotificationRecord[] {
+  return notificationCenter.records.filter((record) => {
+    const matchesView = notificationView === "all"
+      || (notificationView === "active" ? record.dismissedAt === null : record.dismissedAt !== null);
+    return matchesView && notificationMatches(record);
+  });
+}
+
+function notificationSelectionTarget(): NotificationRecord[] {
+  return notificationSelectScope === "view"
+    ? notificationViewRecords()
+    : notificationCenter.records.filter(notificationMatches);
+}
+
+function renderNotificationCenter(): void {
+  const matcher = createBoundedSearchMatcher(notificationRegexState);
+  const activeCount = notificationCenter.records.filter((record) => record.dismissedAt === null).length;
+  const dismissedCount = notificationCenter.records.length - activeCount;
+  const matchingRecords = notificationViewRecords();
+  const selected = new Set(selectedNotificationIds);
+  const selectedDismissibleCount = notificationCenter.records.filter(
+    (record) => selected.has(record.id) && record.dismissible && record.dismissedAt === null,
+  ).length;
+  const persistenceLabel = notificationPersistence === "saved"
+    ? "Local persistence ready"
+    : notificationPersistence === "unavailable"
+      ? "Local persistence unavailable"
+      : "Checking local storage…";
+  notificationPersistenceStatus.textContent = persistenceLabel;
+  notificationActiveCount.textContent = String(activeCount);
+  notificationDismissedCount.textContent = String(dismissedCount);
+  notificationRecordCount.textContent = `${notificationCenter.records.length} / ${MAX_NOTIFICATION_RECORDS} stored`;
+  notificationViewActiveCount.textContent = String(activeCount);
+  notificationViewDismissedCount.textContent = String(dismissedCount);
+  notificationViewAllCount.textContent = String(notificationCenter.records.length);
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-notification-view]")) {
+    const isSelected = button.dataset.notificationView === notificationView;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  }
+  const clearButton = document.querySelector<HTMLButtonElement>('[data-notification-action="clear"]');
+  const dismissSelectedButton = document.querySelector<HTMLButtonElement>('[data-notification-action="dismiss-selected"]');
+  if (clearButton) {
+    clearButton.disabled = selectedNotificationIds.length === 0;
+    clearButton.textContent = `Clear selection (${selectedNotificationIds.length})`;
+  }
+  if (dismissSelectedButton) {
+    dismissSelectedButton.disabled = selectedDismissibleCount === 0;
+    dismissSelectedButton.textContent = `Dismiss selected (${selectedDismissibleCount})`;
+  }
+  if (!matcher.ok) {
+    notificationStatusMessage.textContent = matcher.reason;
+  } else if (notificationStatus) {
+    notificationStatusMessage.textContent = notificationStatus;
+  } else {
+    notificationStatusMessage.textContent = `${matchingRecords.length} notification record${matchingRecords.length === 1 ? "" : "s"} shown.`;
+  }
+  notificationRecordList.replaceChildren();
+  if (matchingRecords.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = notificationCenter.records.length === 0
+      ? "No desktop notifications have been recorded yet. Existing snackbars will appear here after they occur."
+      : "No desktop notification records match the current view and search.";
+    notificationRecordList.append(empty);
+    return;
+  }
+  for (const record of matchingRecords) {
+    const article = document.createElement("article");
+    article.className = `notification-record notification-record--${record.tone}`;
+    article.dataset.notificationRecordId = record.id;
+    article.tabIndex = -1;
+    article.setAttribute("role", "listitem");
+    const selection = document.createElement("label");
+    selection.className = "notification-record__select";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = selected.has(record.id);
+    checkbox.dataset.notificationSelect = record.id;
+    checkbox.setAttribute("aria-label", `Select notification: ${record.title}`);
+    selection.append(checkbox);
+    const body = document.createElement("div");
+    body.className = "notification-record__body";
+    const heading = document.createElement("div");
+    heading.className = "notification-record__heading";
+    const marker = document.createElement("span");
+    marker.className = "notification-record__marker";
+    marker.setAttribute("aria-hidden", "true");
+    marker.textContent = record.tone === "warning" ? "!" : record.tone === "error" ? "×" : record.tone === "success" ? "✓" : "i";
+    const title = document.createElement("h4");
+    title.textContent = record.title;
+    heading.append(marker, title);
+    const detail = document.createElement("p");
+    detail.textContent = record.detail;
+    const meta = document.createElement("p");
+    meta.className = "notification-record__meta";
+    meta.textContent = `${new Date(record.createdAt).toLocaleString()} · ${record.dismissedAt ? `Dismissed ${new Date(record.dismissedAt).toLocaleString()}` : "Active"}${record.dismissible ? " · Dismissible" : " · Review only"}`;
+    body.append(heading, detail, meta);
+    const actions = document.createElement("div");
+    actions.className = "notification-record__actions";
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "text-action";
+    review.dataset.notificationReview = record.id;
+    review.textContent = "Review";
+    review.setAttribute("aria-label", `Review notification: ${record.title}`);
+    actions.append(review);
+    if (record.dismissible && record.dismissedAt === null) {
+      const dismiss = document.createElement("button");
+      dismiss.type = "button";
+      dismiss.className = "text-action";
+      dismiss.dataset.notificationDismiss = record.id;
+      dismiss.textContent = "Dismiss";
+      dismiss.setAttribute("aria-label", `Dismiss notification: ${record.title}`);
+      actions.append(dismiss);
+    }
+    article.append(selection, body, actions);
+    notificationRecordList.append(article);
+  }
+}
+
+function focusNotificationRecord(id: string): void {
+  window.requestAnimationFrame(() => {
+    const target = Array.from(document.querySelectorAll<HTMLElement>("[data-notification-record-id]"))
+      .find((candidate) => candidate.dataset.notificationRecordId === id);
+    target?.focus();
+  });
+}
+
+function reviewNotification(id: string): void {
+  notificationView = "all";
+  notificationStatus = "Notification opened in the local review trail.";
+  activateTab("notifications", true);
+  renderNotificationCenter();
+  focusNotificationRecord(id);
+}
+
+function dismissNotification(id: string): void {
+  notificationCenter = {
+    schemaVersion: 1,
+    records: dismissNotificationRecord(notificationCenter.records, id),
+  };
+  selectedNotificationIds = selectedNotificationIds.filter((selectedId) => selectedId !== id);
+  notificationStatus = "Notification dismissed locally and kept for review.";
+  persistNotificationCenter();
+  if (currentSnackbarId === id) {
+    snackbar.hidden = true;
+    currentSnackbarId = null;
+  }
+}
+
+function dismissSelectedNotifications(): void {
+  const selectedCountBeforeDismiss = selectedNotificationIds.length;
+  const result = bulkDismissNotificationRecords(notificationCenter.records, selectedNotificationIds);
+  notificationCenter = { schemaVersion: 1, records: result.records };
+  selectedNotificationIds = selectedNotificationIds.filter((id) => !result.dismissedIds.includes(id));
+  const skippedCount = selectedCountBeforeDismiss - result.dismissedIds.length;
+  notificationStatus = result.dismissedIds.length === 0
+    ? "No selected active dismissible notifications were changed."
+    : `${result.dismissedIds.length} notification record${result.dismissedIds.length === 1 ? "" : "s"} dismissed locally${skippedCount ? `; ${skippedCount} selected record${skippedCount === 1 ? " was" : "s were"} not dismissible or already dismissed.` : "."}`;
+  persistNotificationCenter();
 }
 
 function renderCommandPalette(): void {
@@ -868,8 +1157,24 @@ function bindInteraction(): void {
     },
   });
   commandPaletteRegexState = commandPaletteBinding.getState();
+  notificationRegexBinding = bindAnchoredRegexBuilder({
+    id: "desktop-notifications",
+    searchInput: notificationSearch,
+    toggle: notificationRegexToggle,
+    builder: notificationRegexBuilder,
+    pattern: notificationRegexPattern,
+    ignoreCase: notificationRegexIgnoreCase,
+    status: notificationRegexStatus,
+    onStateChange: (state) => {
+      notificationRegexState = state;
+      notificationStatus = "";
+      renderNotificationCenter();
+    },
+  });
+  notificationRegexState = notificationRegexBinding.getState();
   renderSettingsSearch();
   renderCommandPalette();
+  renderNotificationCenter();
   for (const control of settingsControls()) {
     control.addEventListener("input", () => handleUniversalSetting(control));
     control.addEventListener("change", () => handleUniversalSetting(control));
@@ -911,10 +1216,60 @@ function bindInteraction(): void {
       closeCommandPalette();
       return;
     }
+    const snackbarReview = target.closest<HTMLButtonElement>("[data-snackbar-review]");
+    if (snackbarReview?.dataset.snackbarReview) {
+      reviewNotification(snackbarReview.dataset.snackbarReview);
+      return;
+    }
+    const snackbarDismiss = target.closest<HTMLButtonElement>("[data-snackbar-dismiss]");
+    if (snackbarDismiss?.dataset.snackbarDismiss) {
+      dismissNotification(snackbarDismiss.dataset.snackbarDismiss);
+      return;
+    }
     const paletteItem = target.closest<HTMLButtonElement>("[data-command-palette-id]");
     if (paletteItem?.dataset.commandPaletteId) {
       const command = commandPaletteCommands.find((candidate) => candidate.id === paletteItem.dataset.commandPaletteId);
       if (command) executeCommandPaletteCommand(command);
+      return;
+    }
+    const notificationViewButton = target.closest<HTMLButtonElement>("[data-notification-view]");
+    if (notificationViewButton?.dataset.notificationView) {
+      notificationView = notificationViewButton.dataset.notificationView as NotificationView;
+      notificationStatus = "";
+      renderNotificationCenter();
+      return;
+    }
+    const notificationAction = target.closest<HTMLButtonElement>("[data-notification-action]")?.dataset.notificationAction;
+    if (notificationAction === "select-all") {
+      selectedNotificationIds = Array.from(new Set([...selectedNotificationIds, ...notificationSelectionTarget().map((record) => record.id)]));
+      notificationStatus = `Selected ${notificationSelectionTarget().length} record${notificationSelectionTarget().length === 1 ? "" : "s"} in the ${notificationSelectScope === "view" ? "current-view" : "every-match"} scope.`;
+      renderNotificationCenter();
+      return;
+    }
+    if (notificationAction === "invert") {
+      selectedNotificationIds = invertNotificationSelection(selectedNotificationIds, notificationSelectionTarget().map((record) => record.id));
+      notificationStatus = "Notification selection inverted within the stated scope.";
+      renderNotificationCenter();
+      return;
+    }
+    if (notificationAction === "clear") {
+      selectedNotificationIds = [];
+      notificationStatus = "Notification selection cleared.";
+      renderNotificationCenter();
+      return;
+    }
+    if (notificationAction === "dismiss-selected") {
+      dismissSelectedNotifications();
+      return;
+    }
+    const notificationReview = target.closest<HTMLButtonElement>("[data-notification-review]");
+    if (notificationReview?.dataset.notificationReview) {
+      reviewNotification(notificationReview.dataset.notificationReview);
+      return;
+    }
+    const notificationDismiss = target.closest<HTMLButtonElement>("[data-notification-dismiss]");
+    if (notificationDismiss?.dataset.notificationDismiss) {
+      dismissNotification(notificationDismiss.dataset.notificationDismiss);
       return;
     }
     const picker = target.closest<HTMLButtonElement>("[data-picker-kind]");
@@ -992,6 +1347,23 @@ function bindInteraction(): void {
     if (action === "maximize") void window.commandCenter.window.toggleMaximize();
     if (action === "close") void window.commandCenter.window.close();
   });
+  document.addEventListener("change", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (target.dataset.notificationSelect) {
+      selectedNotificationIds = target.checked
+        ? Array.from(new Set([...selectedNotificationIds, target.dataset.notificationSelect]))
+        : selectedNotificationIds.filter((id) => id !== target.dataset.notificationSelect);
+      notificationStatus = "";
+      renderNotificationCenter();
+      return;
+    }
+    if (target.dataset.notificationScope) {
+      notificationSelectScope = target.value as NotificationSelectScope;
+      notificationStatus = `Select-all scope set to ${notificationSelectScope === "view" ? "current view only" : "every matching record"}.`;
+      renderNotificationCenter();
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.ctrlKey && event.shiftKey && event.key.toLocaleUpperCase() === "F") {
       event.preventDefault();
@@ -1038,6 +1410,7 @@ function bindInteraction(): void {
 }
 
 async function start(): Promise<void> {
+  loadNotificationCenter();
   bindInteraction();
   try {
     universalSettings = await window.commandCenter.settings.load();

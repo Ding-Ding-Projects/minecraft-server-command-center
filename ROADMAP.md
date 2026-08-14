@@ -54,6 +54,12 @@ server action.
   the same search path, and `Ctrl+Shift+F` reaches the existing Docs/settings
   surfaces through a bounded command palette. The focused source/build checks
   do not prove packaged runtime interaction or full CommonMark coverage.
+- Added the desktop renderer notification-centre foundation: bounded schema-v1
+  snackbar records, local persistence, non-blocking Review/Dismiss actions,
+  Active/Dismissed/All views, scoped select-all, inverse selection, and
+  dismissible-only bulk dismissal. The article is bundled through the existing
+  offline documentation registry; focused source checks and builds do not prove
+  packaged runtime interaction, complete localization, or capture evidence.
 
 ## Next implementation slices
 
