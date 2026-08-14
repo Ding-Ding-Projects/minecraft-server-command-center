@@ -109,7 +109,9 @@ deliberate negative regressions for the exact source registrations. The root
 companion artifacts. `npm --prefix site run lint` completed with two
 `@next/next/no-img-element` warnings. Packaged runtime interaction,
 accessibility interaction, and real captures remain unverified because the
-required approved headless route is not available in this session.
+required approved headless route is not available in this session. This
+implementation and verification record are carried by
+[`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
 
 ## Related articles
 

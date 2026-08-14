@@ -61,7 +61,7 @@
   bounded schema-version-1 normalization, local persistence, independent
   language funny levels, dialog emoji, renameable School mode, display name,
   theme, density, seed color, tab docking, local logo selection, and a
-  fail-closed personal-vocabulary JSON parser. Full app-wide contract coverage
+  fail-closed personal-vocabulary JSON parser ([`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922)). Full app-wide contract coverage
   remains tracked in the completeness inventory.
 
 - Guided desktop Java-runtime discovery and review controls using opaque
@@ -103,7 +103,8 @@
   two image-element warnings. `npm --prefix site run build` and
   `npx tsc --noEmit -p site/tsconfig.json` also completed. No
   packaged runtime interaction, accessibility interaction, or real captures
-  were run.
+  were run. This verification record is carried by
+  [`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
 
 - Documentation-only change. No test, lint, build, package, runtime interaction, capture, release, or server-process action is represented as having occurred.
 - Planner Handoff v1 documentation adds no verified browser UI, desktop UI,

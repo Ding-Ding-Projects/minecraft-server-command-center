@@ -157,7 +157,8 @@ passed and the root `npm run build` passed. `npm --prefix site run lint` complet
 two image-element warnings. `npm --prefix site run build` and
 `npx tsc --noEmit -p site/tsconfig.json` also completed. No
 packaged runtime interaction, accessibility interaction, or real capture
-evidence is claimed.
+evidence is claimed. The implementation and this local verification record are
+carried by [`130f2b1`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/130f2b1b45586c16c07efc1957b3cb150f67e922).
 
 ## Safe continuation
 
