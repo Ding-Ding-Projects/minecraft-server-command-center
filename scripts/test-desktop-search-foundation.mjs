@@ -8,6 +8,7 @@ import {
 } from "../src/shared/regex-search.ts";
 
 const repositoryRoot = resolve(process.cwd());
+const readText = async (path) => (await readFile(resolve(repositoryRoot, path), "utf8")).replace(/\r\n/g, "\n");
 
 const requiredMarkers = [
   ["src/shared/regex-search.ts", "export function createBoundedSearchMatcher("] ,
@@ -25,7 +26,7 @@ const requiredMarkers = [
 
 const sources = new Map();
 for (const [path] of requiredMarkers) {
-  if (!sources.has(path)) sources.set(path, await readFile(resolve(repositoryRoot, path), "utf8"));
+  if (!sources.has(path)) sources.set(path, await readText(path));
 }
 
 function assertSourceContract(currentSources) {
