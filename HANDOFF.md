@@ -117,11 +117,27 @@ regenerated-projection, staged-only, status-only applicability,
 uniqueness/disjointness, ancestor-reparse, final-symlink, and cleanup probes
 passed. The focused `npm run test:universal-contracts`,
 `npm run test:offline-documentation`, both syntax checks, and `git diff --check`
-also passed. Temporary assertion-removal probes for R2-R6 each turned the
-inventory Chut red and were restored before the final run. Node emitted only
+also passed. Temporary assertion-removal probes for R2-R6 were restored before
+the final run; the independent audit found R3-R5 red and R2/R6 green. Node emitted only
 the existing `MODULE_TYPELESS_PACKAGE_JSON` warnings for the TypeScript
 contract modules; no packaged runtime, accessibility interaction, release, or
 capture evidence is claimed.
+
+This follow-up starts from exact base commit
+`3e6671a5ff79b4a6d9f78c8da2117175112f53e9`. It adds an exact source-contract
+mutation for the production `assertNoReparseComponents(relativePath, context);`
+call inside `assertRepositoryFile`; removing that call must turn the inventory
+check red. The independent assertion-removal audit of the prior R2-R6 probes
+was narrower than the earlier wording claimed: R3-R5 turned red, while R2 and
+R6 stayed green. This record therefore makes no claim that all R2-R6 probes
+turned red.
+
+Follow-up verification: `npm run test:universal-contract-inventory` passed with
+27 canonical rows, 7 evidence slots, 2 independent surface keys per row, and
+895 negative mutations, including `ancestor-junction` and `final-symlink`
+fixtures. The added production-call removal mutation turned the checker red;
+fixture cleanup also passed. No packaged runtime, accessibility interaction,
+release, or capture evidence is claimed.
 
 ## Planner Handoff v1 record
 

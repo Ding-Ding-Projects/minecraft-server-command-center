@@ -30,8 +30,10 @@ import {
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const inventoryMetadataPath = resolve(repositoryRoot, "scripts/universal-contract-inventory.mjs");
 const inventoryDocumentationPath = resolve(repositoryRoot, "docs/verification/completeness-inventory.md");
+const checkerSourcePath = resolve(repositoryRoot, "scripts/test-universal-contract-inventory.mjs");
 const inventoryMetadataSource = await readFile(inventoryMetadataPath, "utf8");
 const inventoryDocumentationSource = await readFile(inventoryDocumentationPath, "utf8");
+const checkerSource = await readFile(checkerSourcePath, "utf8");
 const fixtureToken = `${process.pid}-${Date.now()}`;
 
 const expectedRows = Object.freeze([
@@ -91,6 +93,9 @@ const requiredSourceLineTokens = Object.freeze([
   "const UNIVERSAL_CONTRACT_ROWS = [",
   "export const UNIVERSAL_CONTRACT_INVENTORY = Object.freeze(",
 ]);
+const requiredCheckerSourceLineTokens = Object.freeze([
+  "assertNoReparseComponents(relativePath, context);",
+]);
 
 const expectedRowSourceLineTokens = Object.freeze(
   expectedRows.flatMap(([rowId, rowTitle]) => [
@@ -123,6 +128,17 @@ function assertSourceContract(source) {
   }
   for (const token of expectedRowSourceLineTokens) {
     assert.match(source, exactLinePattern(token), `inventory metadata is missing the exact canonical row line ${token}`);
+  }
+}
+
+function assertCheckerSourceContract(source) {
+  const functionStart = source.indexOf("function assertRepositoryFile(");
+  const functionEnd = source.indexOf("\nfunction pathExistsForCleanup(", functionStart);
+  assert.ok(functionStart >= 0, "the production repository-file checker must keep its named function");
+  assert.ok(functionEnd > functionStart, "the production repository-file checker must have a bounded function body");
+  const productionCheckerSource = source.slice(functionStart, functionEnd);
+  for (const token of requiredCheckerSourceLineTokens) {
+    assert.match(productionCheckerSource, exactLinePattern(token), `the production checker is missing the exact reparse-wiring line ${token}`);
   }
 }
 
@@ -411,11 +427,20 @@ function assertMutationFails(label, mutation) {
 }
 
 assertSourceContract(inventoryMetadataSource);
+assertCheckerSourceContract(checkerSource);
 assertInventory(UNIVERSAL_CONTRACT_INVENTORY, inventoryDocumentationSource);
 
 let mutationCount = 0;
 for (const token of requiredSourceLineTokens) {
   assertMutationFails(`removing exact source line ${token}`, () => assertSourceContract(removeExactSourceLine(inventoryMetadataSource, token)));
+  mutationCount += 1;
+}
+
+for (const token of requiredCheckerSourceLineTokens) {
+  assertMutationFails(
+    `removing production reparse wiring ${token}`,
+    () => assertCheckerSourceContract(removeExactSourceLine(checkerSource, token)),
+  );
   mutationCount += 1;
 }
 

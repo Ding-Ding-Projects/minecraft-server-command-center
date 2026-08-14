@@ -4,6 +4,13 @@
 
 ### Changed
 
+- Added a follow-up negative regression for the universal-contract inventory
+  guard's production reparse wiring. The exact
+  `assertNoReparseComponents(relativePath, context);` call inside
+  `assertRepositoryFile` is now part of the checker source contract, and a
+  mutation that removes it must turn the guard red. The public evidence also
+  corrects the prior R2-R6 assertion-removal wording: the independent audit
+  reproduced R3-R5 turning red while R2 and R6 stayed green.
 - Completed the second universal-contract inventory-guard repair against
   target `fdbef9e265fac3bf015f6f3fc52dd1a26df4e180` with base
   `958d4439c77bff27d5a726655269b479087f0b6a`. The guard now distinguishes
@@ -51,6 +58,12 @@
 
 ### Verification
 
+- On the follow-up guard-repair lane, `npm run test:universal-contract-inventory`
+  passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
+  per row, and 895 negative mutations, including `ancestor-junction` and
+  `final-symlink` fixtures. The production reparse-wiring removal mutation
+  turned the checker red; no packaged runtime, accessibility interaction,
+  release, or capture evidence is claimed.
 - On the second repair lane, `npm run test:universal-contract-inventory`
   passed with 27 canonical rows, 7 evidence slots, 2 independent surface keys
   per row, and 894 negative mutations. Aggregate stale-projection mutations

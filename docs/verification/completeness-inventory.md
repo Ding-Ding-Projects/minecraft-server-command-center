@@ -18,7 +18,10 @@ fixture cleanup. The check keeps aggregate stale-projection mutations for the
   metadata-owned projection before testing their semantic assertion: surface
   independence, status-only mandatory applicability, immutable `HEAD` tree
   membership, and desktop/companion-site surface-path uniqueness/disjointness. R6 uses a direct probe
-  of the shared path-component assertion for ancestor-reparse rejection. The
+  of the shared path-component assertion for ancestor-reparse rejection, and
+  an exact source mutation removes the production
+  `assertNoReparseComponents(relativePath, context);` call to require the
+  inventory check to turn red. The
 check is hand-written and fail-closed; it does not discover rows from the
 files it happens to find.
 
@@ -35,6 +38,15 @@ descendant file remains valid, making the reparse assertion independently
 decisive. Fixture creation accepts only capability errors (`EACCES`, `EINVAL`,
 `ENOTSUP`, or `EPERM`), and every created fixture is removed and verified during
 cleanup.
+
+The independent assertion-removal audit of the prior R2-R6 probes found R3-R5
+turning red and R2/R6 staying green. The public handoff must preserve that
+asymmetric result rather than claiming all five probes turned red.
+
+The follow-up source-contract mutation is included in the focused count: on the
+current host, `npm run test:universal-contract-inventory` reports 895 negative
+mutations with both `ancestor-junction` and `final-symlink` fixtures, and the
+production-call removal mutation turns the checker red.
 
 ## Inventory
 
