@@ -51,10 +51,20 @@ cache. Clearing the control removes the local cache. The cache is not sent to
 a server and this source does not place real private vocabulary values in
 tests, documentation, logs, exports, or public records.
 
-The companion surface currently records and validates the private cache but
-does not yet apply replacements across every user-facing text boundary. The
-desktop surface does not yet expose the file picker. Those are explicit
-remaining implementation items, not implied by the shared parser.
+The companion surface applies a validated entry set through its private
+user-facing text boundary. Replacement is one-pass over the original copy, so
+replacement output is not fed back through another entry. The boundary also
+leaves code-like elements and protected URLs, paths, identifiers, commands,
+and factual external values unchanged. The desktop surface does not yet expose
+the file picker. Complete app-wide localization and desktop application remain
+explicit implementation items, not implied by this companion-only slice.
+
+Selecting a new file validates the complete payload before the cache or active
+entry set changes. A read, validation, or local-storage failure leaves the
+previous valid cache and displayed wording intact. Clearing the control removes
+the private cache, drops the active entry set, and restores the original
+shipped wording; an invalid cache is removed and fails closed to that same
+empty state during restoration.
 
 ## School mode and recovery
 

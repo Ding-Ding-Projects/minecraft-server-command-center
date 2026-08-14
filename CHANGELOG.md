@@ -105,6 +105,11 @@
 
 ### Changed
 
+- The companion site now applies already-validated personal-vocabulary entries
+  to its private user-facing text boundary in one pass. Clear, invalid-cache,
+  file-read, and local-storage failure paths keep the previous valid wording or
+  restore the shipped wording without partial application; code, commands,
+  URLs, paths, identifiers, and factual external values remain unchanged.
 - The direct argv preview now keeps the selected Java executable in the
   privileged runtime-review controller and renders a non-executable `java`
   placeholder instead of accepting a renderer-supplied path as a process target.

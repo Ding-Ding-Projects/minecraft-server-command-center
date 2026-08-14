@@ -17,10 +17,12 @@ import {
   TAB_DOCK_POSITIONS,
   parseUniversalSettings,
   parsePersonalVocabularyJson,
+  type PersonalVocabularyEntryV1,
   type LogoPreset,
   type UniversalLanguageMode,
   type UniversalSettingsV1
 } from "../../src/shared/universal-contracts";
+import { PersonalVocabularyBoundary, usePersonalVocabularyEntries } from "./personal-vocabulary-boundary";
 
 // The planner has no server data; emit its root route as static HTML.
 export const dynamic = "force-static";
@@ -427,12 +429,14 @@ function RegexBuilder({
   onChange: (next: SearchState) => void;
 }) {
   const error = regexError(state);
+  const entries = usePersonalVocabularyEntries();
   const addToken = (token: string) => {
     onChange({ ...state, regexMode: true, pattern: `${state.pattern}${token}`.slice(0, 160) });
   };
 
   return (
-    <div className="regex-builder" id={`${id}-builder`} aria-label="Regular expression builder">
+    <PersonalVocabularyBoundary entries={entries}>
+      <div className="regex-builder" id={`${id}-builder`} aria-label="Regular expression builder">
       <div className="regex-builder__heading">
         <div>
           <p className="eyebrow">Local pattern builder</p>
@@ -509,7 +513,8 @@ function RegexBuilder({
           {error || "Patterns run only in this browser and are limited to 160 characters."}
         </p>
       </div>
-    </div>
+      </div>
+    </PersonalVocabularyBoundary>
   );
 }
 
@@ -526,8 +531,10 @@ function SearchField({
   state: SearchState;
   onChange: (next: SearchState) => void;
 }) {
+  const entries = usePersonalVocabularyEntries();
   return (
-    <div className="search-field">
+    <PersonalVocabularyBoundary entries={entries}>
+      <div className="search-field">
       <label className="sr-only" htmlFor={id}>
         {label}
       </label>
@@ -552,7 +559,8 @@ function SearchField({
         </button>
       </div>
       {state.builderOpen ? <RegexBuilder id={id} state={state} onChange={onChange} /> : null}
-    </div>
+      </div>
+    </PersonalVocabularyBoundary>
   );
 }
 
@@ -577,9 +585,11 @@ function NumberStepper({
   unit?: string;
   help: string;
 }) {
+  const entries = usePersonalVocabularyEntries();
   const setSafeValue = (nextValue: number) => onChange(clamp(nextValue, min, max));
   return (
-    <div className="field-group">
+    <PersonalVocabularyBoundary entries={entries}>
+      <div className="field-group">
       <label className="field-label" htmlFor={id}>
         {label}
       </label>
@@ -617,13 +627,16 @@ function NumberStepper({
       <p className="field-help" id={`${id}-help`}>
         {help}
       </p>
-    </div>
+      </div>
+    </PersonalVocabularyBoundary>
   );
 }
 
 function ArgvPlan({ argv, caption }: { argv: string[]; caption: string }) {
+  const entries = usePersonalVocabularyEntries();
   return (
-    <section className="argv-card" aria-label={caption}>
+    <PersonalVocabularyBoundary entries={entries}>
+      <section className="argv-card" aria-label={caption}>
       <div className="argv-card__topline">
         <div>
           <p className="eyebrow">Typed launch plan</p>
@@ -642,13 +655,15 @@ function ArgvPlan({ argv, caption }: { argv: string[]; caption: string }) {
       <p className="field-help">
         This is generated from guided controls. Launching the plan belongs to the installed desktop application.
       </p>
-    </section>
+      </section>
+    </PersonalVocabularyBoundary>
   );
 }
 
 export default function Home() {
   const [draft, setDraft] = useState<PlannerDraft>(DEFAULT_DRAFT);
   const [universalSettings, setUniversalSettings] = useState<UniversalSettingsV1>(DEFAULT_UNIVERSAL_SETTINGS);
+  const [personalVocabularyEntries, setPersonalVocabularyEntries] = useState<readonly PersonalVocabularyEntryV1[]>([]);
   const [activePage, setActivePage] = useState<PageId>("overview");
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
@@ -696,13 +711,25 @@ export default function Home() {
       if (cachedVocabulary) {
         const result = parsePersonalVocabularyJson(cachedVocabulary);
         if (result.ok) {
+          setPersonalVocabularyEntries(result.value.entries);
           setUniversalSettings((current) => ({
             ...current,
             personalVocabulary: { status: "loaded", entryCount: result.value.entries.length },
           }));
         } else {
           window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+          setPersonalVocabularyEntries([]);
+          setUniversalSettings((current) => ({
+            ...current,
+            personalVocabulary: { status: "empty", entryCount: 0 },
+          }));
         }
+      } else {
+        setPersonalVocabularyEntries([]);
+        setUniversalSettings((current) => ({
+          ...current,
+          personalVocabulary: { status: "empty", entryCount: 0 },
+        }));
       }
       const cachedLogo = window.localStorage.getItem(CUSTOM_LOGO_CACHE_KEY);
       if (cachedLogo?.startsWith("data:image/")) {
@@ -860,11 +887,12 @@ export default function Home() {
     setNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
   };
   const resetUniversalSettings = () => {
+    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+    setPersonalVocabularyEntries([]);
     setUniversalSettings(DEFAULT_UNIVERSAL_SETTINGS);
     setSchoolUnlockInput("");
     setCustomLogoPreview(null);
     window.localStorage.removeItem(UNIVERSAL_STORAGE_KEY);
-    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
     window.localStorage.removeItem(SCHOOL_UNLOCK_KEY);
     window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
     setSchoolUnlockConfigured(false);
@@ -908,19 +936,30 @@ export default function Home() {
       setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: "Choose a JSON file no larger than 64 KiB." });
       return;
     }
-    const result = parsePersonalVocabularyJson(await selected.text());
-    if (!result.ok) {
-      setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: result.reason });
-      return;
+    try {
+      const result = parsePersonalVocabularyJson(await selected.text());
+      if (!result.ok) {
+        setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: result.reason });
+        return;
+      }
+      const serialized = JSON.stringify(result.value);
+      window.localStorage.setItem(PERSONAL_VOCABULARY_CACHE_KEY, serialized);
+      setPersonalVocabularyEntries(result.value.entries);
+      updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
+      setNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately and now style user-facing copy. Protected commands, URLs, identifiers, paths, code, and factual records remain unchanged.` });
+    } catch (error) {
+      setNotice({ tone: "warning", title: "Personal vocabulary was not applied", detail: error instanceof Error ? error.message : "The local file could not be read or cached. The previous vocabulary remains active." });
     }
-    window.localStorage.setItem(PERSONAL_VOCABULARY_CACHE_KEY, JSON.stringify(result.value));
-    updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
-    setNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately. This foundation does not rewrite shipped public labels.` });
   };
   const clearPersonalVocabulary = () => {
-    window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
-    updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
-    setNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording remains active." });
+    try {
+      window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
+      setPersonalVocabularyEntries([]);
+      updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
+      setNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording is active again." });
+    } catch (error) {
+      setNotice({ tone: "warning", title: "Personal vocabulary was not cleared", detail: error instanceof Error ? error.message : "The local cache could not be removed, so the active vocabulary remains unchanged." });
+    }
   };
   const selectCustomLogo = async (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.currentTarget.files?.item(0);
@@ -1853,7 +1892,8 @@ export default function Home() {
   };
 
   return (
-    <main className="planner-shell" style={appStyle}>
+    <PersonalVocabularyBoundary entries={personalVocabularyEntries}>
+      <main className="planner-shell" style={appStyle}>
       <a className="skip-link" href="#planner-content">Skip to planner content</a>
       <header className="top-app-bar">
         <div className="brand-lockup">
@@ -1974,30 +2014,43 @@ export default function Home() {
           </section>
         </div>
       ) : null}
-    </main>
+      </main>
+    </PersonalVocabularyBoundary>
   );
 }
 
 function PageHeading({ page }: { page: (typeof PAGE_DEFINITIONS)[number] }) {
+  const entries = usePersonalVocabularyEntries();
   return (
-    <header className="page-heading">
+    <PersonalVocabularyBoundary entries={entries}>
+      <header className="page-heading">
       <p className="eyebrow">{page.eyebrow}</p>
       <h1>{page.label}</h1>
       <p>{page.description}</p>
-    </header>
+      </header>
+    </PersonalVocabularyBoundary>
   );
 }
 
 function NoticeList({ notices, emptyMessage }: { notices: Notice[]; emptyMessage: string }) {
-  if (notices.length === 0) return <p className="empty-state empty-state--positive">{emptyMessage}</p>;
+  const entries = usePersonalVocabularyEntries();
+  if (notices.length === 0) {
+    return (
+      <PersonalVocabularyBoundary entries={entries}>
+        <p className="empty-state empty-state--positive">{emptyMessage}</p>
+      </PersonalVocabularyBoundary>
+    );
+  }
   return (
-    <div className="notice-list">
+    <PersonalVocabularyBoundary entries={entries}>
+      <div className="notice-list">
       {notices.map((item) => (
         <article key={item.title} className={`notice notice--${item.tone}`}>
           <span className="notice__marker" aria-hidden="true">{item.tone === "error" ? "!" : item.tone === "warning" ? "!" : "i"}</span>
           <div><h3>{item.title}</h3><p>{item.detail}</p></div>
         </article>
       ))}
-    </div>
+      </div>
+    </PersonalVocabularyBoundary>
   );
 }
