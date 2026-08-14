@@ -53,21 +53,30 @@ interaction or capture evidence.
 
 ## Current release proof
 
-The release audit for commit `fbd75307e14bbe049adf73c40bb74fc375f970c3`
+The release audit for commit `052144ce44c7daf068170375d448b2da001a052a`
 verified GitHub Actions run
-[`31782817096`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31782817096)
-as successful and published release `v0.1.38`.
+[`31792576349`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/actions/runs/31792576349)
+as successful and published release `v0.1.42`.
 
 The release targets that commit and exposes `Setup.exe`, `RELEASES`, and
-`minecraft-server-command-center-0.1.38-full.nupkg`. The published asset URLs
-responded with HTTP 200 and the release notes contain workflow timing, the
-committed line-count table, and the linked public dim-sum catalog metadata.
-The assets are unsigned; no signing material is used.
+`minecraft-server-command-center-0.1.42-full.nupkg`. The published
+`Setup.exe` URL is
+<https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.42/Setup.exe>
+and its exact published size is `140395520` bytes. The release timing is
+`00:03:53`, the dim-sum code name is `Steamed Beef Balls · 山竹牛肉`, and the
+assets are unsigned; no signing material is used.
 
-The release workflow does not run automated tests or lint. The local audit did
-run `build.bat /s`, `build-installer.bat /s`, the companion-site build and Pages
-staging commands, and companion-site lint. It did not exercise the packaged
-desktop UI, installer execution, accessibility interaction, or real captures.
+The published line-count table reports 61 own-source files / 19749 total lines /
+18256 non-blank, 0 test files / 0 / 0, 47 styles-or-markup files / 7329 / 6103,
+1 generated file / 5 / 4, and 2 other-project-text files / 54 / 44. Its project
+total is 110 files / 27132 lines / 24403 non-blank; its grand total is 111 /
+27137 / 24407; and its attribution total is 111 / 27137 / 24407. One package-
+manager lockfile is excluded.
+
+The release workflow does not run automated tests or lint. This Pages source
+lane ran the companion-site build, lint, type-check, focused changelog guard,
+and Pages staging commands. It did not exercise the packaged desktop UI,
+installer execution, accessibility interaction, or real captures.
 
 ## Planner Handoff v1 record
 

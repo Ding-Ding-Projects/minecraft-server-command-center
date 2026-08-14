@@ -145,14 +145,14 @@ const DEFAULT_DRAFT: PlannerDraft = {
 // This record is deliberately embedded. The site never asks GitHub which
 // release is current, starts a transfer, or observes a download result.
 const VERIFIED_INSTALLER: VerifiedInstallerManifest = {
-  releaseTag: "v0.1.38",
-  sourceCommit: "fbd75307e14bbe049adf73c40bb74fc375f970c3",
-  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.38",
+  releaseTag: "v0.1.42",
+  sourceCommit: "052144ce44c7daf068170375d448b2da001a052a",
+  releaseUrl: "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/tag/v0.1.42",
   assetName: "Setup.exe",
   assetUrl:
-    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.38/Setup.exe",
-  assetSizeBytes: 115224576,
-  releasePublishedAt: "2026-08-14T08:12:36Z",
+    "https://github.com/Ding-Ding-Projects/minecraft-server-command-center/releases/download/v0.1.42/Setup.exe",
+  assetSizeBytes: 140395520,
+  releasePublishedAt: "2026-08-14T10:35:42Z",
   unsigned: true,
 };
 
@@ -2001,7 +2001,7 @@ export default function Home() {
           <p className="eyebrow">Source-backed release history</p>
           <h2 id="changelog-summary-title">Every released version recorded for this companion</h2>
           <p className="body-copy">
-            This browser-local viewer reads the checked-in release records and the verified published v0.1.39 record.
+            This browser-local viewer reads all 28 checked-in records for every released version currently recorded, including the verified published v0.1.42 and v0.1.40 records.
             It never asks GitHub for new data, invents missing releases, or treats Unreleased notes as shipped versions.
           </p>
         </div>

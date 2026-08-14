@@ -152,8 +152,11 @@ record does not claim automated desktop tests, browser or desktop interaction,
 accessibility review, local installer operation, automatic-update behavior, or
 server-process action. The 2026-08-14 release audit did verify the root build,
 unsigned Squirrel.Windows package, companion-site build and lint, Pages staging,
-GitHub Actions run `31782817096`, and published release `v0.1.38` for commit
-`fbd75307e14bbe049adf73c40bb74fc375f970c3`. Read the relevant handoff and
+GitHub Actions run `31792576349`, and published release `v0.1.42` for commit
+`052144ce44c7daf068170375d448b2da001a052a`. The release record names the
+unsigned `Setup.exe` asset at `140395520` bytes, workflow timing `00:03:53`,
+dim-sum code name `Steamed Beef Balls · 山竹牛肉`, and the exact line-count
+table. Read the relevant handoff and
 completeness inventory before calling a surface fully verified.
 
 The Planner Handoff v1 record and Java runtime guidance remain source-design
