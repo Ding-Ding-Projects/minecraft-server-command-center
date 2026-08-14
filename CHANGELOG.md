@@ -20,6 +20,12 @@
   JSON export/import, native desktop selected-file parsing, strict schema,
   version, size, duplicate-key, and unknown-field validation, normalized
   preview, and an explicit local save action that retains desktop-local values.
+- Added guided Java executable and Java-home-folder pickers, bounded candidate
+  metadata rows, direct selected-executable probing, and a review-only setup
+  plan for Paper's officially documented Java recommendation.
+- Corrected canonical numeric version validation so the checked-in Paper catalog
+  accepts both `1.20` and `1.20.6` without broadening the source or applying it
+  to Spigot.
 
 ### Verification
 
@@ -39,6 +45,9 @@
   `npm --prefix site run build`, and `git diff --check` passed on 2026-08-14.
   No packaged runtime interaction, accessibility interaction, or real capture
   evidence is claimed for this source lane.
+- Added `npm run test:java-runtime-guidance`, covering picker normalization,
+  bounded metadata, direct probe arguments, Paper/Spigot assessment states,
+  review-only setup routes, and exact negative side-effect checks.
 - Source and build checks do not claim packaged runtime interaction, screen
   reader interaction, installer execution, or real capture evidence.
 

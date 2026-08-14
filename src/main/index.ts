@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
 import { join } from "node:path";
-import type { PickerKind } from "../shared/desktop-api";
+import type { JavaRuntimePickerKind, PickerKind } from "../shared/desktop-api";
 import { loadCliCatalog } from "./cli-catalog";
 import { buildArgvPreview } from "./argv-preview";
 import { loadDraft, saveDraft } from "./draft-store";
@@ -69,12 +69,22 @@ async function choosePlannerHandoff() {
   }
 }
 
-async function chooseJavaRuntime() {
-  const result = await dialog.showOpenDialog(requireWindow(), {
-    title: "Choose Java executable",
-    properties: ["openFile"],
-    filters: [{ name: "Java executable", extensions: ["exe"] }]
-  });
+function normalizedJavaRuntimePickerKind(value: unknown): JavaRuntimePickerKind {
+  return value === "folder" ? "folder" : "executable";
+}
+
+async function chooseJavaRuntime(kind: JavaRuntimePickerKind = "executable") {
+  const options: OpenDialogOptions = kind === "folder"
+    ? {
+        title: "Choose Java home folder",
+        properties: ["openDirectory"]
+      }
+    : {
+        title: "Choose Java executable",
+        properties: ["openFile"],
+        filters: [{ name: "Java executable", extensions: ["exe"] }]
+      };
+  const result = await dialog.showOpenDialog(requireWindow(), options);
   const selectedPath = result.canceled ? null : result.filePaths[0] ?? null;
   return selectedPath ? javaRuntimeController.discoverFromNativeSelection(selectedPath) : null;
 }
@@ -126,7 +136,7 @@ function registerIpc(): void {
   });
   ipcMain.handle("picker:select", (_event, kind: PickerKind) => selectPath(kind));
   ipcMain.handle("runtime:discover", () => javaRuntimeController.discover());
-  ipcMain.handle("runtime:choose", () => chooseJavaRuntime());
+  ipcMain.handle("runtime:choose", (_event, kind: unknown) => chooseJavaRuntime(normalizedJavaRuntimePickerKind(kind)));
   ipcMain.handle("runtime:select", (_event, candidateId: unknown) => javaRuntimeController.select(candidateId));
   ipcMain.handle("runtime:assess", (_event, value: unknown) => javaRuntimeController.assess(value));
   ipcMain.handle("runtime:clear", () => javaRuntimeController.clear());

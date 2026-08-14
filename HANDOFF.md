@@ -131,9 +131,11 @@ The desktop source contains:
 - a frameless, sandboxed, context-isolated Material Design 3 renderer with
   nine vertical setup tabs, including a bundle-only Docs reader;
 - a guided Java runtime card that keeps candidate paths in the main process,
-  shows opaque candidate/source summaries, probes selected Java with fixed
+  shows opaque candidate/source summaries with safe metadata, accepts native
+  executable and Java-home-folder choices, probes selected Java with fixed
   direct arguments, validates a bounded official Paper project-version
-  snapshot, and renders structured catalog and Spigot-unverified states;
+  snapshot, and renders structured catalog, compatibility, and Spigot-
+  unverified states;
 - typed Paper/Spigot registry projection and direct argument-array preview;
 - explicit no-launch IPC and automatic-update-unavailable boundaries;
 - Windows Squirrel.Windows packaging configuration, unsigned-only settings,
@@ -202,7 +204,25 @@ route. It validates a checked-in versioned numeric-key snapshot of the official
 Paper Downloads Service project catalog and passes only the bounded validated
 version array into the existing Paper requirement resolver. Malformed, unknown,
 absent, or out-of-matrix targets remain unverified. It never applies Paper
-requirements to Spigot.
+requirements to Spigot. When no compatible runtime is selected, its setup plan
+contains only review metadata, official source links, and explicit-confirmation
+requirements; every route remains `not-executed` and `no-system-state-changed`.
+
+## Issue #4 task handoff
+
+The task branch `issue/java-runtime-compatibility-20260814` is isolated in
+`C:\Users\Administrator\Documents\GitHub\_puppy-issue4-java-compatibility-20260814`.
+It adds native executable and Java-home-folder choices, real bounded candidate
+metadata, direct selected-executable probing, canonical official Paper
+recommendation assessment, and review-only setup routes. It does not install
+Java, invoke a package manager, execute shell text, start or stop a server,
+download artifacts, write server configuration, transfer credentials, or claim
+Spigot compatibility. The focused test is
+`npm run test:java-runtime-guidance`; the fresh linked checkout has no local
+`node_modules`, so the `npm run build:main` wrapper cannot start because
+`tsc` is unavailable without a package-manager install. The direct main
+type-check and Vite renderer build passed with the already-installed toolchain
+through a temporary process-local configuration that was removed afterward.
 
 ## Verification boundary
 

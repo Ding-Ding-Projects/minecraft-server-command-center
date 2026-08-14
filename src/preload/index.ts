@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { DesktopApi, PickerKind } from "../shared/desktop-api";
+import type { DesktopApi, JavaRuntimePickerKind, PickerKind } from "../shared/desktop-api";
 
 const desktopApi: DesktopApi = {
   settings: {
@@ -20,7 +20,7 @@ const desktopApi: DesktopApi = {
   },
   runtime: {
     discover: () => ipcRenderer.invoke("runtime:discover"),
-    choose: () => ipcRenderer.invoke("runtime:choose"),
+    choose: (kind?: JavaRuntimePickerKind) => ipcRenderer.invoke("runtime:choose", kind ?? "executable"),
     select: (candidateId: string) => ipcRenderer.invoke("runtime:select", candidateId),
     assess: (value) => ipcRenderer.invoke("runtime:assess", value),
     clear: () => ipcRenderer.invoke("runtime:clear")

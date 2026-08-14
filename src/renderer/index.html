@@ -180,14 +180,15 @@
                     <div>
                       <p class="eyebrow">Guided local discovery</p>
                       <h3 id="java-runtime-guidance-title">Choose and inspect a Java runtime</h3>
-                      <p>The native picker and bounded conventional locations can supply candidates. The renderer receives opaque IDs and parsed version facts only; it never receives a Java path, shell command, or installer control.</p>
+                      <p>The native executable or Java-home folder picker and bounded conventional locations can supply candidates. Each row shows safe metadata only; the renderer never receives a Java path, shell command, or installer control.</p>
                     </div>
                     <span class="badge badge--safe">No installation</span>
                   </div>
                   <div class="java-runtime-card__actions">
                     <button class="outlined-button" type="button" id="discover-java-runtimes" aria-describedby="java-runtime-state">Find bounded runtimes</button>
                     <button class="outlined-button" type="button" id="choose-java-runtime" aria-describedby="java-runtime-state">Choose Java executable</button>
-                    <button class="filled-button filled-button--compact" type="button" id="assess-java-runtime" disabled>Probe selected runtime</button>
+                    <button class="outlined-button" type="button" id="choose-java-folder" aria-describedby="java-runtime-state">Choose Java home folder</button>
+                    <button class="filled-button filled-button--compact" type="button" id="assess-java-runtime">Assess Paper compatibility</button>
                   </div>
                   <p class="java-runtime-card__status" id="java-runtime-state" role="status" aria-live="polite">No Java runtime candidates have been requested. Discovery never scans PATH, disks, the registry, or arbitrary folders.</p>
                   <p class="java-runtime-card__selected" id="selected-java-runtime" role="status" aria-live="polite">No Java runtime candidate is selected.</p>
@@ -204,6 +205,10 @@
                     <dl class="java-runtime-assessment__details" id="java-runtime-assessment-details" aria-label="Java runtime compatibility details" hidden></dl>
                     <p class="java-runtime-assessment__recovery" id="java-runtime-assessment-recovery">Paper compatibility stays unverified until the selected target is present in the bundled official Paper catalog and covered by the documented requirements table. Spigot requires its own sourced resolver.</p>
                     <p class="java-runtime-assessment__plan" id="java-runtime-assessment-plan">Any setup plan remains review-only and is not available until the target is officially verified.</p>
+                    <section class="java-runtime-setup-plan" id="java-runtime-setup-plan" aria-labelledby="java-runtime-setup-plan-title" hidden>
+                      <h5 id="java-runtime-setup-plan-title">Review-only setup routes</h5>
+                      <div class="java-runtime-setup-plan__routes" id="java-runtime-setup-plan-routes"></div>
+                    </section>
                   </section>
                 </section>
                 <label class="field">

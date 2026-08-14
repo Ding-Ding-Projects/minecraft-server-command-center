@@ -12,6 +12,12 @@ interface InternalCandidate {
   readonly executablePath: string;
   readonly source: string;
   readonly selectedByUser: boolean;
+  readonly metadata?: {
+    readonly executableName?: unknown;
+    readonly runtimeHomeName?: unknown;
+    readonly fileSizeBytes?: unknown;
+    readonly modifiedAt?: unknown;
+  };
 }
 
 interface InternalDiscovery {
@@ -45,7 +51,9 @@ interface InternalRequirement {
   readonly recommendationKind?: unknown;
   readonly source?: {
     readonly title?: unknown;
+    readonly url?: unknown;
   };
+  readonly ruleId?: unknown;
 }
 
 interface InternalCompatibility {
@@ -58,11 +66,29 @@ interface InternalCompatibility {
 interface InternalSetupPlan {
   readonly status?: unknown;
   readonly reason?: unknown;
+  readonly requiredJavaMajor?: unknown;
+  readonly targetVersion?: unknown;
+  readonly compatibilityStatus?: unknown;
+  readonly requiresExplicitUserIntent?: unknown;
+  readonly installationMayRunAutomatically?: unknown;
+  readonly source?: {
+    readonly title?: unknown;
+    readonly url?: unknown;
+  };
+  readonly nextUserFacingAction?: unknown;
   readonly executionState?: unknown;
   readonly mutationState?: unknown;
   readonly routes?: readonly {
+    readonly id?: unknown;
     readonly label?: unknown;
     readonly availability?: unknown;
+    readonly distribution?: unknown;
+    readonly fullRuntimePreferred?: unknown;
+    readonly headlessVariantRecommended?: unknown;
+    readonly guideUrl?: unknown;
+    readonly packageSearch?: unknown;
+    readonly executionState?: unknown;
+    readonly requiresExplicitUserIntent?: unknown;
   }[];
 }
 
@@ -123,13 +149,40 @@ function integerValue(value: unknown): number | null {
   return typeof value === "number" && Number.isSafeInteger(value) ? value : null;
 }
 
+function booleanValue(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function metadataName(value: unknown): string | null {
+  if (typeof value !== "string" || !value || value.length > 96 || /[/\\\u0000-\u001f\u007f]/.test(value)) {
+    return null;
+  }
+  return value;
+}
+
+function metadataTimestamp(value: unknown): string | null {
+  const timestamp = stringValue(value, null);
+  return timestamp && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(timestamp)
+    ? timestamp
+    : null;
+}
+
 function candidateSummary(candidate: InternalCandidate): JavaRuntimeCandidateSummary {
   const sourceLabel = SOURCE_LABELS[candidate.source] ?? "Bounded conventional Java location";
   return {
     id: candidate.id,
     label: candidate.selectedByUser ? "Java runtime chosen with the native picker" : "Discovered Java runtime",
     sourceLabel,
-    selectedByUser: candidate.selectedByUser
+    selectedByUser: candidate.selectedByUser,
+    metadata: {
+      executableName: metadataName(candidate.metadata?.executableName),
+      runtimeHomeName: metadataName(candidate.metadata?.runtimeHomeName),
+      fileSizeBytes: (() => {
+        const value = integerValue(candidate.metadata?.fileSizeBytes);
+        return value !== null && value >= 0 && value <= 4 * 1024 * 1024 * 1024 ? value : null;
+      })(),
+      modifiedAt: metadataTimestamp(candidate.metadata?.modifiedAt)
+    }
   };
 }
 
@@ -166,7 +219,8 @@ function projectRequirement(requirement: InternalRequirement | undefined): JavaR
     targetVersion: stringValue(requirement?.targetVersion),
     requiredJavaMajor: integerValue(requirement?.requiredJavaMajor),
     recommendationKind: stringValue(requirement?.recommendationKind),
-    sourceTitle: stringValue(requirement?.source?.title)
+    sourceTitle: stringValue(requirement?.source?.title),
+    sourceUrl: stringValue(requirement?.source?.url)
   };
 }
 
@@ -182,14 +236,30 @@ function projectCompatibility(compatibility: InternalCompatibility | undefined):
 function projectSetupPlan(plan: InternalSetupPlan | undefined): JavaRuntimeAssessment["setupPlan"] {
   const routes = Array.isArray(plan?.routes)
     ? plan.routes.slice(0, 8).map((route) => ({
+        id: stringValue(route.id, "review-only-route") ?? "review-only-route",
         label: stringValue(route.label, "Review-only setup route") ?? "Review-only setup route",
-        availability: stringValue(route.availability, "not-executed") ?? "not-executed"
+        availability: stringValue(route.availability, "not-executed") ?? "not-executed",
+        distribution: stringValue(route.distribution),
+        fullRuntimePreferred: booleanValue(route.fullRuntimePreferred, true),
+        headlessVariantRecommended: booleanValue(route.headlessVariantRecommended, false),
+        guideUrl: stringValue(route.guideUrl),
+        packageSearch: stringValue(route.packageSearch),
+        executionState: "not-executed" as const,
+        requiresExplicitUserIntent: booleanValue(route.requiresExplicitUserIntent, true)
       }))
     : [];
 
   return {
     status: stringValue(plan?.status, "blocked") ?? "blocked",
     reason: stringValue(plan?.reason),
+    requiredJavaMajor: integerValue(plan?.requiredJavaMajor),
+    targetVersion: stringValue(plan?.targetVersion),
+    compatibilityStatus: stringValue(plan?.compatibilityStatus),
+    requiresExplicitUserIntent: booleanValue(plan?.requiresExplicitUserIntent, true),
+    installationMayRunAutomatically: booleanValue(plan?.installationMayRunAutomatically, false),
+    sourceTitle: stringValue(plan?.source?.title),
+    sourceUrl: stringValue(plan?.source?.url),
+    nextUserFacingAction: stringValue(plan?.nextUserFacingAction),
     executionState: plan?.executionState === "not-executed" ? "not-executed" : "not-executed",
     mutationState: plan?.mutationState === "no-system-state-changed" ? "no-system-state-changed" : "no-system-state-changed",
     routes

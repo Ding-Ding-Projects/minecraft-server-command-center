@@ -3,6 +3,7 @@ import type { PlannerHandoffPreview } from "./planner-handoff";
 import type { UniversalSettingsV1 } from "./universal-contracts";
 
 export type PickerKind = "folder" | "jar" | "config";
+export type JavaRuntimePickerKind = "executable" | "folder";
 
 export interface CliCatalogEntry {
   readonly id: string;
@@ -40,6 +41,12 @@ export interface JavaRuntimeCandidateSummary {
   readonly label: string;
   readonly sourceLabel: string;
   readonly selectedByUser: boolean;
+  readonly metadata: {
+    readonly executableName: string | null;
+    readonly runtimeHomeName: string | null;
+    readonly fileSizeBytes: number | null;
+    readonly modifiedAt: string | null;
+  };
 }
 
 export interface JavaRuntimeDiscovery {
@@ -88,6 +95,7 @@ export interface JavaRuntimeAssessment {
     readonly requiredJavaMajor: number | null;
     readonly recommendationKind: string | null;
     readonly sourceTitle: string | null;
+    readonly sourceUrl: string | null;
   };
   readonly compatibility: {
     readonly status: string;
@@ -98,11 +106,27 @@ export interface JavaRuntimeAssessment {
   readonly setupPlan: {
     readonly status: string;
     readonly reason: string | null;
+    readonly requiredJavaMajor: number | null;
+    readonly targetVersion: string | null;
+    readonly compatibilityStatus: string | null;
+    readonly requiresExplicitUserIntent: boolean;
+    readonly installationMayRunAutomatically: boolean;
+    readonly sourceTitle: string | null;
+    readonly sourceUrl: string | null;
+    readonly nextUserFacingAction: string | null;
     readonly executionState: "not-executed";
     readonly mutationState: "no-system-state-changed";
     readonly routes: readonly {
+      readonly id: string;
       readonly label: string;
       readonly availability: string;
+      readonly distribution: string | null;
+      readonly fullRuntimePreferred: boolean;
+      readonly headlessVariantRecommended: boolean;
+      readonly guideUrl: string | null;
+      readonly packageSearch: string | null;
+      readonly executionState: "not-executed";
+      readonly requiresExplicitUserIntent: boolean;
     }[];
   };
 }
@@ -126,7 +150,7 @@ export interface DesktopApi {
   };
   readonly runtime: {
     discover(): Promise<JavaRuntimeDiscovery>;
-    choose(): Promise<JavaRuntimeDiscovery | null>;
+    choose(kind?: JavaRuntimePickerKind): Promise<JavaRuntimeDiscovery | null>;
     select(candidateId: string): Promise<JavaRuntimeCandidateSummary | null>;
     assess(value: JavaRuntimeAssessmentRequest): Promise<JavaRuntimeAssessment>;
     clear(): Promise<void>;

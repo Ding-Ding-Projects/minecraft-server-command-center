@@ -5,6 +5,7 @@ import type {
   JavaRuntimeAssessment,
   JavaRuntimeCandidateSummary,
   JavaRuntimeDiscovery,
+  JavaRuntimePickerKind,
   PickerKind
 } from "../shared/desktop-api";
 import type { PlannerHandoffPreview } from "../shared/planner-handoff";
@@ -58,6 +59,7 @@ const plannerHandoffState = document.querySelector<HTMLElement>("#planner-handof
 const plannerHandoffPreview = document.querySelector<HTMLDListElement>("#planner-handoff-preview");
 const discoverJavaRuntimesButton = document.querySelector<HTMLButtonElement>("#discover-java-runtimes");
 const chooseJavaRuntimeButton = document.querySelector<HTMLButtonElement>("#choose-java-runtime");
+const chooseJavaFolderButton = document.querySelector<HTMLButtonElement>("#choose-java-folder");
 const assessJavaRuntimeButton = document.querySelector<HTMLButtonElement>("#assess-java-runtime");
 const javaRuntimeState = document.querySelector<HTMLElement>("#java-runtime-state");
 const selectedJavaRuntime = document.querySelector<HTMLElement>("#selected-java-runtime");
@@ -67,6 +69,8 @@ const javaRuntimeAssessmentSummary = document.querySelector<HTMLElement>("#java-
 const javaRuntimeAssessmentDetails = document.querySelector<HTMLDListElement>("#java-runtime-assessment-details");
 const javaRuntimeAssessmentRecovery = document.querySelector<HTMLElement>("#java-runtime-assessment-recovery");
 const javaRuntimeAssessmentPlan = document.querySelector<HTMLElement>("#java-runtime-assessment-plan");
+const javaRuntimeSetupPlan = document.querySelector<HTMLElement>("#java-runtime-setup-plan");
+const javaRuntimeSetupPlanRoutes = document.querySelector<HTMLElement>("#java-runtime-setup-plan-routes");
 const universalSettingsState = document.querySelector<HTMLElement>("#universal-settings-state");
 const resetUniversalSettingsButton = document.querySelector<HTMLButtonElement>("#reset-universal-settings");
 const settingsSearch = document.querySelector<HTMLInputElement>("#settings-search");
@@ -101,7 +105,7 @@ const notificationViewAllCount = document.querySelector<HTMLElement>("#notificat
 const notificationRecordList = document.querySelector<HTMLElement>("#notification-record-list");
 const notificationStatusMessage = document.querySelector<HTMLElement>("#notification-status-message");
 
-if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
+if (!form || !saveState || !snackbar || !argvPreview || !catalogGrid || !catalogSource || !workspaceTitle || !workspaceSubtitle || !updateState || !copyArgvButton || !choosePlannerHandoffButton || !savePlannerHandoffButton || !discardPlannerHandoffButton || !plannerHandoffState || !plannerHandoffPreview || !discoverJavaRuntimesButton || !chooseJavaRuntimeButton || !chooseJavaFolderButton || !assessJavaRuntimeButton || !javaRuntimeState || !selectedJavaRuntime || !javaRuntimeCandidates || !javaRuntimeAssessmentBadge || !javaRuntimeAssessmentSummary || !javaRuntimeAssessmentDetails || !javaRuntimeAssessmentRecovery || !javaRuntimeAssessmentPlan || !javaRuntimeSetupPlan || !javaRuntimeSetupPlanRoutes || !universalSettingsState || !resetUniversalSettingsButton || !settingsSearch || !settingsRegexToggle || !settingsRegexBuilder || !settingsRegexPattern || !settingsRegexIgnoreCase || !settingsRegexStatus || !commandPalette || !commandPaletteDialog || !commandPaletteSearch || !commandPaletteRegexToggle || !commandPaletteRegexBuilder || !commandPaletteRegexPattern || !commandPaletteRegexIgnoreCase || !commandPaletteRegexStatus || !commandPaletteStatus || !commandPaletteResultList || !notificationSearch || !notificationRegexToggle || !notificationRegexBuilder || !notificationRegexPattern || !notificationRegexIgnoreCase || !notificationRegexStatus || !notificationPersistenceStatus || !notificationActiveCount || !notificationDismissedCount || !notificationRecordCount || !notificationViewActiveCount || !notificationViewDismissedCount || !notificationViewAllCount || !notificationRecordList || !notificationStatusMessage) {
   throw new Error("The desktop renderer is missing a required foundation element.");
 }
 
@@ -768,7 +772,8 @@ function currentJavaRuntimeCandidate(): JavaRuntimeCandidateSummary | undefined 
 function setJavaRuntimeBusy(busy: boolean): void {
   discoverJavaRuntimesButton.disabled = busy;
   chooseJavaRuntimeButton.disabled = busy;
-  assessJavaRuntimeButton.disabled = busy || selectedJavaCandidateId === null;
+  chooseJavaFolderButton.disabled = busy;
+  assessJavaRuntimeButton.disabled = busy;
   for (const candidate of javaRuntimeCandidates.querySelectorAll<HTMLButtonElement>("[data-java-candidate-id]")) {
     candidate.disabled = busy;
   }
@@ -777,6 +782,8 @@ function setJavaRuntimeBusy(busy: boolean): void {
 function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefined, message: string): void {
   javaRuntimeAssessmentDetails.replaceChildren();
   javaRuntimeAssessmentDetails.hidden = assessment === undefined;
+  javaRuntimeSetupPlanRoutes.replaceChildren();
+  javaRuntimeSetupPlan.hidden = true;
   if (!assessment) {
     javaRuntimeAssessmentBadge.className = "badge";
     javaRuntimeAssessmentBadge.textContent = "Not assessed";
@@ -790,7 +797,7 @@ function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefin
     ? `Java ${assessment.probe.normalizedVersion ?? assessment.probe.javaMajor} (major ${assessment.probe.javaMajor})`
     : readableRuntimeStatus(assessment.probe.status);
   const requirement = assessment.requirement.requiredJavaMajor !== null
-    ? `Recommended Java ${assessment.requirement.requiredJavaMajor}`
+    ? `Recommended Java ${assessment.requirement.requiredJavaMajor}${assessment.requirement.recommendationKind ? ` · ${readableRuntimeStatus(assessment.requirement.recommendationKind)}` : ""}`
     : readableRuntimeStatus(assessment.requirement.status);
   const compatibility = readableRuntimeStatus(assessment.compatibility.status);
   const plan = readableRuntimeStatus(assessment.setupPlan.status);
@@ -802,8 +809,12 @@ function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefin
     ["Direct version probe", probe],
     ["Target catalog", catalog],
     ["Paper requirement", requirement],
+    ["Paper source", assessment.requirement.sourceTitle ?? assessment.officialTargetCatalog.sourceTitle ?? "Source unavailable"],
+    ["Paper source URL", assessment.requirement.sourceUrl ?? assessment.officialTargetCatalog.sourceUrl ?? "Source URL unavailable"],
     ["Compatibility", compatibility],
-    ["Setup plan", `${plan} · ${assessment.setupPlan.executionState}`]
+    ["Setup plan", `${plan} · ${assessment.setupPlan.executionState}`],
+    ["Setup intent", assessment.setupPlan.requiresExplicitUserIntent ? "Separate confirmation required" : "No setup action required"],
+    ["System state", assessment.setupPlan.mutationState.replaceAll("-", " ")]
   ];
   for (const [label, value] of details) {
     const row = document.createElement("div");
@@ -821,10 +832,41 @@ function renderJavaRuntimeAssessment(assessment: JavaRuntimeAssessment | undefin
     ? "The selected candidate was probed by the privileged process with fixed direct Java version arguments. Raw version output and executable paths are not shown here."
     : "The selected candidate could not produce a validated Java version. The result remains a review state; no fallback command, installation, or server action was attempted.";
   javaRuntimeAssessmentRecovery.textContent = assessment.officialTargetCatalog.message;
-  const routeSummary = assessment.setupPlan.routes.length > 0
-    ? ` Review-only route metadata: ${assessment.setupPlan.routes.map((route) => `${route.label} (${route.availability})`).join(", ")}.`
-    : "";
-  javaRuntimeAssessmentPlan.textContent = `Setup-plan state: ${plan}. ${assessment.setupPlan.mutationState.replaceAll("-", " ")}.${routeSummary}`;
+  javaRuntimeAssessmentPlan.textContent = `Setup-plan state: ${plan}. ${assessment.setupPlan.mutationState.replaceAll("-", " ")}. ${assessment.setupPlan.nextUserFacingAction ?? "No setup action is available until the review state is resolved."}`;
+  if (assessment.setupPlan.routes.length > 0) {
+    javaRuntimeSetupPlan.hidden = false;
+    for (const route of assessment.setupPlan.routes) {
+      const card = document.createElement("article");
+      const heading = document.createElement("strong");
+      const status = document.createElement("span");
+      const facts = document.createElement("small");
+      card.className = "java-runtime-setup-route";
+      heading.textContent = route.label;
+      status.className = "badge";
+      status.textContent = route.availability;
+      const routeFacts = [
+        route.distribution,
+        route.fullRuntimePreferred ? "Full runtime preferred" : "Headless variant allowed",
+        route.packageSearch ? `Search label: ${route.packageSearch}` : "No package-manager action is available here",
+        route.requiresExplicitUserIntent ? "Requires separate user confirmation" : "Does not require confirmation",
+        route.guideUrl ? `Guide: ${route.guideUrl}` : null
+      ].filter((value): value is string => Boolean(value));
+      facts.textContent = routeFacts.join(" · ");
+      card.append(heading, status, facts);
+      javaRuntimeSetupPlanRoutes.append(card);
+    }
+  }
+}
+
+function formatJavaCandidateMetadata(candidate: JavaRuntimeCandidateSummary): string {
+  const metadata = candidate.metadata;
+  const facts = [
+    metadata.runtimeHomeName ? `Runtime home: ${metadata.runtimeHomeName}` : null,
+    metadata.executableName ? `Executable: ${metadata.executableName}` : null,
+    metadata.fileSizeBytes !== null ? `File size: ${metadata.fileSizeBytes} bytes` : null,
+    metadata.modifiedAt ? `Modified: ${metadata.modifiedAt}` : null
+  ].filter((value): value is string => Boolean(value));
+  return facts.length > 0 ? facts.join(" · ") : "Safe file metadata is unavailable.";
 }
 
 function renderJavaRuntimeSelection(candidate: JavaRuntimeCandidateSummary | undefined, assessmentMessage: string): void {
@@ -832,7 +874,7 @@ function renderJavaRuntimeSelection(candidate: JavaRuntimeCandidateSummary | und
   selectedJavaRuntime.textContent = candidate
     ? `${candidate.label} · ${candidate.sourceLabel}`
     : "No Java runtime candidate is selected.";
-  assessJavaRuntimeButton.disabled = selectedJavaCandidateId === null;
+  assessJavaRuntimeButton.disabled = false;
   for (const button of javaRuntimeCandidates.querySelectorAll<HTMLButtonElement>("[data-java-candidate-id]")) {
     const selected = button.dataset.javaCandidateId === selectedJavaCandidateId;
     button.classList.toggle("is-selected", selected);
@@ -862,6 +904,7 @@ function renderJavaRuntimeDiscovery(discovery: JavaRuntimeDiscovery, message: st
       const label = document.createElement("strong");
       const source = document.createElement("span");
       const description = document.createElement("small");
+      const metadata = document.createElement("small");
       button.type = "button";
       button.className = "java-runtime-candidate";
       button.dataset.javaCandidateId = candidate.id;
@@ -871,8 +914,10 @@ function renderJavaRuntimeDiscovery(discovery: JavaRuntimeDiscovery, message: st
       source.className = "badge";
       source.textContent = candidate.selectedByUser ? "Native choice" : "Bounded discovery";
       description.textContent = candidate.sourceLabel;
+      metadata.className = "java-runtime-candidate__metadata";
+      metadata.textContent = formatJavaCandidateMetadata(candidate);
       top.append(label, source);
-      button.append(top, description);
+      button.append(top, description, metadata);
       javaRuntimeCandidates.append(button);
     }
   }
@@ -890,7 +935,7 @@ function resetJavaRuntimeGuidance(message: string): void {
   javaRuntimeCandidates.replaceChildren();
   const empty = document.createElement("p");
   empty.className = "java-runtime-candidates__empty";
-  empty.textContent = "Use Find bounded runtimes or Choose Java executable to begin a local, non-installing review.";
+  empty.textContent = "Use Find bounded runtimes, Choose Java executable, or Choose Java home folder to begin a local, non-installing review.";
   javaRuntimeCandidates.append(empty);
   renderJavaRuntimeSelection(undefined, "Choose a candidate, then probe it with fixed direct Java version arguments. No command text, package manager, installer, server, or configuration write is available.");
 }
@@ -911,16 +956,18 @@ async function discoverJavaRuntimes(): Promise<void> {
   }
 }
 
-async function chooseJavaRuntime(): Promise<void> {
+async function chooseJavaRuntime(kind: JavaRuntimePickerKind = "executable"): Promise<void> {
   setJavaRuntimeBusy(true);
-  writeSaveState("Waiting for a Java executable selection…");
+  writeSaveState(kind === "folder" ? "Waiting for a Java home folder selection…" : "Waiting for a Java executable selection…");
   try {
-    const discovery = await window.commandCenter.runtime.choose();
+    const discovery = await window.commandCenter.runtime.choose(kind);
     if (!discovery) {
       writeSaveState("Local draft ready");
       return;
     }
-    renderJavaRuntimeDiscovery(discovery, "The native Java selection was checked within the bounded discovery service.");
+    renderJavaRuntimeDiscovery(discovery, kind === "folder"
+      ? "The native Java home folder was checked within the bounded discovery service."
+      : "The native Java executable was checked within the bounded discovery service.");
     const selected = currentJavaRuntimeCandidate();
     if (selected) {
       draft = normalizeServerDraft({ ...draft, javaRuntime: "custom", javaExecutable: "" });
@@ -930,7 +977,9 @@ async function chooseJavaRuntime(): Promise<void> {
     }
     showSnackbar(selected
       ? "A Java runtime was selected for review. Its path remains in the privileged process."
-      : "The selected item was not a usable Java executable. Choose another executable through the native picker.");
+      : kind === "folder"
+        ? "The selected folder did not contain a usable Java executable. Choose another Java home folder or executable."
+        : "The selected item was not a usable Java executable. Choose another executable through the native picker.");
   } catch {
     javaRuntimeState.textContent = "The native Java selection could not be used. The local draft and server configuration were not changed.";
     writeSaveState("Java selection unavailable");
@@ -964,12 +1013,8 @@ async function selectJavaRuntimeCandidate(candidateId: string): Promise<void> {
 }
 
 async function assessJavaRuntime(): Promise<void> {
-  if (!selectedJavaCandidateId) {
-    renderJavaRuntimeAssessment(undefined, "Choose a Java runtime candidate before requesting a version probe.");
-    return;
-  }
   setJavaRuntimeBusy(true);
-  writeSaveState("Probing the selected Java runtime…");
+  writeSaveState(selectedJavaCandidateId ? "Probing the selected Java runtime…" : "Assessing the Paper target without a selected runtime…");
   try {
     const assessment = await window.commandCenter.runtime.assess({
       candidateId: selectedJavaCandidateId,
@@ -978,7 +1023,9 @@ async function assessJavaRuntime(): Promise<void> {
     });
     renderJavaRuntimeAssessment(assessment, "Java runtime assessment completed.");
     writeSaveState("Java runtime review complete");
-    showSnackbar("Java runtime review completed. Compatibility remains honest about the available catalog evidence.");
+    showSnackbar(selectedJavaCandidateId
+      ? "Java runtime review completed. Compatibility remains honest about the available catalog evidence."
+      : "Paper compatibility review completed. The setup plan remains review-only until a user chooses a route.");
   } catch {
     renderJavaRuntimeAssessment(undefined, "The selected runtime could not be probed. No shell, fallback command, installation, or server action was attempted.");
     writeSaveState("Java runtime review unavailable");
@@ -1347,6 +1394,11 @@ function bindInteraction(): void {
     const chooseJava = target.closest<HTMLButtonElement>("#choose-java-runtime");
     if (chooseJava) {
       void chooseJavaRuntime();
+      return;
+    }
+    const chooseJavaFolder = target.closest<HTMLButtonElement>("#choose-java-folder");
+    if (chooseJavaFolder) {
+      void chooseJavaRuntime("folder");
       return;
     }
     const assessJava = target.closest<HTMLButtonElement>("#assess-java-runtime");
