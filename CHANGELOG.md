@@ -79,6 +79,30 @@
 
 ## Unreleased
 
+### Changed
+
+- Added a browser-local notification centre foundation for the companion site's
+  non-blocking notices: bounded persistence, Active/Dismissed/All review,
+  accessible dismiss and Review actions, explicit selection scope, inverse
+  selection, and bulk dismissal for active dismissible records
+  ([`eab9433`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/eab94338fbb0f75621213f2b66cd569478853c3e)). Records use schema v1,
+  stay in bounded browser-local storage, fail closed on malformed or
+  unsupported data, and are never delivered remotely. The current controls
+  ship English source copy; complete localization, desktop implementation, and
+  packaged-runtime interaction remain outside this partial boundary.
+- Kept warning and error notices visible until dismissal while preserving the
+  short informational and success timeout
+  ([`7b37bd6`](https://github.com/Ding-Ding-Projects/minecraft-server-command-center/commit/7b37bd6332924bf0d2c13fd59bd154a256af9139)).
+
+### Verification
+
+- `npm run test:site-notification-center` passed; TypeScript passed via the
+  primary checkout's installed `tsc`; the site build passed via the existing
+  Vinext toolchain; and site lint passed with 0 errors and 2 existing `img`
+  warnings at `site/app/page.tsx` lines 2150 and 2217.
+- No browser interaction, packaged-artifact interaction, capture, deployment,
+  or CI verdict is claimed for this source-only lane.
+
 ### Added
 
 - A shared desktop search foundation for the existing Docs and Universal

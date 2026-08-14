@@ -23,6 +23,20 @@ import {
   type UniversalSettingsV1
 } from "../../src/shared/universal-contracts";
 import { PersonalVocabularyBoundary, usePersonalVocabularyEntries } from "./personal-vocabulary-boundary";
+import {
+  appendNotificationRecord,
+  bulkDismissNotificationRecords,
+  createNotificationRecord,
+  dismissNotificationRecord,
+  EMPTY_NOTIFICATION_CENTER,
+  invertNotificationSelection,
+  NOTIFICATION_STORAGE_KEY,
+  parseNotificationCenter,
+  serializeNotificationCenter,
+  type NotificationRecord,
+  type NotificationSelectScope,
+  type NotificationView,
+} from "./notification-center";
 
 // The planner has no server data; emit its root route as static HTML.
 export const dynamic = "force-static";
@@ -42,6 +56,7 @@ type PageId =
   | "safety"
   | "docs"
   | "release-status"
+  | "notifications"
   | "settings";
 
 type PlannerDraft = {
@@ -69,11 +84,7 @@ type SearchState = {
   builderOpen: boolean;
 };
 
-type Notice = {
-  tone: "warning" | "error" | "success" | "info";
-  title: string;
-  detail: string;
-};
+type Notice = Pick<NotificationRecord, "tone" | "title" | "detail">;
 
 type HandoffStatus = {
   tone: "neutral" | "warning" | "success" | "info";
@@ -188,6 +199,12 @@ const PAGE_DEFINITIONS: Array<{
     label: "Release status",
     eyebrow: "Version-pinned installer handoff",
     description: "Review the embedded release record and open its exact Windows installer asset.",
+  },
+  {
+    id: "notifications",
+    label: "Notification centre",
+    eyebrow: "Local notice history",
+    description: "Review, dismiss, and bulk-manage non-blocking notices saved in this browser.",
   },
   {
     id: "settings",
@@ -354,6 +371,10 @@ function testSearch(text: string, state: SearchState) {
   } catch {
     return false;
   }
+}
+
+function matchesNotificationSearch(record: NotificationRecord, state: SearchState) {
+  return testSearch(`${record.title} ${record.detail} ${record.tone}`, state);
 }
 
 async function sha256Text(value: string): Promise<string> {
@@ -668,10 +689,18 @@ export default function Home() {
   const [navigationSearch, setNavigationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [docsSearch, setDocsSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [paletteSearch, setPaletteSearch] = useState<SearchState>(SEARCH_DEFAULT);
+  const [notificationSearch, setNotificationSearch] = useState<SearchState>(SEARCH_DEFAULT);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<NotificationRecord | null>(null);
+  const [notificationRecords, setNotificationRecords] = useState<NotificationRecord[]>(EMPTY_NOTIFICATION_CENTER.records);
+  const [notificationView, setNotificationView] = useState<NotificationView>("active");
+  const [notificationSelectScope, setNotificationSelectScope] = useState<NotificationSelectScope>("view");
+  const [selectedNotificationIds, setSelectedNotificationIds] = useState<string[]>([]);
+  const [notificationStatusMessage, setNotificationStatusMessage] = useState("");
+  const [notificationPersistenceStatus, setNotificationPersistenceStatus] = useState<"checking" | "saved" | "unavailable">("checking");
   const [hydrated, setHydrated] = useState(false);
   const [universalHydrated, setUniversalHydrated] = useState(false);
+  const [notificationHydrated, setNotificationHydrated] = useState(false);
   const [schoolUnlockConfigured, setSchoolUnlockConfigured] = useState(false);
   const [schoolUnlockInput, setSchoolUnlockInput] = useState("");
   const [customLogoPreview, setCustomLogoPreview] = useState<string | null>(null);
@@ -688,6 +717,38 @@ export default function Home() {
     const restore = () => {
       setDraft(restoreDraft(window.localStorage.getItem(STORAGE_KEY)));
       setHydrated(true);
+    };
+    const timer = window.setTimeout(restore, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const restore = () => {
+      try {
+        const saved = window.localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+        if (!saved) {
+          setNotificationRecords([]);
+          setNotificationHydrated(true);
+          return;
+        }
+        const result = parseNotificationCenter(JSON.parse(saved) as unknown);
+        if (result.ok) {
+          setNotificationRecords(result.value.records);
+        } else {
+          window.localStorage.removeItem(NOTIFICATION_STORAGE_KEY);
+          setNotificationRecords([]);
+        }
+      } catch {
+        setNotificationPersistenceStatus("unavailable");
+        try {
+          window.localStorage.removeItem(NOTIFICATION_STORAGE_KEY);
+        } catch {
+          // Storage can be unavailable or read-only; retain the in-memory empty state.
+        }
+        setNotificationRecords([]);
+        setNotificationHydrated(true);
+      }
+      setNotificationHydrated(true);
     };
     const timer = window.setTimeout(restore, 0);
     return () => window.clearTimeout(timer);
@@ -755,6 +816,23 @@ export default function Home() {
   }, [universalSettings, universalHydrated]);
 
   useEffect(() => {
+    if (!notificationHydrated) return;
+    const save = () => {
+      try {
+        window.localStorage.setItem(
+          NOTIFICATION_STORAGE_KEY,
+          serializeNotificationCenter({ schemaVersion: 1, records: notificationRecords }),
+        );
+        setNotificationPersistenceStatus("saved");
+      } catch {
+        setNotificationPersistenceStatus("unavailable");
+      }
+    };
+    const timer = window.setTimeout(save, 0);
+    return () => window.clearTimeout(timer);
+  }, [notificationHydrated, notificationRecords]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "f") {
         event.preventDefault();
@@ -767,7 +845,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!notice) return;
+    if (!notice || notice.tone === "warning" || notice.tone === "error") return;
     const timer = window.setTimeout(() => setNotice(null), 5200);
     return () => window.clearTimeout(timer);
   }, [notice]);
@@ -838,6 +916,27 @@ export default function Home() {
   }, [draft, versionDetail.java]);
 
   const requiredBlockers = validationNotices.filter((item) => item.tone === "error");
+  const filteredNotificationRecords = useMemo(
+    () => notificationRecords.filter((record) => {
+      const matchesView = notificationView === "all"
+        || (notificationView === "active" ? record.dismissedAt === null : record.dismissedAt !== null);
+      return matchesView && matchesNotificationSearch(record, notificationSearch);
+    }),
+    [notificationRecords, notificationSearch, notificationView],
+  );
+  const allMatchingNotificationRecords = useMemo(
+    () => notificationRecords.filter((record) => matchesNotificationSearch(record, notificationSearch)),
+    [notificationRecords, notificationSearch],
+  );
+  const notificationSelectionTarget = notificationSelectScope === "view"
+    ? filteredNotificationRecords
+    : allMatchingNotificationRecords;
+  const selectedNotificationSet = new Set(selectedNotificationIds);
+  const selectedDismissibleCount = notificationRecords.filter(
+    (record) => selectedNotificationSet.has(record.id) && record.dismissible && record.dismissedAt === null,
+  ).length;
+  const activeNotificationCount = notificationRecords.filter((record) => record.dismissedAt === null).length;
+  const dismissedNotificationCount = notificationRecords.length - activeNotificationCount;
   const matchingPages = PAGE_DEFINITIONS.filter((page) =>
     testSearch(`${page.label} ${page.eyebrow} ${page.description}`, navigationSearch),
   );
@@ -862,6 +961,51 @@ export default function Home() {
     },
   ].filter((item) => testSearch(`${item.label} ${item.detail}`, paletteSearch));
 
+  const publishNotice = (input: Notice) => {
+    const record = createNotificationRecord(input);
+    setNotificationRecords((current) => appendNotificationRecord(current, record));
+    setNotice(record);
+  };
+  const dismissNotification = (id: string) => {
+    setNotificationRecords((current) => dismissNotificationRecord(current, id));
+    setSelectedNotificationIds((current) => current.filter((selectedId) => selectedId !== id));
+    setNotice((current) => current?.id === id ? null : current);
+  };
+  const toggleNotificationSelection = (id: string) => {
+    setSelectedNotificationIds((current) => current.includes(id)
+      ? current.filter((selectedId) => selectedId !== id)
+      : [...current, id]);
+  };
+  const selectAllNotifications = () => {
+    const targetIds = notificationSelectionTarget.map((record) => record.id);
+    setSelectedNotificationIds((current) => Array.from(new Set([...current, ...targetIds])));
+    setNotificationStatusMessage(
+      `${targetIds.length} ${notificationSelectScope === "view" ? "record(s) in the current view" : "matching record(s) across every status"} selected.`,
+    );
+  };
+  const invertNotifications = () => {
+    const nextSelection = invertNotificationSelection(
+      selectedNotificationIds,
+      notificationSelectionTarget.map((record) => record.id),
+    );
+    setSelectedNotificationIds(nextSelection);
+    setNotificationStatusMessage(`${nextSelection.length} notification record(s) selected after inverting the ${notificationSelectScope === "view" ? "current-view" : "every-match"} scope.`);
+  };
+  const dismissSelectedNotifications = () => {
+    const result = bulkDismissNotificationRecords(notificationRecords, selectedNotificationIds);
+    setNotificationRecords(result.records);
+    setSelectedNotificationIds((current) => current.filter((id) => !result.dismissedIds.includes(id)));
+    const skippedCount = selectedNotificationIds.length - result.dismissedIds.length;
+    setNotificationStatusMessage(
+      result.dismissedIds.length === 0
+        ? "No selected active dismissible records changed. Dismissed records remain available for review."
+        : `${result.dismissedIds.length} notification record(s) dismissed${skippedCount ? `; ${skippedCount} selected record(s) were already dismissed or not dismissible.` : "."}`,
+    );
+  };
+  const clearNotificationSelection = () => {
+    setSelectedNotificationIds([]);
+    setNotificationStatusMessage("Notification selection cleared.");
+  };
   const updateDraft = <Key extends keyof PlannerDraft>(key: Key, value: PlannerDraft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     if (key === "theme" && (value === "dark" || value === "light")) {
@@ -877,14 +1021,14 @@ export default function Home() {
   const navigate = (page: PageId) => {
     setActivePage(page);
     setPaletteOpen(false);
-    setNotice({ tone: "info", title: `Opened ${PAGE_DEFINITIONS.find((item) => item.id === page)?.label}`, detail: "The planner stayed in this browser; no server action was started." });
+    publishNotice({ tone: "info", title: `Opened ${PAGE_DEFINITIONS.find((item) => item.id === page)?.label}`, detail: "The planner stayed in this browser; no server action was started." });
   };
   const resetDraft = () => {
     setDraft(DEFAULT_DRAFT);
     setPendingPlannerHandoff(null);
     setHandoffStatus({ tone: "neutral", message: "Browser draft reset. No planner handoff is selected." });
     window.localStorage.removeItem(STORAGE_KEY);
-    setNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
+    publishNotice({ tone: "success", title: "Browser draft reset", detail: "Only non-secret planner values were removed from this browser." });
   };
   const resetUniversalSettings = () => {
     window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
@@ -896,59 +1040,59 @@ export default function Home() {
     window.localStorage.removeItem(SCHOOL_UNLOCK_KEY);
     window.localStorage.removeItem(CUSTOM_LOGO_CACHE_KEY);
     setSchoolUnlockConfigured(false);
-    setNotice({ tone: "success", title: "Universal settings reset", detail: "Local preferences, the private vocabulary cache, the custom logo, and the toy unlock credential were cleared." });
+    publishNotice({ tone: "success", title: "Universal settings reset", detail: "Local preferences, the private vocabulary cache, the custom logo, and the toy unlock credential were cleared." });
   };
   const saveSchoolUnlock = async () => {
     if (schoolUnlockInput.length < 4 || schoolUnlockInput.length > 32) {
-      setNotice({ tone: "warning", title: "Unlock credential not saved", detail: "Use a locally entered value from 4 to 32 characters. It is never shown or exported." });
+      publishNotice({ tone: "warning", title: "Unlock credential not saved", detail: "Use a locally entered value from 4 to 32 characters. It is never shown or exported." });
       return;
     }
     const digest = await sha256Text(schoolUnlockInput);
     window.localStorage.setItem(SCHOOL_UNLOCK_KEY, digest);
     setSchoolUnlockConfigured(true);
     setSchoolUnlockInput("");
-    setNotice({ tone: "success", title: "Local unlock credential saved", detail: "The credential is stored only as a local digest. This toy lock is not a security boundary." });
+    publishNotice({ tone: "success", title: "Local unlock credential saved", detail: "The credential is stored only as a local digest. This toy lock is not a security boundary." });
   };
   const disableSchoolMode = async () => {
     const stored = window.localStorage.getItem(SCHOOL_UNLOCK_KEY);
     if (!stored) {
-      setNotice({ tone: "warning", title: "Set an unlock credential first", detail: `Set a local credential before turning off ${universalSettings.schoolModeName}. Clearing this site's storage remains the documented recovery route.` });
+      publishNotice({ tone: "warning", title: "Set an unlock credential first", detail: `Set a local credential before turning off ${universalSettings.schoolModeName}. Clearing this site's storage remains the documented recovery route.` });
       return;
     }
     if (!schoolUnlockInput) {
-      setNotice({ tone: "warning", title: "Unlock value required", detail: `Enter the local credential to turn off ${universalSettings.schoolModeName}.` });
+      publishNotice({ tone: "warning", title: "Unlock value required", detail: `Enter the local credential to turn off ${universalSettings.schoolModeName}.` });
       return;
     }
     const digest = await sha256Text(schoolUnlockInput);
     if (digest !== stored) {
-      setNotice({ tone: "warning", title: "Unlock value did not match", detail: `The local credential did not match. The ${universalSettings.schoolModeName} setting remains on.` });
+      publishNotice({ tone: "warning", title: "Unlock value did not match", detail: `The local credential did not match. The ${universalSettings.schoolModeName} setting remains on.` });
       return;
     }
     setSchoolUnlockInput("");
     updateUniversalSettings("schoolModeEnabled", false);
-    setNotice({ tone: "success", title: `${universalSettings.schoolModeName} turned off`, detail: "The previous language and tone preferences are available again." });
+    publishNotice({ tone: "success", title: `${universalSettings.schoolModeName} turned off`, detail: "The previous language and tone preferences are available again." });
   };
   const selectPersonalVocabulary = async (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.currentTarget.files?.item(0);
     event.currentTarget.value = "";
     if (!selected) return;
     if (selected.size > PERSONAL_VOCABULARY_LIMITS.maxBytes) {
-      setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: "Choose a JSON file no larger than 64 KiB." });
+      publishNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: "Choose a JSON file no larger than 64 KiB." });
       return;
     }
     try {
       const result = parsePersonalVocabularyJson(await selected.text());
       if (!result.ok) {
-        setNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: result.reason });
+        publishNotice({ tone: "warning", title: "Personal vocabulary rejected", detail: result.reason });
         return;
       }
       const serialized = JSON.stringify(result.value);
       window.localStorage.setItem(PERSONAL_VOCABULARY_CACHE_KEY, serialized);
       setPersonalVocabularyEntries(result.value.entries);
       updateUniversalSettings("personalVocabulary", { status: "loaded", entryCount: result.value.entries.length });
-      setNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately and now style user-facing copy. Protected commands, URLs, identifiers, paths, code, and factual records remain unchanged.` });
+      publishNotice({ tone: "success", title: "Personal vocabulary validated locally", detail: `${result.value.entries.length} bounded entries are cached privately and now style user-facing copy. Protected commands, URLs, identifiers, paths, code, and factual records remain unchanged.` });
     } catch (error) {
-      setNotice({ tone: "warning", title: "Personal vocabulary was not applied", detail: error instanceof Error ? error.message : "The local file could not be read or cached. The previous vocabulary remains active." });
+      publishNotice({ tone: "warning", title: "Personal vocabulary was not applied", detail: error instanceof Error ? error.message : "The local file could not be read or cached. The previous vocabulary remains active." });
     }
   };
   const clearPersonalVocabulary = () => {
@@ -956,9 +1100,9 @@ export default function Home() {
       window.localStorage.removeItem(PERSONAL_VOCABULARY_CACHE_KEY);
       setPersonalVocabularyEntries([]);
       updateUniversalSettings("personalVocabulary", { status: "empty", entryCount: 0 });
-      setNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording is active again." });
+      publishNotice({ tone: "info", title: "Personal vocabulary cleared", detail: "The private cache was removed and original shipped wording is active again." });
     } catch (error) {
-      setNotice({ tone: "warning", title: "Personal vocabulary was not cleared", detail: error instanceof Error ? error.message : "The local cache could not be removed, so the active vocabulary remains unchanged." });
+      publishNotice({ tone: "warning", title: "Personal vocabulary was not cleared", detail: error instanceof Error ? error.message : "The local cache could not be removed, so the active vocabulary remains unchanged." });
     }
   };
   const selectCustomLogo = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -970,9 +1114,9 @@ export default function Home() {
       window.localStorage.setItem(CUSTOM_LOGO_CACHE_KEY, dataUrl);
       setCustomLogoPreview(dataUrl);
       updateUniversalSettings("customLogoStatus", "loaded");
-      setNotice({ tone: "success", title: "Custom logo converted locally", detail: "The validated PNG or JPEG is cached only in this browser. Package identity and installer identity were not changed." });
+      publishNotice({ tone: "success", title: "Custom logo converted locally", detail: "The validated PNG or JPEG is cached only in this browser. Package identity and installer identity were not changed." });
     } catch (error) {
-      setNotice({ tone: "warning", title: "Custom logo rejected", detail: error instanceof Error ? error.message : "The local image could not be converted." });
+      publishNotice({ tone: "warning", title: "Custom logo rejected", detail: error instanceof Error ? error.message : "The local image could not be converted." });
     }
   };
   const clearCustomLogo = () => {
@@ -980,7 +1124,7 @@ export default function Home() {
     setCustomLogoPreview(null);
     updateUniversalSettings("customLogoStatus", "empty");
     updateUniversalSettings("logoPreset", "default");
-    setNotice({ tone: "info", title: "Custom logo cleared", detail: "The shipped default mark is active again." });
+    publishNotice({ tone: "info", title: "Custom logo cleared", detail: "The shipped default mark is active again." });
   };
   const exportPlannerHandoff = () => {
     try {
@@ -993,10 +1137,10 @@ export default function Home() {
       download.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
       setHandoffStatus({ tone: "success", message: "Structured planner handoff JSON was prepared for a user-triggered download. It contains only the displayed non-secret planning values." });
-      setNotice({ tone: "success", title: "Planner handoff exported", detail: "The JSON download contains no paths, URLs, credentials, or raw command text." });
+      publishNotice({ tone: "success", title: "Planner handoff exported", detail: "The JSON download contains no paths, URLs, credentials, or raw command text." });
     } catch {
       setHandoffStatus({ tone: "warning", message: "The current choices cannot be exported until every required handoff field is compatible and complete." });
-      setNotice({ tone: "warning", title: "Planner handoff was not exported", detail: "Review the version, Java, and port choices before trying again." });
+      publishNotice({ tone: "warning", title: "Planner handoff was not exported", detail: "Review the version, Java, and port choices before trying again." });
     }
   };
   const selectPlannerHandoff = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -1013,11 +1157,11 @@ export default function Home() {
       const preview = previewPlannerHandoff(handoff);
       setPendingPlannerHandoff(handoff);
       setHandoffStatus({ tone: "info", message: `${preview.serverName} is ready for review. Apply it to replace only the safe planner fields shown below.` });
-      setNotice({ tone: "info", title: "Planner handoff ready to review", detail: "No browser draft value changed until you explicitly apply the imported plan." });
+      publishNotice({ tone: "info", title: "Planner handoff ready to review", detail: "No browser draft value changed until you explicitly apply the imported plan." });
     } catch {
       setPendingPlannerHandoff(null);
       setHandoffStatus({ tone: "warning", message: "The selected JSON was rejected. A complete, bounded non-secret planner-handoff v1 is required." });
-      setNotice({ tone: "warning", title: "Planner handoff rejected", detail: "The browser draft was left unchanged." });
+      publishNotice({ tone: "warning", title: "Planner handoff rejected", detail: "The browser draft was left unchanged." });
     }
   };
   const applyImportedPlannerHandoff = () => {
@@ -1026,12 +1170,12 @@ export default function Home() {
     setDraft((current) => applyPlannerHandoffToBrowserDraft(current, pendingPlannerHandoff));
     setPendingPlannerHandoff(null);
     setHandoffStatus({ tone: "success", message: `${preview.serverName} was applied to this browser-local draft. Appearance-only settings remained local.` });
-    setNotice({ tone: "success", title: "Imported planner handoff applied", detail: "Only the non-secret planning fields were replaced. No server action was started." });
+    publishNotice({ tone: "success", title: "Imported planner handoff applied", detail: "Only the non-secret planning fields were replaced. No server action was started." });
   };
   const discardImportedPlannerHandoff = () => {
     setPendingPlannerHandoff(null);
     setHandoffStatus({ tone: "neutral", message: "Imported planner handoff discarded. The browser-local draft was not changed." });
-    setNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
+    publishNotice({ tone: "info", title: "Planner handoff discarded", detail: "No imported values were applied." });
   };
   const appStyle = { "--seed": universalSettings.seedColor } as CSSProperties;
   const selectedPage = PAGE_DEFINITIONS.find((page) => page.id === activePage) ?? PAGE_DEFINITIONS[0];
@@ -1658,6 +1802,177 @@ export default function Home() {
     </div>
   );
 
+  const notificationPersistenceLabel = notificationPersistenceStatus === "saved"
+    ? "Saved locally"
+    : notificationPersistenceStatus === "unavailable"
+      ? "Local persistence unavailable"
+      : "Checking local storage";
+  const notificationPage = (
+    <div className="page-stack">
+      <PageHeading page={selectedPage} />
+      <section className="surface-card notice-panel" aria-labelledby="notification-centre-title">
+        <div>
+          <p className="eyebrow">Non-blocking notice history</p>
+          <h2 id="notification-centre-title">Review what happened in this browser</h2>
+          <p className="body-copy">
+            Toasts remain non-blocking; informational and success notices auto-dismiss from the corner, while warnings and errors remain
+            until dismissed. This centre keeps a bounded local record so you can review active and dismissed notices without any remote
+            delivery or account.
+          </p>
+        </div>
+        <span className={`status-chip status-chip--${notificationPersistenceStatus === "unavailable" ? "warning" : notificationPersistenceStatus === "saved" ? "success" : "neutral"}`}>
+          {notificationPersistenceLabel}
+        </span>
+      </section>
+
+      <section className="surface-card notification-centre" aria-labelledby="notification-controls-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Review and bulk actions</p>
+            <h2 id="notification-controls-title">{activeNotificationCount} active · {dismissedNotificationCount} dismissed</h2>
+          </div>
+          <span className="status-chip status-chip--neutral">{notificationRecords.length} / 100 stored</span>
+        </div>
+
+        <SearchField
+          id="notification-centre-search"
+          label="Search notification centre"
+          placeholder="Search notices"
+          state={notificationSearch}
+          onChange={setNotificationSearch}
+        />
+
+        <div className="notification-centre__view-row" role="group" aria-label="Notification record view">
+          {([
+            ["active", "Active", activeNotificationCount],
+            ["dismissed", "Dismissed", dismissedNotificationCount],
+            ["all", "All", notificationRecords.length],
+          ] as const).map(([view, label, count]) => (
+            <button
+              key={view}
+              type="button"
+              className={notificationView === view ? "segment is-selected" : "segment"}
+              aria-pressed={notificationView === view}
+              onClick={() => setNotificationView(view)}
+            >
+              {label} <span aria-label={`${count} records`}>({count})</span>
+            </button>
+          ))}
+        </div>
+
+        <fieldset className="notification-centre__scope">
+          <legend>Select-all scope</legend>
+          <label className="check-row">
+            <input
+              type="radio"
+              name="notification-select-scope"
+              value="view"
+              checked={notificationSelectScope === "view"}
+              onChange={() => setNotificationSelectScope("view")}
+            />
+            Current view only ({filteredNotificationRecords.length})
+          </label>
+          <label className="check-row">
+            <input
+              type="radio"
+              name="notification-select-scope"
+              value="all"
+              checked={notificationSelectScope === "all"}
+              onChange={() => setNotificationSelectScope("all")}
+            />
+            Every matching record ({allMatchingNotificationRecords.length})
+          </label>
+          <p className="field-help">
+            Current view respects the Active, Dismissed, or All filter. Every matching record includes matching records across all three statuses;
+            both scopes stay inside this bounded browser-local collection.
+          </p>
+        </fieldset>
+
+        <div className="button-row" aria-label="Notification selection actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={selectAllNotifications}
+            aria-label={`Select all notification records in ${notificationSelectScope === "view" ? "the current view" : "every matching record"}`}
+          >
+            Select all in {notificationSelectScope === "view" ? "current view" : "every matching record"}
+          </button>
+          <button type="button" className="secondary-button" onClick={invertNotifications} aria-label="Invert notification selection">
+            Invert selection
+          </button>
+          <button type="button" className="secondary-button" onClick={clearNotificationSelection} disabled={selectedNotificationIds.length === 0}>
+            Clear selection ({selectedNotificationIds.length})
+          </button>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={dismissSelectedNotifications}
+            disabled={selectedDismissibleCount === 0}
+            aria-describedby="notification-bulk-dismiss-help"
+          >
+            Dismiss selected ({selectedDismissibleCount})
+          </button>
+        </div>
+        <p id="notification-bulk-dismiss-help" className="field-help">
+          Bulk dismiss changes only selected active dismissible records. Dismissed records are retained for review and are never sent anywhere.
+        </p>
+        {notificationStatusMessage ? <p className="field-help" role="status" aria-live="polite">{notificationStatusMessage}</p> : null}
+
+        {filteredNotificationRecords.length === 0 ? (
+          <p className="empty-state empty-state--positive" role="status">
+            {notificationRecords.length === 0
+              ? "No notices have been recorded yet. Informational, success, warning, and error toasts will appear here after they occur."
+              : "No notification records match the current view and search."}
+          </p>
+        ) : (
+          <div className="notification-record-list" role="list" aria-label="Notification records">
+            {filteredNotificationRecords.map((record) => {
+              const isSelected = selectedNotificationSet.has(record.id);
+              const isDismissed = record.dismissedAt !== null;
+              const displayedTimestamp = isDismissed ? record.dismissedAt ?? record.createdAt : record.createdAt;
+              return (
+                <article key={record.id} className={`notification-record notification-record--${record.tone}`} role="listitem">
+                  <label className="notification-record__select">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleNotificationSelection(record.id)}
+                      aria-label={`Select notification: ${record.title}`}
+                    />
+                    <span aria-hidden="true" />
+                  </label>
+                  <div className="notification-record__body">
+                    <div className="notification-record__heading">
+                      <span className="notice__marker" aria-label={`${record.tone} notification`}>
+                        {record.tone === "error" || record.tone === "warning" ? "!" : record.tone === "success" ? "✓" : "i"}
+                      </span>
+                      <div>
+                        <h3>{record.title}</h3>
+                        <p>{record.detail}</p>
+                      </div>
+                    </div>
+                    <div className="notification-record__meta">
+                      <time dateTime={displayedTimestamp}>{isDismissed ? "Dismissed" : "Received"} {new Date(displayedTimestamp).toLocaleString()}</time>
+                      {isDismissed ? (
+                        <span className="status-chip status-chip--neutral">Dismissed · retained for review</span>
+                      ) : record.dismissible ? (
+                        <button type="button" className="text-action" onClick={() => dismissNotification(record.id)} aria-label={`Dismiss notification: ${record.title}`}>
+                          Dismiss
+                        </button>
+                      ) : (
+                        <span className="status-chip status-chip--neutral">Review only</span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+
   const settingsPage = (
     <div className="page-stack">
       <PageHeading page={selectedPage} />
@@ -1888,6 +2203,7 @@ export default function Home() {
     safety: safetyPage,
     docs: docsPage,
     "release-status": releaseStatusPage,
+    notifications: notificationPage,
     settings: settingsPage,
   };
 
@@ -1970,7 +2286,12 @@ export default function Home() {
         <div className={`toast toast--${notice.tone}`} role="status" aria-live="polite">
           <strong>{notice.title}</strong>
           <span>{notice.detail}</span>
-          <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss notification">×</button>
+          <div className="toast__actions">
+            <button type="button" className="toast__review" onClick={() => { setActivePage("notifications"); setPaletteOpen(false); setNotice(null); }}>
+              Review
+            </button>
+            <button type="button" onClick={() => dismissNotification(notice.id)} aria-label={`Dismiss notification: ${notice.title}`}>×</button>
+          </div>
         </div>
       ) : null}
 
