@@ -11,6 +11,17 @@ A static companion publication and published, version-pinned GitHub Release asse
 available separately. Neither record proves local installer operation,
 external-service integration, live server connection, or server-process action.
 
+The source-build route now includes a committed root `package-lock.json`, and
+`build.bat` installs it with `npm ci`. This closes the prior fresh-archive
+failure where the documented build route had no deterministic dependency
+graph. The lock/build verification does not claim installer execution or
+installed-application lifecycle evidence.
+
+On 2026-08-20, `npm ci --no-audit --no-fund`,
+`npm run test:security-audit`, and `npm run build` completed successfully. The
+audit resolved Electron 42.9.3 with zero reported vulnerabilities, and the
+build produced `dist/main/index.js` plus `dist/renderer/index.html`.
+
 ## Companion-site record
 
 The companion site is a browser-local planning and documentation surface. Its
