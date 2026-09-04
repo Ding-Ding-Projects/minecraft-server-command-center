@@ -1,0 +1,49 @@
+{
+  "_framework-Bgv8lyWM.js": {
+    "file": "minecraft-server-command-center/_next/static/chunks/framework-Bgv8lyWM.js",
+    "name": "framework",
+    "imports": [
+      "_rolldown-runtime-pg8bLjbd.js"
+    ]
+  },
+  "_rolldown-runtime-pg8bLjbd.js": {
+    "file": "minecraft-server-command-center/_next/static/chunks/rolldown-runtime-pg8bLjbd.js",
+    "name": "rolldown-runtime"
+  },
+  "app/page.tsx": {
+    "file": "minecraft-server-command-center/_next/static/chunks/page-D1nx9Tsc.js",
+    "name": "page",
+    "src": "app/page.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-pg8bLjbd.js",
+      "_framework-Bgv8lyWM.js"
+    ]
+  },
+  "node_modules/vinext/dist/shims/layout-segment-context.js": {
+    "file": "minecraft-server-command-center/_next/static/chunks/layout-segment-context-xaBAEvs7.js",
+    "name": "layout-segment-context",
+    "src": "node_modules/vinext/dist/shims/layout-segment-context.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-pg8bLjbd.js",
+      "virtual:vinext-app-browser-entry",
+      "_framework-Bgv8lyWM.js"
+    ]
+  },
+  "virtual:vinext-app-browser-entry": {
+    "file": "minecraft-server-command-center/_next/static/chunks/index-Dwt2Bj4U.js",
+    "name": "index",
+    "src": "virtual:vinext-app-browser-entry",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-pg8bLjbd.js",
+      "_framework-Bgv8lyWM.js"
+    ],
+    "dynamicImports": [
+      "virtual:vinext-app-browser-entry",
+      "node_modules/vinext/dist/shims/layout-segment-context.js",
+      "app/page.tsx"
+    ]
+  }
+}
