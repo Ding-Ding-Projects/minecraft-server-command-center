@@ -6,17 +6,16 @@ package updates or application changes.
 
 ## Baseline
 
-The root package has no `package-lock.json`, `npm-shrinkwrap.json`, `yarn.lock`, or `pnpm-lock.yaml`.
-The release workflow therefore follows the repository's normal range-based install path:
+The root package now carries `package-lock.json`. Fresh source builds and the
+root build entry point therefore use the committed dependency graph:
 
 ```text
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 ```
 
-Running `npm audit --json` directly in the repository is not reproducible without a lockfile. npm
-returns `ENOLOCK` with `This command requires an existing lockfile` and suggests creating one with
-`npm i --package-lock-only`. That generated lockfile is used only in the disposable verification
-project described below; it is not committed as a new repository-wide lockfile policy.
+The committed lock was generated from the reviewed `package.json` with npm
+10.9.8 under Node.js 22.23.2. It makes the source-build contract deterministic;
+it does not by itself prove the packaged application or installer lifecycle.
 
 The pre-existing installed tree resolved:
 
@@ -49,19 +48,20 @@ Run:
 npm run test:security-audit
 ```
 
-The focused check copies the current manifest into a temporary directory, creates a temporary
+The focused check copies the current manifest into a temporary directory, resolves an isolated
 lockfile with `npm install --package-lock-only --ignore-scripts --no-audit --no-fund`, and runs
 `npm audit --json` there. It fails unless the resolved Electron version is at least 42.4.0, the
 vulnerable `node_modules/extract-zip` path is absent, `@electron-internal/extract-zip` is present,
 and npm reports zero vulnerabilities. The temporary lockfile is removed after the check.
 
-This check proves the range-based package resolution and audit result. It does not claim that the
+This check proves the current manifest's package resolution and audit result. It does not claim that the
 desktop application has been packaged or that an installer has been executed.
 
 ## Failure and residual boundaries
 
-The check requires registry access because this repository deliberately does not commit a root
-lockfile. A registry outage, an npm failure, or a future Electron release that reintroduces the
+The focused advisory check requires registry access because it deliberately re-resolves the current
+manifest in isolation. The ordinary source build uses the committed lockfile instead. A registry
+outage, an npm failure, or a future deliberate lock refresh that reintroduces the
 unpatched package fails closed with the exact local reason. The upstream `extract-zip` advisory
 remains open with no patched package release; the repository is safe only when the resolved
 Electron tree continues to omit that package.

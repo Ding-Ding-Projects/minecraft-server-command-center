@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Added the root npm lockfile and changed `build.bat` to use `npm ci`, so the
+  documented source-build route resolves the same dependency graph on every
+  fresh checkout instead of selecting new range-compatible versions.
 - Recorded the verified published `v0.1.52` release for source commit
   `53f304e9a389e5264739d2cab9383f10083f70e6`, including workflow `31847230951`,
   exact unsigned artifact hashes and line-count totals, the public dim-sum photo

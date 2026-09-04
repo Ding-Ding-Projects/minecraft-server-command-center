@@ -33,8 +33,8 @@ if errorlevel 1 (
 
 echo [1/3] Node.js found: 
 node --version
-echo [2/3] Installing declared project dependencies...
-call npm install --no-audit --no-fund
+echo [2/3] Installing locked project dependencies...
+call npm ci --no-audit --no-fund
 if errorlevel 1 (
   echo ERROR: Dependency installation failed.
   exit /b 1
