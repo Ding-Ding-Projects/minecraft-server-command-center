@@ -1,5 +1,18 @@
 # Handoff
 
+## Repository closeout snapshot
+
+Closeout inventory recorded at `2026-09-18T13:19:55-04:00`:
+
+- The primary checkout is `C:\Users\cntow\Documents\GitHub\minecraft-server-command-center` on `main` at `e29666f3df23485b8f76091f5d2b5f3705312606`.
+- `origin/main` points to the same commit, verified with `git ls-remote` after fetching the remote.
+- `origin/gh-pages` remains at `5d1e4d134b4fdc356d762dce545be8053f0a5d5c` and was not changed.
+- `git worktree list --porcelain` reports only the primary checkout. No linked checkout, additional local branch, or stash was discovered, so there was no recoverable uncommitted or half-finished work to preserve elsewhere.
+- `git ls-files -u` returned no unmerged index entries, and the tracked-file conflict-marker scan returned no conflict markers.
+- Open issue #3 remains intentionally open because its record still identifies additional runtime, accessibility, and capture evidence as outstanding. This closeout does not claim that evidence.
+
+No release, deployment, server connection, external issue mutation, or unrelated family was touched during this closeout.
+
 ## Current snapshot
 
 The repository currently records two implementation foundations:

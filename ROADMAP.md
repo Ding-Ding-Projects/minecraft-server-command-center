@@ -1,5 +1,17 @@
 # Roadmap
 
+## Repository closeout snapshot
+
+Recorded at `2026-09-18T13:19:55-04:00` after fetching the remote:
+
+- [x] Confirm the primary checkout is clean and aligned with `origin/main` at `e29666f3df23485b8f76091f5d2b5f3705312606`.
+- [x] Inventory linked checkouts, local branches, and stashes. Only the primary `main` checkout exists; no recoverable half-finished work was found outside it.
+- [x] Confirm there are no unmerged index entries or conflict markers.
+- [x] Preserve the current open issue record without claiming its remaining runtime, accessibility, or capture evidence.
+- [x] Leave `origin/gh-pages` unchanged at `5d1e4d134b4fdc356d762dce545be8053f0a5d5c`.
+
+No additional release or deployment work is included in this closeout.
+
 ## Status
 
 Minecraft Server Command Center contains browser-local companion-site and
