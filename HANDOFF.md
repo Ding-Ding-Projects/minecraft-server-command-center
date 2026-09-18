@@ -10,7 +10,7 @@ Closeout inventory recorded at `2026-09-18T13:19:55-04:00`:
 - `git worktree list --porcelain` reports only the primary checkout. No linked checkout, additional local branch, or stash was discovered, so there was no recoverable uncommitted or half-finished work to preserve elsewhere.
 - `git ls-files -u` returned no unmerged index entries, and the tracked-file conflict-marker scan returned no conflict markers.
 - Open issue #3 remains intentionally open because its record still identifies additional runtime, accessibility, and capture evidence as outstanding. This closeout does not claim that evidence.
-- The external 7z archive `minecraft-server-command-center-20260918T173800Z.7z` was created and tested successfully before cleanup review. It is 5,298,591 bytes and contains 255 files plus 73 folders, including a non-empty `.git` directory. The archive source set was 143 tracked files and 0 non-ignored untracked files; 26,035 ignored files were excluded by Git's ignore rules.
+- The final external 7z archive `minecraft-server-command-center-20260918T174100Z.7z` was created and tested successfully after the final documentation commit. It is 5,315,254 bytes and contains 259 files plus 77 folders, including a non-empty `.git` directory. The archive source set was 143 tracked files and 0 non-ignored untracked files; 26,035 ignored files were excluded by Git's ignore rules.
 - No linked checkout, local branch, or stash met the conditions for removal. No Mat Day deletion was performed.
 
 No release, deployment, server connection, external issue mutation, or unrelated family was touched during this closeout.

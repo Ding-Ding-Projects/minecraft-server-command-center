@@ -9,7 +9,7 @@ Recorded at `2026-09-18T13:19:55-04:00` after fetching the remote:
 - [x] Confirm there are no unmerged index entries or conflict markers.
 - [x] Preserve the current open issue record without claiming its remaining runtime, accessibility, or capture evidence.
 - [x] Leave `origin/gh-pages` unchanged at `5d1e4d134b4fdc356d762dce545be8053f0a5d5c`.
-- [x] Create and verify the external archive `minecraft-server-command-center-20260918T173800Z.7z` at 5,298,591 bytes with 255 files, 73 folders, and a non-empty `.git` directory.
+- [x] Create and verify the final external archive `minecraft-server-command-center-20260918T174100Z.7z` at 5,315,254 bytes with 259 files, 77 folders, and a non-empty `.git` directory.
 - [x] Confirm that no safe redundant checkout, branch, or stash exists for removal; no cleanup deletion was performed.
 
 No additional release or deployment work is included in this closeout.
